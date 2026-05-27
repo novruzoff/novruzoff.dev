@@ -147,3 +147,8 @@ vite.config.ts.timestamp-*
 dist/
 .env
 .env.production
+
+# AI agent skills (local tooling, not project source)
+.agents/
+.claude/
+.cursor/

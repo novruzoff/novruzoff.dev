@@ -46,13 +46,21 @@ Wire these as CSS custom properties in `global.css`, exposed to Tailwind v4 via 
 Amber is rare on purpose. Use only for:
 - Interactive elements (links, buttons, hover states)
 - Emphasized text (project names in the hero, contact email)
-- The 6px nav dot (recurring brand mark)
 
 Never use amber for:
 - Body text
 - Decorative shapes
 - Full backgrounds
 - Multiple elements on the same row
+
+### No decorative marks
+
+The site does not use:
+- Logo marks, monograms, or graphic brand elements in the nav
+- Decorative dots, chevrons, or shapes next to the name
+- Stylized lowercase or affected casing on proper nouns
+
+Proper nouns (name, project names, company names) are set in standard sentence case in the same type system as the rest of the site. The typography is the brand.
 
 ### Typography
 
@@ -85,11 +93,11 @@ Sentence case everywhere. Never Title Case, never ALL CAPS.
 
 Single page. Sections stacked vertically with thin dividers:
 
-1. **Top nav** — name (with amber dot), simple links: work, writing (placeholder), about
-2. **Hero** — small metadata line, statement (~2 sentences), context line with 2 amber-underlined emphases
-3. **Selected work** — section header with count, 4 project rows
-4. **Experience** — section header, 3-4 role rows
-5. **Footer** — copyright, email (amber), github, linkedin
+1. **Top nav** — name `Murad Novruzov` on the left in the sans stack (sentence case, no decorative mark). Right side has nav links in mono: work, writing (placeholder), about.
+2. **Hero** — small metadata line in mono, statement (~2 sentences), context line with 2 amber-underlined emphases.
+3. **Selected work** — section header in mono with count, 4 project rows.
+4. **Experience** — section header in mono, 3-4 role rows.
+5. **Footer** — copyright, email (amber), github, linkedin.
 
 No separate pages yet. Everything on `/`. Case study pages may come later under `/work/[slug]`.
 

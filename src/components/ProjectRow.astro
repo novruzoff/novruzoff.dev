@@ -1,0 +1,70 @@
+---
+import type { Project } from "../data/projects";
+
+type Props = { project: Project };
+const { project } = Astro.props;
+
+const href = project.caseStudyUrl ?? project.liveUrl ?? project.repoUrl;
+const linkLabel = project.caseStudyUrl
+  ? "case"
+  : project.liveUrl
+    ? "live"
+    : project.repoUrl
+      ? "repo"
+      : null;
+---
+
+<article
+  class="project-row group grid items-baseline py-4"
+  style="grid-template-columns: 100px 1fr 80px; column-gap: 16px; border-top: 0.5px solid var(--border-subtle);"
+>
+  <span
+    class="mono text-[11px]"
+    style="color: var(--text-tertiary);"
+  >
+    {project.dates}
+  </span>
+
+  <div class="min-w-0">
+    <h3
+      class="text-[15px] font-medium leading-tight"
+      style="color: var(--text-primary);"
+    >
+      {project.title}
+    </h3>
+    <p
+      class="mt-1 text-[14px] leading-[1.55]"
+      style="color: var(--text-secondary);"
+    >
+      {project.blurb}
+    </p>
+  </div>
+
+  <div class="mono text-[11px] text-right">
+    {
+      href && linkLabel ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer noopener"
+          class="project-link"
+        >
+          {linkLabel} ↗
+        </a>
+      ) : (
+        <span style="color: var(--text-tertiary);">—</span>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .project-link {
+    color: var(--text-tertiary);
+    transition: color 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .project-link:hover,
+  .project-row:hover .project-link {
+    color: var(--accent-light);
+  }
+</style>

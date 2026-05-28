@@ -1,0 +1,43 @@
+---
+import type { Experience } from "../data/experience";
+
+type Props = { experience: Experience };
+const { experience } = Astro.props;
+---
+
+<article
+  class="grid items-baseline py-3"
+  style="grid-template-columns: 100px 1fr; column-gap: 16px; border-top: 0.5px solid var(--border-subtle);"
+>
+  <span
+    class="mono text-[11px]"
+    style="color: var(--text-tertiary);"
+  >
+    {experience.dates}
+  </span>
+
+  <div class="min-w-0 flex flex-wrap items-baseline gap-x-2">
+    <span
+      class="text-[14px]"
+      style="color: var(--text-primary);"
+    >
+      {experience.role}
+    </span>
+    <span
+      class="text-[14px]"
+      style="color: var(--text-secondary);"
+    >
+      · {experience.company}
+    </span>
+    {
+      experience.location && (
+        <span
+          class="mono text-[11px] ml-auto"
+          style="color: var(--text-tertiary);"
+        >
+          {experience.location}
+        </span>
+      )
+    }
+  </div>
+</article>

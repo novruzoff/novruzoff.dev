@@ -7,24 +7,24 @@ type Props = {
 const { label, meta } = Astro.props;
 ---
 
-<header
-  class="mono flex items-baseline justify-between pb-3 mb-2"
-  style="border-bottom: 0.5px solid var(--border-subtle);"
->
-  <span
-    class="text-[13px] font-medium"
-    style="color: var(--text-secondary);"
-  >
-    {label}
-  </span>
-  {
-    meta && (
-      <span
-        class="text-[11px]"
-        style="color: var(--text-tertiary);"
-      >
-        {meta}
-      </span>
-    )
-  }
+<header class="mono mb-2">
+  <div class="flex items-baseline justify-between pb-3">
+    <span
+      class="text-[13px] font-medium"
+      style="color: var(--text-secondary);"
+    >
+      {label}
+    </span>
+    {
+      meta && (
+        <span
+          class="text-[11px]"
+          style="color: var(--text-tertiary);"
+        >
+          {meta}
+        </span>
+      )
+    }
+  </div>
+  <span class="section-rule" aria-hidden="true"></span>
 </header>

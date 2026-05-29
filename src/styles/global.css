@@ -1,9 +1,18 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Playfair Display Subset";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/playfair-display-italic-500-novruzov.woff2") format("woff2");
+  unicode-range: U+004E, U+006E, U+006F, U+0072, U+0075, U+0076, U+007A, U+0066;
+}
+
 @theme {
-  --color-bg-page: #0a0a0a;
-  --color-bg-elevated: #141414;
-  --color-bg-hover: #1a1a1a;
+  --color-bg-page: #0f0f10;
+  --color-bg-elevated: #161618;
+  --color-bg-hover: #1c1c1e;
 
   --color-border-subtle: rgba(255, 255, 255, 0.06);
   --color-border: rgba(255, 255, 255, 0.10);
@@ -23,9 +32,9 @@
 }
 
 :root {
-  --bg-page: #0a0a0a;
-  --bg-elevated: #141414;
-  --bg-hover: #1a1a1a;
+  --bg-page: #0f0f10;
+  --bg-elevated: #161618;
+  --bg-hover: #1c1c1e;
 
   --border-subtle: rgba(255, 255, 255, 0.06);
   --border: rgba(255, 255, 255, 0.10);
@@ -39,11 +48,16 @@
   --accent-light: #fbbf54;
   --accent-bg: rgba(245, 158, 11, 0.10);
   --accent-border: rgba(245, 158, 11, 0.25);
+  --accent-glow: rgba(245, 158, 11, 0.30);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display-serif: "Playfair Display Subset", Georgia, "Times New Roman", serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   color-scheme: dark;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 html,
@@ -74,17 +88,187 @@ a {
   font-feature-settings: "tnum";
 }
 
-.hairline {
-  border-color: var(--border-subtle);
-  border-style: solid;
-  border-width: 0;
+/* ─────────────────────────────────────────────────────────
+   Hero
+   ───────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-page);
+  overflow: hidden;
+  isolation: isolate;
 }
 
+.hero-gradient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  background: radial-gradient(
+    700px 700px at var(--mx, 50%) var(--my, 25%),
+    var(--accent-glow),
+    transparent 65%
+  );
+  will-change: opacity;
+}
+
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .hero-gradient {
+    display: none;
+  }
+}
+
+/* Phase 1 intro — "Murad" sans, centered, paired with the bottom-anchored
+   morph word that JS transforms into the same row. */
+.intro-murad {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  z-index: 4;
+  font-size: clamp(54px, 8vw, 110px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  transform: translateY(-50%);
+  opacity: 0;
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
+
+.hero-tagline {
+  position: absolute;
+  top: clamp(20px, 4vw, 40px);
+  left: clamp(20px, 4vw, 40px);
+  z-index: 3;
+  max-width: 280px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+  opacity: 0;
+}
+.hero-tagline span {
+  display: block;
+}
+.hero-tagline span + span {
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.hero-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-chrome {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: baseline;
+  gap: 24px;
+  padding: 14px clamp(20px, 4vw, 40px) 18px;
+  border-top: 0.5px solid var(--border-subtle);
+  font-size: 13px;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+  opacity: 0;
+}
+.hero-chrome > * {
+  min-width: 0;
+}
+.hero-chrome .left {
+  text-align: left;
+  color: var(--text-tertiary);
+}
+.hero-chrome .center {
+  text-align: center;
+}
+.hero-chrome .right {
+  text-align: right;
+}
+.hero-chrome a {
+  transition: color 180ms var(--ease-out-expo);
+}
+.hero-chrome a:hover {
+  color: var(--text-primary);
+}
+.hero-chrome .sep {
+  color: var(--text-tertiary);
+  margin: 0 2px;
+}
+
+.hero-name {
+  display: block;
+  width: 100%;
+  padding: 0 clamp(12px, 2.5vw, 32px) clamp(24px, 3.5vw, 48px);
+  margin: 0;
+  font-family: var(--font-display-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(100px, 18vw, 240px);
+  line-height: 0.95;
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  transform-origin: 0% 50%;
+  will-change: transform, opacity;
+}
+
+/* Per-letter spans — inline-block so we can animate width/scale individually
+   without breaking baseline alignment. */
+.hero-name .L {
+  display: inline-block;
+  vertical-align: baseline;
+  white-space: pre;
+}
+/* The case-morph cell stacks N (default) and n (post-morph). */
+.hero-name .L-case .g-lo {
+  display: none;
+}
+/* Trailing v collapses to width 0 during morph. */
+.hero-name .L-v-trailing {
+  /* JS sets explicit width before collapsing */
+  overflow: hidden;
+}
+/* The two new ff letters start at width 0, opacity 0; JS expands them. */
+.hero-name .L-f {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* Reduced-motion end-state = Phase 3 settled, no Murad, no gradient. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
-    animation: none !important;
+  .intro-murad {
+    display: none;
+  }
+  .hero-name,
+  .hero-tagline,
+  .hero-chrome {
+    opacity: 1;
+    transform: none;
+  }
+  .hero-name .L-case .g-up {
+    display: none;
+  }
+  .hero-name .L-case .g-lo {
+    display: inline-block;
+  }
+  .hero-name .L-v-trailing {
+    display: none;
+  }
+  .hero-name .L-f {
+    width: auto;
+    opacity: 1;
   }
 }

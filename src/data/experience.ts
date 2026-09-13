@@ -7,27 +7,27 @@ export type Experience = {
 
 export const experience: Experience[] = [
   {
-    role: "CTO · Software engineer",
+    role: "Founding Developer",
     company: "True Competency",
-    dates: "2024 — now",
-    location: "Montreal / remote",
-  },
-  {
-    role: "Engineering lead",
-    company: "MindVista",
-    dates: "2024 — now",
+    dates: "Sep 2025 — present",
     location: "Montreal",
   },
   {
-    role: "Software developer",
-    company: "SSMU",
-    dates: "2024",
-    location: "McGill University",
+    role: "Full Stack Developer & Team Lead",
+    company: "MindVista",
+    dates: "Nov 2024 — present",
+    location: "Montreal",
   },
   {
-    role: "Research assistant",
-    company: "ARB",
-    dates: "2023 — 2024",
-    location: "McGill University",
+    role: "Web Developer",
+    company: "SSMU",
+    dates: "Jul 2025 — May 2026",
+    location: "Montreal",
+  },
+  {
+    role: "Web Development Intern",
+    company: "ARB (Azerbaijan Republic Broadcaster)",
+    dates: "2023",
+    location: "Baku, Azerbaijan",
   },
 ];

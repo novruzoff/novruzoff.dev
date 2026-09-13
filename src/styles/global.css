@@ -60,6 +60,10 @@
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+html {
+  scroll-padding-top: 32px;
+}
+
 html,
 body {
   background: var(--bg-page);
@@ -72,6 +76,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+body {
+  overflow-x: clip;
+}
+
 *::selection {
   background: var(--accent-bg);
   color: var(--accent-light);
@@ -82,14 +90,66 @@ a {
   text-decoration: none;
 }
 
+:focus-visible {
+  outline: 1px solid var(--accent-border);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
+.wrap {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 4vw, 40px);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Scroll progress hairline (native scroll-driven, no JS)
+   ───────────────────────────────────────────────────────── */
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.9;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+@keyframes progress-grow {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress {
+    display: none;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────
    Hero
+   Base styles = settled end state (what no-JS users see).
+   The entrance start states are gated behind html.js +
+   prefers-reduced-motion: no-preference further down.
    ───────────────────────────────────────────────────────── */
 
 .hero {
@@ -115,16 +175,14 @@ a {
   );
   will-change: opacity;
 }
-
 @media (hover: none), (prefers-reduced-motion: reduce) {
   .hero-gradient {
     display: none;
   }
 }
 
-/* Phase 1 intro — "Murad" sans, centered, paired with the bottom-anchored
-   morph word that JS transforms into the same row. */
 .intro-murad {
+  display: none;
   position: fixed;
   top: 50%;
   left: 0;
@@ -150,7 +208,6 @@ a {
   line-height: 1.45;
   color: var(--text-secondary);
   letter-spacing: -0.005em;
-  opacity: 0;
 }
 .hero-tagline span {
   display: block;
@@ -180,7 +237,6 @@ a {
   font-size: 13px;
   color: var(--text-secondary);
   letter-spacing: -0.005em;
-  opacity: 0;
 }
 .hero-chrome > * {
   min-width: 0;
@@ -214,61 +270,407 @@ a {
   font-family: var(--font-display-serif);
   font-style: italic;
   font-weight: 500;
-  font-size: clamp(100px, 18vw, 240px);
+  font-size: clamp(64px, 18vw, 240px);
   line-height: 0.95;
   letter-spacing: -0.022em;
   color: var(--text-primary);
   white-space: nowrap;
-  opacity: 0;
-  transform-origin: 0% 50%;
+  transform-origin: 0 0;
   will-change: transform, opacity;
 }
 
-/* Per-letter spans — inline-block so we can animate width/scale individually
-   without breaking baseline alignment. */
 .hero-name .L {
   display: inline-block;
   vertical-align: baseline;
   white-space: pre;
 }
-/* The case-morph cell stacks N (default) and n (post-morph). */
-.hero-name .L-case .g-lo {
-  display: none;
-}
-/* Trailing v collapses to width 0 during morph. */
-.hero-name .L-v-trailing {
-  /* JS sets explicit width before collapsing */
-  overflow: hidden;
-}
-/* The two new ff letters start at width 0, opacity 0; JS expands them. */
+.hero-name .L-v-trailing,
 .hero-name .L-f {
-  width: 0;
-  opacity: 0;
   overflow: hidden;
 }
 
-/* Reduced-motion end-state = Phase 3 settled, no Murad, no gradient. */
-@media (prefers-reduced-motion: reduce) {
-  .intro-murad {
+/* Settled glyph states (no-JS and reduced-motion users land here) */
+.hero-name .g-up {
+  display: none;
+}
+.hero-name .g-lo {
+  display: inline;
+}
+.hero-name .L-v-trailing {
+  display: none;
+}
+
+/* Entrance start states — only when JS is running and motion is allowed */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .intro-murad {
+    display: block;
+  }
+  html.js .hero-name {
+    opacity: 0;
+  }
+  html.js .hero-name .g-up {
+    display: inline;
+  }
+  html.js .hero-name .g-lo {
     display: none;
   }
-  .hero-name,
-  .hero-tagline,
-  .hero-chrome {
+  html.js .hero-name .L-v-trailing {
+    display: inline-block;
+  }
+  html.js .hero-name .L-f {
+    width: 0;
+    opacity: 0;
+  }
+  html.js .hero-tagline,
+  html.js .hero-chrome {
+    opacity: 0;
+  }
+}
+
+/* Hero lags slightly and dims as it scrolls away (scroll-linked, subtle) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-bottom {
+      animation: hero-exit linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 90%;
+    }
+  }
+}
+@keyframes hero-exit {
+  to {
+    transform: translateY(48px);
+    opacity: 0.15;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Sections
+   ───────────────────────────────────────────────────────── */
+
+.section {
+  padding-block: clamp(48px, 7vw, 72px);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 10px;
+}
+.section-head h2 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+.section-head .meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* Header rule draws itself in as the section enters the viewport */
+.section-rule {
+  display: block;
+  height: 0.5px;
+  background: var(--border);
+  transform-origin: 0 50%;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .section-rule {
+      transform: scaleX(0);
+      animation: rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes rule-draw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Scroll reveals (IntersectionObserver adds .is-in)
+   Hidden state gated behind html.js so no-JS users see content.
+   ───────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 700ms var(--ease-out-expo),
+      transform 700ms var(--ease-out-expo);
+    transition-delay: calc(var(--reveal-i, 0) * 70ms);
+  }
+  html.js [data-reveal].is-in {
     opacity: 1;
     transform: none;
   }
-  .hero-name .L-case .g-up {
-    display: none;
-  }
-  .hero-name .L-case .g-lo {
-    display: inline-block;
-  }
-  .hero-name .L-v-trailing {
-    display: none;
-  }
-  .hero-name .L-f {
-    width: auto;
+}
+
+/* ─────────────────────────────────────────────────────────
+   Project rows
+   ───────────────────────────────────────────────────────── */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+.rows > * + * {
+  border-top: 0.5px solid var(--border-subtle);
+}
+
+.project-row {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 100px 1fr 88px;
+  grid-template-areas: "date content aff";
+  column-gap: 18px;
+  align-items: baseline;
+  padding-block: 18px;
+}
+.project-row > * {
+  transition: transform 220ms var(--ease-out-expo);
+}
+.project-row::after {
+  content: "";
+  position: absolute;
+  inset: 0 -14px;
+  z-index: -1;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out-expo);
+}
+.project-row::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform 280ms var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .project-row:hover::after {
     opacity: 1;
+  }
+  .project-row:hover::before {
+    transform: scaleY(1);
+  }
+  .project-row:hover > * {
+    transform: translateX(4px);
+  }
+  .project-row:hover .row-link {
+    color: var(--accent-light);
+  }
+  .project-row:hover .arrow {
+    transform: translate(3px, -3px);
+  }
+}
+
+.row-date {
+  grid-area: date;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.row-content {
+  grid-area: content;
+  min-width: 0;
+}
+.row-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.row-blurb {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.row-aff {
+  grid-area: aff;
+  text-align: right;
+  font-size: 11px;
+}
+.row-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--text-tertiary);
+  transition: color 200ms var(--ease-out-expo);
+}
+.arrow {
+  display: inline-block;
+  transition: transform 240ms var(--ease-out-expo);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Experience rows
+   ───────────────────────────────────────────────────────── */
+
+.xp-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  column-gap: 18px;
+  align-items: baseline;
+  padding-block: 14px;
+}
+.xp-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-width: 0;
+}
+.xp-role {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.xp-co {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.xp-loc {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* ─────────────────────────────────────────────────────────
+   About + contact
+   ───────────────────────────────────────────────────────── */
+
+.about p {
+  max-width: 60ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.about p + p {
+  margin-top: 14px;
+}
+.about a {
+  color: var(--accent-light);
+  border-bottom: 0.5px solid var(--accent-border);
+  transition: color 180ms var(--ease-out-expo);
+}
+.about a:hover {
+  color: var(--accent);
+}
+.about strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.contact-line {
+  max-width: 60ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.contact-email {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--accent-light);
+  border-bottom: 0.5px solid var(--accent-border);
+  transition: color 180ms var(--ease-out-expo);
+}
+.contact-email:hover {
+  color: var(--accent);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Footer + bookend
+   ───────────────────────────────────────────────────────── */
+
+.footer {
+  margin-top: clamp(32px, 6vw, 64px);
+  overflow-x: clip;
+}
+.footer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-block: 16px;
+  border-top: 0.5px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.footer-right {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+}
+.footer-meta a {
+  transition: color 180ms var(--ease-out-expo);
+}
+.footer-meta a:hover {
+  color: var(--text-secondary);
+}
+
+/* Ghost bookend: the handle again, watermark-weight, links back to top */
+.bookend {
+  display: block;
+  padding: clamp(16px, 3vw, 32px) clamp(12px, 2.5vw, 32px) clamp(12px, 2vw, 24px);
+  font-family: var(--font-display-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(64px, 18vw, 240px);
+  line-height: 0.9;
+  letter-spacing: -0.022em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.07);
+  transition: color 600ms var(--ease-out-expo);
+}
+.bookend:hover {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Mobile
+   ───────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .hero-chrome {
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+  }
+  .hero-chrome .left {
+    display: none;
+  }
+  .hero-chrome .center {
+    text-align: left;
+  }
+
+  .project-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "date aff"
+      "content content";
+    row-gap: 6px;
+  }
+
+  .xp-row {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+  }
+  .xp-loc {
+    margin-left: 0;
+    width: 100%;
   }
 }

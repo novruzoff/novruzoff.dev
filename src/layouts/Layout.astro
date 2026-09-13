@@ -7,17 +7,45 @@ type Props = {
 };
 
 const {
-  title = "Murad Novruzov",
-  description = "CS student at McGill, CTO at True Competency. Product-forward software engineer based in Montreal.",
+  title = "Murad Novruzov — Software engineer",
+  description = "Software engineer in Montreal. CTO at True Competency, CS at McGill. I build product-forward software for small teams that need to ship.",
 } = Astro.props;
+
+const canonical = Astro.site
+  ? new URL(Astro.url.pathname, Astro.site).href
+  : undefined;
+
+const personSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Murad Novruzov",
+  url: "https://novruzoff.dev",
+  email: "mailto:murad@novruzoff.dev",
+  jobTitle: "CTO",
+  worksFor: { "@type": "Organization", name: "True Competency" },
+  alumniOf: { "@type": "CollegeOrUniversity", name: "McGill University" },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Montreal",
+    addressCountry: "CA",
+  },
+  sameAs: [
+    "https://github.com/novruzoff",
+    "https://linkedin.com/in/novruzoff",
+  ],
+});
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script is:inline>document.documentElement.classList.add("js");</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
     <link
       rel="preload"
       href="/fonts/playfair-display-italic-500-novruzov.woff2"
@@ -25,14 +53,15 @@ const {
       type="font/woff2"
       crossorigin="anonymous"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content={description} />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="theme-color" content="#0f0f10" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <title>{title}</title>
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:site_name" content="novruzoff.dev" />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline type="application/ld+json" set:html={personSchema} />
   </head>
   <body>
     <slot />

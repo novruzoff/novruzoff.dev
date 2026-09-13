@@ -14,7 +14,7 @@ export const projects: Project[] = [
     title: "True Competency",
     dates: "2024 — now",
     blurb:
-      "Competency-tracking platform for interventional cardiology training. Sole engineer, live with a paying institutional client.",
+      "Competency-tracking platform for interventional cardiology training. Sole engineer. Live with a paying institutional client (APSC, Hong Kong).",
     liveUrl: "https://truecompetency.com",
   },
   {
@@ -22,7 +22,7 @@ export const projects: Project[] = [
     title: "MindVista",
     dates: "2024 — now",
     blurb:
-      "Mental health resource directory for McGill students. Search, filter, and triage across 200+ campus and city services.",
+      "Student wellness platform for McGill: resource directory, events, and crisis navigation used across campus.",
     liveUrl: "https://mindvista.ca",
   },
   {
@@ -37,7 +37,7 @@ export const projects: Project[] = [
     title: "MyMeetings",
     dates: "2023",
     blurb:
-      "Calendar-aware meeting summarizer that drafts pre-reads and follow-ups from your week.",
+      "Calendar-aware meeting assistant that drafts pre-reads and follow-ups from your week.",
     repoUrl: "https://github.com/novruzoff/mymeetings",
   },
 ];

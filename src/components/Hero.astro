@@ -1,19 +1,23 @@
 ---
-// Hero — three-phase entrance.
-// Phase 1: intro (hold 2.5s). Phase 2: Murad exits, Novruzov morphs into
-// novruzoff and the word travels to its bottom-anchored rest position.
-// Phase 3: tagline + nav + cursor-reactive gradient settle in.
-// Vanilla WAAPI; no React, no GSAP. See <script> at the bottom.
+// Hero: three-phase entrance.
+// Phase 1 (hold ~2.5s): "Murad Novruzov" centered, sans + italic serif.
+// Phase 2 (~1.8s): Murad exits left; Novruzov morphs per-letter into
+// "novruzoff" while the word travels to its bottom-anchored rest position.
+// Phase 3: tagline, chrome, and cursor-reactive gradient settle in.
+//
+// Vanilla WAAPI, no deps. Replays are skipped within a session
+// (sessionStorage) because a 5s entrance is for first impressions only.
+// Reduced-motion and no-JS users land directly on the settled state via CSS.
 ---
 
-<section class="hero">
+<section class="hero" id="top">
   <div class="hero-gradient" aria-hidden="true"></div>
 
   <div class="intro-murad" aria-hidden="true">Murad</div>
 
   <div class="hero-tagline">
     <span>Software engineer, CTO at True Competency.</span>
-    <span>Currently building things at McGill.</span>
+    <span>CS at McGill, based in Montreal.</span>
   </div>
 
   <div class="hero-bottom">
@@ -32,11 +36,11 @@
           >Email</a
         >
       </div>
-      <div class="right">
-        <a href="#work">Work</a><span class="sep"> · </span><a href="#info"
-          >Info</a
+      <nav class="right" aria-label="Sections">
+        <a href="#work">Work</a><span class="sep"> · </span><a href="#about"
+          >About</a
         ><span class="sep"> · </span><a href="#contact">Contact</a>
-      </div>
+      </nav>
     </div>
 
     <h1 class="hero-name" aria-label="novruzoff">
@@ -52,255 +56,282 @@
 </section>
 
 <script>
-  // ───────────────────────────────────────────────────────────
-  // Hero entrance — vanilla WAAPI + rAF lerp. No deps.
-  // ───────────────────────────────────────────────────────────
-
-  const EASE_OUT_EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
-  const EASE_IN_QUART = "cubic-bezier(0.4, 0, 1, 1)";
+  const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
   const EASE_IN_OUT = "cubic-bezier(0.4, 0, 0.6, 1)";
 
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
+  const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+  const nextFrame = () =>
+    new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-  const root = document.querySelector(".hero") as HTMLElement | null;
-  if (root) {
-    const introMurad = root.querySelector<HTMLElement>(".intro-murad");
-    const heroName = root.querySelector<HTMLElement>(".hero-name");
-    const tagline = root.querySelector<HTMLElement>(".hero-tagline");
-    const chrome = root.querySelector<HTMLElement>(".hero-chrome");
-    const gradient = root.querySelector<HTMLElement>(".hero-gradient");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hero = document.querySelector<HTMLElement>(".hero");
 
-    const caseMorph = root.querySelector<HTMLElement>(".L-case");
-    const caseUpper = root.querySelector<HTMLElement>(".L-case .g-up");
-    const caseLower = root.querySelector<HTMLElement>(".L-case .g-lo");
-    const vTrailing = root.querySelector<HTMLElement>(".L-v-trailing");
-    const fNews = Array.from(root.querySelectorAll<HTMLElement>(".L-f"));
+  if (hero && !reduce) {
+    const introMurad = hero.querySelector<HTMLElement>(".intro-murad")!;
+    const heroName = hero.querySelector<HTMLElement>(".hero-name")!;
+    const tagline = hero.querySelector<HTMLElement>(".hero-tagline");
+    const chrome = hero.querySelector<HTMLElement>(".hero-chrome");
+    const gradient = hero.querySelector<HTMLElement>(".hero-gradient");
+    const caseMorph = hero.querySelector<HTMLElement>(".L-case");
+    const caseUpper = hero.querySelector<HTMLElement>(".g-up");
+    const caseLower = hero.querySelector<HTMLElement>(".g-lo");
+    const vTrailing = hero.querySelector<HTMLElement>(".L-v-trailing");
+    const fNews = Array.from(hero.querySelectorAll<HTMLElement>(".L-f"));
 
-    if (reduceMotion) {
-      // CSS already handles the Phase 3 end-state. Just kick the cursor-loop off.
-      // (gradient is display:none under reduce-motion, so nothing to do.)
-    } else if (heroName && introMurad) {
+    // The 5s entrance plays once per session; replays land settled fast.
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem("introSeen") === "1";
+      sessionStorage.setItem("introSeen", "1");
+    } catch {}
+
+    // If the browser restored a scroll position, the intro would play
+    // off-screen (and Murad is position:fixed) — settle instead.
+    const skipIntro = seen || window.scrollY > window.innerHeight * 0.4;
+
+    if (skipIntro) {
+      settleFast();
+    } else {
       void runEntrance();
     }
 
-    /* ───────────────────────────────────────────────────────
-       Entrance timeline
-       ─────────────────────────────────────────────────────── */
+    function setGlyphEndState() {
+      if (caseUpper) caseUpper.style.display = "none";
+      if (caseLower) caseLower.style.display = "inline";
+      if (vTrailing) vTrailing.style.display = "none";
+      for (const f of fNews) {
+        f.style.width = "auto";
+        f.style.opacity = "1";
+      }
+    }
+
+    function settleFast() {
+      introMurad.style.display = "none";
+      setGlyphEndState();
+      heroName.animate(
+        [
+          { opacity: 0, transform: "translateY(12px)" },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 600, easing: EASE, fill: "forwards" }
+      );
+      tagline?.animate(
+        [
+          { opacity: 0, transform: "translateY(8px)" },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 500, easing: EASE, delay: 80, fill: "forwards" }
+      );
+      chrome?.animate(
+        [
+          { opacity: 0, transform: "translateY(8px)" },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 500, easing: EASE, delay: 160, fill: "forwards" }
+      );
+      gradient?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
+        duration: 600,
+        easing: "ease-out",
+        delay: 200,
+        fill: "forwards",
+      });
+      startGradientLerp();
+    }
+
     async function runEntrance() {
-      // Wait one frame so layout is settled before measuring.
+      // Don't burn the entrance in a background tab.
+      if (document.visibilityState === "hidden") {
+        await new Promise<void>((r) =>
+          document.addEventListener("visibilitychange", () => r(), {
+            once: true,
+          })
+        );
+      }
+      // Measure with the real serif loaded, not the fallback.
+      try {
+        await Promise.race([document.fonts.ready, wait(900)]);
+      } catch {}
       await nextFrame();
 
-      // Measure final (Phase 2) and intro (Phase 1) font sizes.
-      const finalSize = parseFloat(getComputedStyle(heroName!).fontSize);
-      const introSize = parseFloat(getComputedStyle(introMurad!).fontSize);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const finalSize = parseFloat(getComputedStyle(heroName).fontSize);
+      const introSize = parseFloat(getComputedStyle(introMurad).fontSize);
       const scale = introSize / finalSize;
 
-      // Pre-measure widths of the v-trailing and ff letters at full size,
-      // so we can collapse / expand them later.
-      const vWidth = vTrailing
-        ? vTrailing.getBoundingClientRect().width
-        : 0;
-      const fWidths = fNews.map((el) => {
-        // Temporarily un-collapse to measure natural width.
-        const prevW = el.style.width;
-        const prevO = el.style.opacity;
-        el.style.width = "auto";
-        el.style.opacity = "0"; // stay invisible during measure
-        const w = el.getBoundingClientRect().width;
-        el.style.width = prevW;
-        el.style.opacity = prevO;
+      // Natural widths of the two incoming f's, measured invisibly
+      // before any transform is applied (rects would be scaled later).
+      const fTargets = fNews.map((f) => {
+        f.style.width = "auto";
+        const w = f.getBoundingClientRect().width;
+        f.style.width = "0px";
         return w;
       });
-      // Re-collapse explicitly (no flash).
-      fNews.forEach((el) => {
-        el.style.width = "0px";
-        el.style.opacity = "0";
+
+      const nameRect = heroName.getBoundingClientRect();
+      const muradW = introMurad.getBoundingClientRect().width;
+      const gap = Math.max(24, vw * 0.018);
+      const introNameW = nameRect.width * scale;
+      const introNameH = nameRect.height * scale;
+      const pairW = muradW + gap + introNameW;
+      const stacked = pairW > vw - 40;
+
+      let muradLeft: number;
+      let nameLeft: number;
+      let nameCenterY = vh / 2;
+      if (stacked) {
+        // Narrow viewports: Murad above, Novruzov below, both centered.
+        muradLeft = (vw - muradW) / 2;
+        nameLeft = (vw - introNameW) / 2;
+        introMurad.style.top = `calc(50% - ${introSize * 0.8}px)`;
+        nameCenterY = vh / 2 + introSize * 0.8;
+      } else {
+        muradLeft = (vw - pairW) / 2;
+        nameLeft = muradLeft + muradW + gap;
+      }
+      introMurad.style.left = `${muradLeft}px`;
+
+      const tx = nameLeft - nameRect.left;
+      const ty = nameCenterY - introNameH / 2 - nameRect.top;
+      heroName.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+
+      // ── Phase 1: fade in, then hold so the name can actually be read ──
+      const nameFade = heroName.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400,
+        easing: EASE,
+        fill: "forwards",
       });
+      introMurad.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 400,
+        easing: EASE,
+        fill: "forwards",
+      });
+      await wait(2500);
 
-      // Center the pair ("Murad" + scaled-down "Novruzov") on the viewport.
-      const rect = heroName!.getBoundingClientRect();
-      const muradWidth = introMurad!.getBoundingClientRect().width;
-      const novruzovIntroWidth = rect.width * scale;
-      const gap = 28;
-      const pairWidth = muradWidth + gap + novruzovIntroWidth;
-      const pairLeft = (window.innerWidth - pairWidth) / 2;
-      const muradLeft = pairLeft;
-      const novruzovLeft = muradLeft + muradWidth + gap;
-
-      introMurad!.style.left = `${muradLeft}px`;
-
-      const targetCenterY = window.innerHeight / 2;
-      const tx = novruzovLeft - rect.left;
-      const ty = targetCenterY - (rect.top + rect.height / 2);
-
-      // Apply Phase 1 state (transform only — opacity stays 0 from CSS).
-      heroName!.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-
-      // ── Phase 1: fade name + Murad in over 400ms, then hold ─────────
-      const introFadeIn = 400;
-      const holdMs = 2100; // total Phase 1 ≈ 2.5s incl. fade
-      heroName!.animate(
-        [{ opacity: 0 }, { opacity: 1 }],
-        { duration: introFadeIn, easing: EASE_OUT_EXPO, fill: "forwards" }
-      );
-      introMurad!.animate(
-        [{ opacity: 0, transform: "translateY(-50%)" }, { opacity: 1, transform: "translateY(-50%)" }],
-        { duration: introFadeIn, easing: EASE_OUT_EXPO, fill: "forwards" }
-      );
-
-      await wait(introFadeIn + holdMs);
-
-      // ── Phase 2: Murad exits, word morphs + travels ─────────────────
-      // 1. Murad slides left + fades (~700ms)
-      const muradExit = introMurad!.animate(
+      // ── Phase 2: Murad exits; the word morphs and travels ──
+      const muradExit = introMurad.animate(
         [
-          { transform: "translate(0, -50%)", opacity: 1 },
-          { transform: "translate(-110%, -50%)", opacity: 0 },
+          { transform: "translateY(-50%) translateX(0)", opacity: 1 },
+          { transform: "translateY(-50%) translateX(-40vw)", opacity: 0 },
         ],
-        { duration: 700, easing: EASE_OUT_EXPO, fill: "forwards" }
+        { duration: 700, easing: EASE, fill: "forwards" }
       );
+      muradExit.finished
+        .then(() => {
+          introMurad.style.display = "none";
+        })
+        .catch(() => {});
 
-      // 2. Word transforms back to identity (1500ms, the carrier motion)
-      heroName!.animate(
+      const travel = heroName.animate(
         [
           { transform: `translate(${tx}px, ${ty}px) scale(${scale})` },
           { transform: "translate(0, 0) scale(1)" },
         ],
-        { duration: 1500, easing: EASE_OUT_EXPO, fill: "forwards" }
+        { duration: 1500, easing: EASE, fill: "forwards" }
       );
 
-      // 3. Letter morph wave (overlapping micro-tweens).
-      //    All inside the traveling word; offsets relative to Phase 2 start.
-      scheduleMorph();
+      const morphAnims = scheduleMorph(fTargets);
 
-      await muradExit.finished;
-      // Murad is fully gone — remove from a11y/layout cost.
-      introMurad!.style.display = "none";
+      await wait(1700);
 
-      // Wait for the carrier motion + last letter to settle.
-      await wait(1500 - 700 + 200); // ~1000ms more after Murad finishes
-
-      // ── Phase 3: tagline + nav + gradient ──────────────────────────
+      // ── Phase 3: tagline, chrome, gradient ──
       tagline?.animate(
         [
           { opacity: 0, transform: "translateY(8px)" },
-          { opacity: 1, transform: "translateY(0)" },
+          { opacity: 1, transform: "none" },
         ],
-        { duration: 500, easing: EASE_OUT_EXPO, fill: "forwards" }
+        { duration: 500, easing: EASE, fill: "forwards" }
       );
-      // 80ms stagger before chrome
-      setTimeout(() => {
-        chrome?.animate(
-          [
-            { opacity: 0, transform: "translateY(8px)" },
-            { opacity: 1, transform: "translateY(0)" },
-          ],
-          { duration: 500, easing: EASE_OUT_EXPO, fill: "forwards" }
-        );
-      }, 80);
-      gradient?.animate(
-        [{ opacity: 0 }, { opacity: 0.22 }],
-        { duration: 600, easing: EASE_OUT_EXPO, fill: "forwards" }
+      chrome?.animate(
+        [
+          { opacity: 0, transform: "translateY(8px)" },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 500, easing: EASE, delay: 80, fill: "forwards" }
       );
-
-      // Cursor-reactive gradient lerp (runs forever).
+      gradient?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
+        duration: 600,
+        easing: "ease-out",
+        fill: "forwards",
+      });
       startGradientLerp();
+
+      // ── Finalize: clear pixel-locked widths/transforms so the layout
+      // survives window resizes after the entrance. ──
+      await wait(800);
+      heroName.style.opacity = "1";
+      heroName.style.transform = "";
+      setGlyphEndState();
+      try {
+        nameFade.cancel();
+        travel.cancel();
+        for (const a of morphAnims) a.cancel();
+      } catch {}
     }
 
-    /* ───────────────────────────────────────────────────────
-       Per-letter morph: Novruzov → novruzoff
-       ─────────────────────────────────────────────────────── */
-    function scheduleMorph() {
-      // Wave order, all relative to Phase 2 start (now).
-      // Each effect = an independent WAAPI animation.
+    function scheduleMorph(fTargets: number[]) {
+      const anims: Animation[] = [];
 
-      // [t=200ms] N → n via scaleY squash + character swap at the bottom.
+      // N → n: scaleY squash; glyph swaps at the squash midpoint where
+      // the eye can't read detail. One motion, not two events.
       setTimeout(() => {
         if (!caseMorph) return;
-        const squash = 440;
-        caseMorph.animate(
-          [
-            { transform: "scaleY(1)" },
-            { transform: "scaleY(0.18)", offset: 0.5 },
-            { transform: "scaleY(1)" },
-          ],
-          { duration: squash, easing: EASE_IN_OUT, fill: "forwards" }
+        anims.push(
+          caseMorph.animate(
+            [
+              { transform: "scaleY(1)" },
+              { transform: "scaleY(0.18)", offset: 0.5 },
+              { transform: "scaleY(1)" },
+            ],
+            { duration: 440, easing: EASE_IN_OUT, fill: "forwards" }
+          )
         );
-        // Mid-squash, swap which glyph is visible.
         setTimeout(() => {
           if (caseUpper) caseUpper.style.display = "none";
-          if (caseLower) caseLower.style.display = "inline-block";
-        }, squash / 2);
+          if (caseLower) caseLower.style.display = "inline";
+        }, 220);
       }, 200);
 
-      // [t=260ms] trailing v collapses width 0, opacity 0.
+      // Trailing v: collapse width + opacity. offsetWidth is layout
+      // width — immune to the scale transform mid-travel.
       setTimeout(() => {
         if (!vTrailing) return;
-        // Fix its current width so animation has something to interpolate from.
-        const w = vTrailing.getBoundingClientRect().width;
-        vTrailing.style.width = w + "px";
-        // Force reflow so the initial width applies before the animation.
-        void vTrailing.offsetWidth;
-        vTrailing.animate(
-          [
-            { width: w + "px", opacity: 1 },
-            { width: "0px", opacity: 0 },
-          ],
-          { duration: 520, easing: EASE_IN_OUT, fill: "forwards" }
+        const w = vTrailing.offsetWidth;
+        anims.push(
+          vTrailing.animate(
+            [
+              { width: `${w}px`, opacity: 1 },
+              { width: "0px", opacity: 0 },
+            ],
+            { duration: 520, easing: EASE_IN_OUT, fill: "forwards" }
+          )
         );
-        // Lock the post-state so WAAPI's fill:forwards on width persists.
-        setTimeout(() => {
-          vTrailing.style.width = "0px";
-          vTrailing.style.opacity = "0";
-        }, 520);
       }, 260);
 
-      // [t=520ms] first f expands.
-      animateFIn(0, 520);
-      // [t=580ms] second f expands.
-      animateFIn(1, 580);
-    }
-
-    function animateFIn(idx: number, delay: number) {
-      const f = fNews[idx];
-      if (!f) return;
-      // The natural width was measured earlier and stashed by closure.
-      // Re-measure off the rendered element to be resilient to resize.
-      const target = f.dataset.targetWidth
-        ? parseFloat(f.dataset.targetWidth)
-        : measureFTarget(f);
-      setTimeout(() => {
-        f.animate(
-          [
-            { width: "0px", opacity: 0 },
-            { width: target + "px", opacity: 1 },
-          ],
-          { duration: 460, easing: EASE_OUT_EXPO, fill: "forwards" }
+      // The two f's: expand from width 0, same mechanism as the v
+      // in reverse so the morph reads as one operation.
+      fTargets.forEach((w, i) => {
+        setTimeout(
+          () => {
+            const f = fNews[i];
+            if (!f) return;
+            anims.push(
+              f.animate(
+                [
+                  { width: "0px", opacity: 0 },
+                  { width: `${w}px`, opacity: 1 },
+                ],
+                { duration: 460, easing: EASE, fill: "forwards" }
+              )
+            );
+          },
+          520 + i * 60
         );
-        setTimeout(() => {
-          f.style.width = target + "px";
-          f.style.opacity = "1";
-        }, 460);
-      }, delay);
+      });
+
+      return anims;
     }
 
-    function measureFTarget(el: HTMLElement): number {
-      const prevW = el.style.width;
-      const prevO = el.style.opacity;
-      el.style.width = "auto";
-      el.style.opacity = "0";
-      const w = el.getBoundingClientRect().width;
-      el.style.width = prevW;
-      el.style.opacity = prevO;
-      el.dataset.targetWidth = String(w);
-      return w;
-    }
-
-    /* ───────────────────────────────────────────────────────
-       Cursor-reactive gradient (rAF lerp, damping 0.08)
-       ─────────────────────────────────────────────────────── */
     function startGradientLerp() {
       if (!gradient) return;
       if (window.matchMedia("(hover: none)").matches) return;
@@ -311,11 +342,14 @@
       let currentY = targetY;
       const damping = 0.08;
 
-      const onMove = (e: MouseEvent) => {
-        targetX = e.clientX;
-        targetY = e.clientY;
-      };
-      window.addEventListener("mousemove", onMove, { passive: true });
+      window.addEventListener(
+        "mousemove",
+        (e) => {
+          targetX = e.clientX;
+          targetY = e.clientY;
+        },
+        { passive: true }
+      );
 
       const tick = () => {
         currentX += (targetX - currentX) * damping;
@@ -325,16 +359,6 @@
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
-    }
-
-    /* ─── helpers ─────────────────────────────────────────── */
-    function wait(ms: number) {
-      return new Promise<void>((r) => setTimeout(r, ms));
-    }
-    function nextFrame() {
-      return new Promise<void>((r) =>
-        requestAnimationFrame(() => r())
-      );
     }
   }
 </script>

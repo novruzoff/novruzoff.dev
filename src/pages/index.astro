@@ -1,8 +1,151 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import ProjectRow from "../components/ProjectRow.astro";
+import ExperienceRow from "../components/ExperienceRow.astro";
+import { projects } from "../data/projects";
+import { experience } from "../data/experience";
+
+const year = new Date().getFullYear();
 ---
 
 <Layout>
+  <span class="scroll-progress" aria-hidden="true"></span>
+
   <Hero />
+
+  <main class="wrap">
+    <section id="work" class="section">
+      <SectionHeader
+        label="Selected work"
+        meta={`0${projects.length} projects`}
+      />
+      <div class="rows">
+        {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
+      </div>
+    </section>
+
+    <section id="experience" class="section">
+      <SectionHeader
+        label="Experience"
+        meta={`0${experience.length} roles`}
+      />
+      <div class="rows">
+        {experience.map((entry, i) => <ExperienceRow experience={entry} index={i} />)}
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <SectionHeader label="About" />
+      <div class="about" data-reveal>
+        <p>
+          I'm Murad, a software engineer and CS student at McGill. I'm the CTO
+          and sole engineer at
+          <a
+            href="https://truecompetency.com"
+            target="_blank"
+            rel="noreferrer noopener">True Competency</a
+          >, a competency-tracking platform for interventional cardiology
+          training. It's live with a paying institutional client, and I own
+          everything from the database schema to the deploy pipeline.
+        </p>
+        <p>
+          Before that: internal tooling for SSMU, a campus wellness platform
+          at MindVista, and research work in robotics. I like owning products
+          end to end, and keeping the stack boring so the product can be
+          interesting.
+        </p>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <SectionHeader label="Contact" />
+      <p class="contact-line" data-reveal>
+        Open to internships, contract work, and interesting problems.
+      </p>
+      <a
+        class="contact-email"
+        data-reveal
+        style="--reveal-i: 1"
+        href="mailto:murad@novruzoff.dev">murad@novruzoff.dev</a
+      >
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-meta mono">
+      <span>© {year} Murad Novruzov · Montreal</span>
+      <span class="footer-right">
+        <a
+          href="https://github.com/novruzoff"
+          target="_blank"
+          rel="noreferrer noopener">GitHub</a
+        >
+        <a
+          href="https://linkedin.com/in/novruzoff"
+          target="_blank"
+          rel="noreferrer noopener">LinkedIn</a
+        >
+      </span>
+    </div>
+    <a class="bookend" href="#top" aria-label="Back to top">
+      <span aria-hidden="true">novruzoff</span>
+    </a>
+  </footer>
 </Layout>
+
+<script>
+  import Lenis from "lenis";
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Scroll reveals — IO adds .is-in once, CSS does the rest.
+  const revealEls = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-reveal]")
+  );
+  if (!reduce && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" }
+    );
+    for (const el of revealEls) io.observe(el);
+  } else {
+    for (const el of revealEls) el.classList.add("is-in");
+  }
+
+  // Smooth scroll — Lenis animates native scrollTop, so the CSS
+  // scroll-driven animations (progress bar, rules, hero exit) stay synced.
+  if (!reduce) {
+    const lenis = new Lenis({
+      duration: 1.15,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+    const raf = (time: number) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+
+    // Route same-page anchors through Lenis for a smooth glide.
+    document.addEventListener("click", (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const a = target?.closest('a[href^="#"]');
+      if (!a) return;
+      const hash = a.getAttribute("href");
+      if (!hash || hash.length < 2) return;
+      const dest = document.querySelector<HTMLElement>(hash);
+      if (!dest) return;
+      e.preventDefault();
+      lenis.scrollTo(dest);
+      history.replaceState(null, "", hash);
+    });
+  }
+</script>

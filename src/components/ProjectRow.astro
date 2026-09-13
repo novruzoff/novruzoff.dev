@@ -1,60 +1,50 @@
 ---
 import type { Project } from "../data/projects";
 
-type Props = { project: Project };
-const { project } = Astro.props;
+type Props = { project: Project; index?: number };
+const { project, index = 0 } = Astro.props;
 
 const href = project.caseStudyUrl ?? project.liveUrl ?? project.repoUrl;
-const linkLabel = project.caseStudyUrl
-  ? "case"
+const label = project.caseStudyUrl
+  ? "Case study"
   : project.liveUrl
-    ? "live"
+    ? "Live"
     : project.repoUrl
-      ? "repo"
+      ? "Repo"
       : null;
 ---
 
-<article
-  class="project-row grid items-baseline py-4"
-  style="grid-template-columns: 100px 1fr 80px; column-gap: 16px;"
->
-  <span
-    class="mono text-[11px]"
-    style="color: var(--text-tertiary);"
-  >
-    {project.dates}
-  </span>
+<article class="project-row" data-reveal style={`--reveal-i: ${index}`}>
+  <span class="row-date mono">{project.dates}</span>
 
-  <div class="min-w-0">
-    <h3
-      class="text-[15px] font-medium leading-tight"
-      style="color: var(--text-primary);"
-    >
-      {project.title}
+  <div class="row-content">
+    <h3 class="row-title">
+      {
+        href ? (
+          <a href={href} target="_blank" rel="noreferrer noopener">
+            {project.title}
+          </a>
+        ) : (
+          project.title
+        )
+      }
     </h3>
-    <p
-      class="mt-1 text-[14px] leading-[1.55]"
-      style="color: var(--text-secondary);"
-    >
-      {project.blurb}
-    </p>
+    <p class="row-blurb">{project.blurb}</p>
   </div>
 
-  <div class="mono text-[11px] text-right">
+  <span class="row-aff mono">
     {
-      href && linkLabel ? (
+      href && label ? (
         <a
+          class="row-link"
           href={href}
           target="_blank"
           rel="noreferrer noopener"
-          class="project-link"
+          aria-label={`${project.title}: ${label}`}
         >
-          <span>{linkLabel}</span>
-          <span class="arrow" aria-hidden="true">↗</span>
+          {label}<span class="arrow" aria-hidden="true">↗</span>
         </a>
-      ) : (
-        <span style="color: var(--text-tertiary);">—</span>
-      )
+      ) : null
     }
-  </div>
+  </span>
 </article>

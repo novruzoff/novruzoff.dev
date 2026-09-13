@@ -8,21 +8,25 @@
 // Vanilla WAAPI, no deps. Replays are skipped within a session
 // (sessionStorage) because a 5s entrance is for first impressions only.
 // Reduced-motion and no-JS users land directly on the settled state via CSS.
+// Start states are gated by html.js-hero (see Layout.astro): if this script
+// never runs or throws, the gate drops and CSS shows the settled state.
 ---
 
 <section class="hero" id="top">
-  <div class="hero-gradient" aria-hidden="true"></div>
+  <div class="hero-glow" aria-hidden="true">
+    <div class="hero-gradient"></div>
+  </div>
 
   <div class="intro-murad" aria-hidden="true">Murad</div>
 
   <div class="hero-tagline">
-    <span>Software engineer, CTO at True Competency.</span>
-    <span>CS at McGill, based in Montreal.</span>
+    <span>Software engineer.</span>
+    <span>Founding Developer at True Competency, studying CS at McGill.</span>
   </div>
 
   <div class="hero-bottom">
     <div class="hero-chrome">
-      <div class="left mono">→ v1.0</div>
+      <div class="left mono">Montréal, Canada</div>
       <div class="center">
         <a
           href="https://github.com/novruzoff"
@@ -67,6 +71,10 @@
   const hero = document.querySelector<HTMLElement>(".hero");
 
   if (hero && !reduce) {
+    // Claim the motion gate so Layout's failsafe leaves it in place.
+    document.documentElement.classList.add("hero-live");
+
+    const heroEl = hero;
     const introMurad = hero.querySelector<HTMLElement>(".intro-murad")!;
     const heroName = hero.querySelector<HTMLElement>(".hero-name")!;
     const tagline = hero.querySelector<HTMLElement>(".hero-tagline");
@@ -89,10 +97,14 @@
     // off-screen (and Murad is position:fixed) — settle instead.
     const skipIntro = seen || window.scrollY > window.innerHeight * 0.4;
 
-    if (skipIntro) {
-      settleFast();
-    } else {
-      void runEntrance();
+    try {
+      if (skipIntro) {
+        settleFast();
+      } else {
+        runEntrance().catch(release);
+      }
+    } catch {
+      release();
     }
 
     function setGlyphEndState() {
@@ -105,16 +117,42 @@
       }
     }
 
+    // will-change comes from the gate CSS; drop it once an element is done
+    // animating so it stops holding a compositor layer.
+    function clearWillChange(el: HTMLElement | null) {
+      if (el) el.style.willChange = "auto";
+    }
+
+    // Failure path: stop the entrance, drop the gate, and let CSS show the
+    // settled state instead of leaving the hero invisible or half-morphed.
+    function release() {
+      try {
+        for (const a of heroEl.getAnimations({ subtree: true })) {
+          if (!(a instanceof CSSAnimation) && !(a instanceof CSSTransition)) {
+            a.cancel();
+          }
+        }
+      } catch {}
+      for (const el of [introMurad, heroName, caseUpper, caseLower, vTrailing, ...fNews]) {
+        el?.removeAttribute("style");
+      }
+      document.documentElement.classList.remove("js-hero");
+    }
+
     function settleFast() {
       introMurad.style.display = "none";
+      clearWillChange(introMurad);
       setGlyphEndState();
-      heroName.animate(
-        [
-          { opacity: 0, transform: "translateY(12px)" },
-          { opacity: 1, transform: "none" },
-        ],
-        { duration: 600, easing: EASE, fill: "forwards" }
-      );
+      heroName
+        .animate(
+          [
+            { opacity: 0, transform: "translateY(12px)" },
+            { opacity: 1, transform: "none" },
+          ],
+          { duration: 600, easing: EASE, fill: "forwards" }
+        )
+        .finished.then(() => clearWillChange(heroName))
+        .catch(() => {});
       tagline?.animate(
         [
           { opacity: 0, transform: "translateY(8px)" },
@@ -129,12 +167,15 @@
         ],
         { duration: 500, easing: EASE, delay: 160, fill: "forwards" }
       );
-      gradient?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
-        duration: 600,
-        easing: "ease-out",
-        delay: 200,
-        fill: "forwards",
-      });
+      gradient
+        ?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
+          duration: 600,
+          easing: "ease-out",
+          delay: 200,
+          fill: "forwards",
+        })
+        .finished.then(() => clearWillChange(gradient))
+        .catch(() => {});
       startGradientLerp();
     }
 
@@ -219,6 +260,7 @@
       muradExit.finished
         .then(() => {
           introMurad.style.display = "none";
+          clearWillChange(introMurad);
         })
         .catch(() => {});
 
@@ -249,11 +291,14 @@
         ],
         { duration: 500, easing: EASE, delay: 80, fill: "forwards" }
       );
-      gradient?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
-        duration: 600,
-        easing: "ease-out",
-        fill: "forwards",
-      });
+      gradient
+        ?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
+          duration: 600,
+          easing: "ease-out",
+          fill: "forwards",
+        })
+        .finished.then(() => clearWillChange(gradient))
+        .catch(() => {});
       startGradientLerp();
 
       // ── Finalize: clear pixel-locked widths/transforms so the layout
@@ -262,6 +307,7 @@
       heroName.style.opacity = "1";
       heroName.style.transform = "";
       setGlyphEndState();
+      clearWillChange(heroName);
       try {
         nameFade.cancel();
         travel.cancel();
@@ -332,33 +378,77 @@
       return anims;
     }
 
+    // Cursor glow: eases toward the pointer by transform only, so the layer
+    // never repaints. The loop idles once the glow settles and stays off
+    // while the tab is hidden or the hero is scrolled out of view.
     function startGradientLerp() {
       if (!gradient) return;
       if (window.matchMedia("(hover: none)").matches) return;
+      const glow = gradient;
 
-      let targetX = window.innerWidth / 2;
-      let targetY = window.innerHeight * 0.25;
-      let currentX = targetX;
-      let currentY = targetY;
       const damping = 0.08;
+      let pointerX = window.innerWidth / 2;
+      let pointerY = window.innerHeight * 0.25;
+      let x = 0;
+      let y = 0;
+      let raf = 0;
+      let inView = true;
+
+      // The glow is absolute inside the hero: aim in hero-local coordinates.
+      const aim = () => {
+        const r = heroEl.getBoundingClientRect();
+        return { tx: pointerX - r.left, ty: pointerY - r.top };
+      };
+      const paint = () => {
+        glow.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      };
+      const tick = () => {
+        const { tx, ty } = aim();
+        x += (tx - x) * damping;
+        y += (ty - y) * damping;
+        if (Math.abs(tx - x) < 0.1 && Math.abs(ty - y) < 0.1) {
+          x = tx;
+          y = ty;
+          paint();
+          raf = 0;
+          return;
+        }
+        paint();
+        raf = requestAnimationFrame(tick);
+      };
+      const run = () => {
+        if (!raf && inView && !document.hidden) {
+          raf = requestAnimationFrame(tick);
+        }
+      };
+      const halt = () => {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      };
+
+      const start = aim();
+      x = start.tx;
+      y = start.ty;
+      paint();
 
       window.addEventListener(
         "mousemove",
         (e) => {
-          targetX = e.clientX;
-          targetY = e.clientY;
+          pointerX = e.clientX;
+          pointerY = e.clientY;
+          run();
         },
         { passive: true }
       );
-
-      const tick = () => {
-        currentX += (targetX - currentX) * damping;
-        currentY += (targetY - currentY) * damping;
-        gradient.style.setProperty("--mx", `${currentX}px`);
-        gradient.style.setProperty("--my", `${currentY}px`);
-        requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) halt();
+        else run();
+      });
+      new IntersectionObserver((entries) => {
+        for (const entry of entries) inView = entry.isIntersecting;
+        if (inView) run();
+        else halt();
+      }).observe(heroEl);
     }
   }
 </script>

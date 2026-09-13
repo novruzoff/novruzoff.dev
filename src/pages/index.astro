@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
+import SiteNav from "../components/SiteNav.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import ProjectRow from "../components/ProjectRow.astro";
 import ExperienceRow from "../components/ExperienceRow.astro";
@@ -14,6 +15,7 @@ const year = new Date().getFullYear();
   <span class="scroll-progress" aria-hidden="true"></span>
 
   <Hero />
+  <SiteNav />
 
   <main class="wrap">
     <section id="work" class="section">
@@ -40,21 +42,14 @@ const year = new Date().getFullYear();
       <SectionHeader label="About" />
       <div class="about" data-reveal>
         <p>
-          I'm Murad, a software engineer and CS student at McGill. I'm the CTO
-          and sole engineer at
+          I'm Murad, a software engineer based in Montreal, and I split my time
+          with Baku. I'm the Founding Developer at
           <a
             href="https://truecompetency.com"
             target="_blank"
             rel="noreferrer noopener">True Competency</a
-          >, a competency-tracking platform for interventional cardiology
-          training. It's live with a paying institutional client, and I own
-          everything from the database schema to the deploy pipeline.
-        </p>
-        <p>
-          Before that: internal tooling for SSMU, a campus wellness platform
-          at MindVista, and research work in robotics. I like owning products
-          end to end, and keeping the stack boring so the product can be
-          interesting.
+          >, and most of my other work is full-stack web. CS at McGill,
+          expected May 2027.
         </p>
       </div>
     </section>
@@ -98,27 +93,36 @@ const year = new Date().getFullYear();
 <script>
   import Lenis from "lenis";
 
+  const root = document.documentElement;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Claim the reveal gate so Layout's failsafe leaves it in place; if setup
+  // throws, drop the gate so content stays visible instead of stuck hidden.
+  root.classList.add("reveal-live");
+
   // Scroll reveals — IO adds .is-in once, CSS does the rest.
-  const revealEls = Array.from(
-    document.querySelectorAll<HTMLElement>("[data-reveal]")
-  );
-  if (!reduce && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-in");
-            io.unobserve(entry.target);
-          }
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px" }
+  try {
+    const revealEls = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-reveal]")
     );
-    for (const el of revealEls) io.observe(el);
-  } else {
-    for (const el of revealEls) el.classList.add("is-in");
+    if (!reduce && "IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-in");
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { rootMargin: "0px 0px -8% 0px" }
+      );
+      for (const el of revealEls) io.observe(el);
+    } else {
+      for (const el of revealEls) el.classList.add("is-in");
+    }
+  } catch {
+    root.classList.remove("js-reveal");
   }
 
   // Smooth scroll — Lenis animates native scrollTop, so the CSS

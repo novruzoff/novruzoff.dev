@@ -8,12 +8,16 @@ type Props = {
 
 const {
   title = "Murad Novruzov — Software engineer",
-  description = "Software engineer in Montreal. CTO at True Competency, CS at McGill. I build product-forward software for small teams that need to ship.",
+  description = "Software engineer in Montreal. Founding Developer at True Competency, studying CS at McGill.",
 } = Astro.props;
 
 const canonical = Astro.site
   ? new URL(Astro.url.pathname, Astro.site).href
   : undefined;
+
+// Social card: public/og.png, 1200×630. Crawlers need an absolute URL.
+const ogImage = new URL("/og.png", Astro.site ?? Astro.url).href;
+const ogImageAlt = "“novruzoff” in large italic type, under “Murad Novruzov — Software engineer”.";
 
 const personSchema = JSON.stringify({
   "@context": "https://schema.org",
@@ -21,9 +25,14 @@ const personSchema = JSON.stringify({
   name: "Murad Novruzov",
   url: "https://novruzoff.dev",
   email: "mailto:murad@novruzoff.dev",
-  jobTitle: "CTO",
-  worksFor: { "@type": "Organization", name: "True Competency" },
-  alumniOf: { "@type": "CollegeOrUniversity", name: "McGill University" },
+  jobTitle: ["Founding Developer", "Software Engineer"],
+  worksFor: {
+    "@type": "Organization",
+    name: "True Competency",
+    url: "https://truecompetency.com",
+  },
+  // Still enrolled (expected May 2027), so affiliation rather than alumniOf.
+  affiliation: { "@type": "CollegeOrUniversity", name: "McGill University" },
   address: {
     "@type": "PostalAddress",
     addressLocality: "Montreal",
@@ -40,12 +49,27 @@ const personSchema = JSON.stringify({
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <script is:inline>document.documentElement.classList.add("js");</script>
+    <script is:inline>
+      // Motion gates: while these classes are on <html>, CSS holds the hero,
+      // [data-reveal] content, and the site nav at their start states. Module
+      // scripts run before DOMContentLoaded, so a gate still unclaimed by then
+      // means its script failed to load — drop it and show static content.
+      (() => {
+        const root = document.documentElement;
+        root.classList.add("js-hero", "js-reveal", "js-nav");
+        document.addEventListener("DOMContentLoaded", () => {
+          if (!root.classList.contains("hero-live")) root.classList.remove("js-hero");
+          if (!root.classList.contains("reveal-live")) root.classList.remove("js-reveal");
+          if (!root.classList.contains("nav-live")) root.classList.remove("js-nav");
+        });
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link
       rel="preload"
       href="/fonts/playfair-display-italic-500-novruzov.woff2"
@@ -60,7 +84,13 @@ const personSchema = JSON.stringify({
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:site_name" content="novruzoff.dev" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
     <script is:inline type="application/ld+json" set:html={personSchema} />
   </head>
   <body>

@@ -1,0 +1,43 @@
+---
+// Persistent nav. Sits right after the hero with position: sticky, so it
+// only sticks once the hero has scrolled away. It's hidden while any of the
+// hero is on screen (IntersectionObserver on the hero) and slides in after.
+// The hidden state uses visibility, so its links also leave the tab order
+// and the accessibility tree. Gated like the hero: html.js-nav + nav-live
+// (see Layout.astro), so no-JS or a failed script leaves it visible.
+// Anchor clicks go through Lenis via the page's click handler.
+---
+
+<header class="site-nav" data-site-nav>
+  <nav class="wrap site-nav-inner" aria-label="Primary">
+    <a class="site-nav-name" href="#top">Murad Novruzov</a>
+    <ul class="site-nav-links">
+      <li><a href="#work">Work</a></li>
+      <li class="site-nav-optional"><a href="#experience">Experience</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>("[data-site-nav]");
+
+  if (nav) {
+    // Claim the nav gate so Layout's failsafe leaves it in place.
+    document.documentElement.classList.add("nav-live");
+
+    const hero = document.querySelector<HTMLElement>(".hero");
+    const show = (visible: boolean) => {
+      nav.classList.toggle("is-visible", visible);
+    };
+
+    if (hero && "IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        for (const entry of entries) show(!entry.isIntersecting);
+      }).observe(hero);
+    } else {
+      show(true);
+    }
+  }
+</script>

@@ -9,24 +9,32 @@
   unicode-range: U+004E, U+006E, U+006F, U+0072, U+0075, U+0076, U+007A, U+0066;
 }
 
+/* Tokens are defined once. Colors live in :root below; `@theme inline`
+   only maps Tailwind utility names onto them (text-text-primary →
+   var(--text-primary)), so no value is repeated. */
+@theme inline {
+  --color-bg-page: var(--bg-page);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-hover: var(--bg-hover);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-border: var(--accent-border);
+  --color-accent-glow: var(--accent-glow);
+}
+
+/* Font stacks use Tailwind's own variable names, so preflight and
+   font-sans / font-mono utilities read the same single definition. */
 @theme {
-  --color-bg-page: #0f0f10;
-  --color-bg-elevated: #161618;
-  --color-bg-hover: #1c1c1e;
-
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border: rgba(255, 255, 255, 0.10);
-  --color-border-strong: rgba(255, 255, 255, 0.15);
-
-  --color-text-primary: rgba(255, 255, 255, 0.95);
-  --color-text-secondary: rgba(255, 255, 255, 0.55);
-  --color-text-tertiary: rgba(255, 255, 255, 0.35);
-
-  --color-accent: #f59e0b;
-  --color-accent-light: #fbbf54;
-  --color-accent-bg: rgba(245, 158, 11, 0.10);
-  --color-accent-border: rgba(245, 158, 11, 0.25);
-
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -42,16 +50,16 @@
 
   --text-primary: rgba(255, 255, 255, 0.95);
   --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-tertiary: rgba(255, 255, 255, 0.35);
+  /* Floor for text: ~5:1 on --bg-page, ≥4.93:1 on elevated rows and
+     under the hero glow (WCAG AA 4.5:1). Don't go lower. */
+  --text-tertiary: rgba(255, 255, 255, 0.48);
 
   --accent: #f59e0b;
   --accent-light: #fbbf54;
   --accent-bg: rgba(245, 158, 11, 0.10);
   --accent-border: rgba(245, 158, 11, 0.25);
-  --accent-glow: rgba(245, 158, 11, 0.30);
+  --accent-glow: rgba(245, 158, 11, 0.22);
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --font-display-serif: "Playfair Display Subset", Georgia, "Times New Roman", serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -148,8 +156,9 @@ a {
 /* ─────────────────────────────────────────────────────────
    Hero
    Base styles = settled end state (what no-JS users see).
-   The entrance start states are gated behind html.js +
-   prefers-reduced-motion: no-preference further down.
+   The entrance start states are gated behind html.js-hero +
+   prefers-reduced-motion: no-preference further down. The
+   gate is dropped if the hero script fails (Layout.astro).
    ───────────────────────────────────────────────────────── */
 
 .hero {
@@ -162,21 +171,36 @@ a {
   isolation: isolate;
 }
 
-.hero-gradient {
-  position: fixed;
+/* Cursor glow. Clipped to the hero; the layer itself only ever
+   moves via transform (set from JS), so it never repaints. */
+.hero-glow {
+  position: absolute;
   inset: 0;
-  pointer-events: none;
   z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Fade the glow out before the hero's bottom edge so it can't
+   end in a hard line against the next section. */
+.hero-glow::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 180px;
+  background: linear-gradient(to bottom, transparent, var(--bg-page));
+}
+.hero-gradient {
+  --glow-size: 910px;
+  position: absolute;
+  top: calc(var(--glow-size) / -2);
+  left: calc(var(--glow-size) / -2);
+  width: var(--glow-size);
+  height: var(--glow-size);
   opacity: 0;
-  background: radial-gradient(
-    700px 700px at var(--mx, 50%) var(--my, 25%),
-    var(--accent-glow),
-    transparent 65%
-  );
-  will-change: opacity;
+  background: radial-gradient(circle closest-side, var(--accent-glow), transparent);
 }
 @media (hover: none), (prefers-reduced-motion: reduce) {
-  .hero-gradient {
+  .hero-glow {
     display: none;
   }
 }
@@ -195,7 +219,6 @@ a {
   transform: translateY(-50%);
   opacity: 0;
   white-space: nowrap;
-  will-change: transform, opacity;
 }
 
 .hero-tagline {
@@ -276,7 +299,6 @@ a {
   color: var(--text-primary);
   white-space: nowrap;
   transform-origin: 0 0;
-  will-change: transform, opacity;
 }
 
 .hero-name .L {
@@ -300,29 +322,36 @@ a {
   display: none;
 }
 
-/* Entrance start states — only when JS is running and motion is allowed */
+/* Entrance start states — only while the hero script holds the gate
+   and motion is allowed. will-change lives here too; the script
+   clears it once each element's entrance finishes. */
 @media (prefers-reduced-motion: no-preference) {
-  html.js .intro-murad {
+  html.js-hero .intro-murad {
     display: block;
+    will-change: transform, opacity;
   }
-  html.js .hero-name {
+  html.js-hero .hero-name {
     opacity: 0;
+    will-change: transform, opacity;
   }
-  html.js .hero-name .g-up {
+  html.js-hero .hero-gradient {
+    will-change: opacity;
+  }
+  html.js-hero .hero-name .g-up {
     display: inline;
   }
-  html.js .hero-name .g-lo {
+  html.js-hero .hero-name .g-lo {
     display: none;
   }
-  html.js .hero-name .L-v-trailing {
+  html.js-hero .hero-name .L-v-trailing {
     display: inline-block;
   }
-  html.js .hero-name .L-f {
+  html.js-hero .hero-name .L-f {
     width: 0;
     opacity: 0;
   }
-  html.js .hero-tagline,
-  html.js .hero-chrome {
+  html.js-hero .hero-tagline,
+  html.js-hero .hero-chrome {
     opacity: 0;
   }
 }
@@ -341,6 +370,112 @@ a {
   to {
     transform: translateY(48px);
     opacity: 0.15;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Site nav
+   Sticky right after the hero, so it only sticks once the hero
+   is gone. Base styles = visible (no-JS / failed script). Under
+   html.js-nav it stays hidden until the script marks it visible;
+   visibility (not just opacity) keeps hidden links out of the
+   tab order and the accessibility tree.
+   ───────────────────────────────────────────────────────── */
+
+.site-nav {
+  --nav-h: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--nav-h);
+  /* Overlay the top of <main> instead of pushing it down. */
+  margin-bottom: calc(var(--nav-h) * -1);
+  border-bottom: 0.5px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-page) 72%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-nav {
+    background: color-mix(in srgb, var(--bg-page) 96%, transparent);
+  }
+}
+
+.site-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 100%;
+}
+.site-nav-name {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.site-nav-links {
+  display: flex;
+  align-items: baseline;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.site-nav-links li + li::before {
+  content: "·";
+  content: "·" / "";
+  margin: 0 8px;
+  color: var(--text-tertiary);
+}
+.site-nav-links a {
+  transition: color 180ms var(--ease-out-expo);
+}
+.site-nav-links a:hover {
+  color: var(--text-primary);
+}
+
+/* Hidden until the hero is gone. Enter 300ms, exit faster (200ms);
+   visibility flips only after the exit fade has finished. */
+html.js-nav .site-nav {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 200ms var(--ease-out-expo),
+    transform 200ms var(--ease-out-expo),
+    visibility 0s linear 200ms;
+}
+html.js-nav .site-nav.is-visible {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 300ms var(--ease-out-expo),
+    transform 300ms var(--ease-out-expo),
+    visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.js-nav .site-nav,
+  html.js-nav .site-nav.is-visible {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Keep it one line on phones: drop the dots, then Experience. */
+@media (max-width: 480px) {
+  .site-nav-links {
+    gap: 14px;
+  }
+  .site-nav-links li + li::before {
+    content: none;
+  }
+}
+@media (max-width: 400px) {
+  .site-nav-optional {
+    display: none;
   }
 }
 
@@ -394,11 +529,12 @@ a {
 
 /* ─────────────────────────────────────────────────────────
    Scroll reveals (IntersectionObserver adds .is-in)
-   Hidden state gated behind html.js so no-JS users see content.
+   Hidden state gated behind html.js-reveal so no-JS users —
+   and anyone whose reveal script fails — see content.
    ───────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  html.js [data-reveal] {
+  html.js-reveal [data-reveal] {
     opacity: 0;
     transform: translateY(14px);
     transition:
@@ -406,7 +542,7 @@ a {
       transform 700ms var(--ease-out-expo);
     transition-delay: calc(var(--reveal-i, 0) * 70ms);
   }
-  html.js [data-reveal].is-in {
+  html.js-reveal [data-reveal].is-in {
     opacity: 1;
     transform: none;
   }
@@ -417,6 +553,9 @@ a {
    ───────────────────────────────────────────────────────── */
 
 .rows {
+  /* Shared by project + experience rows so both lists hold one left edge.
+     Sized to fit "Jul 2025 — May 2026" on one line at 11px mono. */
+  --date-col: 132px;
   display: flex;
   flex-direction: column;
 }
@@ -428,7 +567,7 @@ a {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 100px 1fr 88px;
+  grid-template-columns: var(--date-col) 1fr 88px;
   grid-template-areas: "date content aff";
   column-gap: 18px;
   align-items: baseline;
@@ -500,7 +639,12 @@ a {
 }
 .row-aff {
   grid-area: aff;
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* Stacked links are ~17.6px tall; 8px keeps their centers ≥24px
+     apart (WCAG 2.5.8 target spacing, checked by Lighthouse). */
+  gap: 8px;
   font-size: 11px;
 }
 .row-link {
@@ -521,7 +665,7 @@ a {
 
 .xp-row {
   display: grid;
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: var(--date-col) 1fr;
   column-gap: 18px;
   align-items: baseline;
   padding-block: 14px;
@@ -663,6 +807,10 @@ a {
       "date aff"
       "content content";
     row-gap: 6px;
+  }
+  .row-aff {
+    flex-direction: row;
+    gap: 12px;
   }
 
   .xp-row {

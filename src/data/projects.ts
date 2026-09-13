@@ -16,7 +16,7 @@ export const projects: Project[] = [
     title: "True Competency",
     dates: "September 2025 — now",
     blurb:
-      "Founding developer. Production competency-tracking platform for interventional cardiology training. 50 clinician profiles, a 300-question assessment bank, 99.9% uptime, and database-level RLS with a Delphi voting and approval workflow. Five-figure institutional contract with APSC (Hong Kong), backed by Vitruvius Venture Studio.",
+      "Founding developer, CTO. Production competency-tracking platform for interventional cardiology training. 50 clinician profiles, a 300-question assessment bank, 99.9% uptime, and database-level RLS with a Delphi voting and approval workflow. Five-figure institutional contract with APSC (Hong Kong), backed by Vitruvius Venture Studio.",
     liveUrl: "https://truecompetency.com",
   },
   {

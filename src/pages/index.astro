@@ -21,7 +21,7 @@ const year = new Date().getFullYear();
     <section id="work" class="section">
       <SectionHeader
         label="Selected work"
-        meta={`0${projects.length} projects`}
+        meta={`${projects.length} projects`}
       />
       <div class="rows">
         {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
@@ -42,14 +42,18 @@ const year = new Date().getFullYear();
       <SectionHeader label="About" />
       <div class="about" data-reveal>
         <p>
-          I'm Murad, a software engineer based in Montreal, and I split my time
-          with Baku. I'm the Founding Developer at
+          I am Murad Novruzov, a.k.a <i>novruzoff</i>, a software developer based in Montreal, Canada.
+          I was born and raised in Baku.
+         <p>I study Computer Science at <a
+            href="https://mcgill.ca"
+            target="_blank"
+            rel="noreferrer noopener">McGill University</a>
+             into my final year. I'm the Founding Developer and CTO at
           <a
             href="https://truecompetency.com"
             target="_blank"
-            rel="noreferrer noopener">True Competency</a
-          >, and most of my other work is full-stack web. CS at McGill,
-          expected May 2027.
+            rel="noreferrer noopener">True Competency</a>
+          , and most of my other work is full-stack web.</p>
         </p>
       </div>
     </section>

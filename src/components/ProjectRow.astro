@@ -4,14 +4,12 @@ import type { Project } from "../data/projects";
 type Props = { project: Project; index?: number };
 const { project, index = 0 } = Astro.props;
 
-const href = project.caseStudyUrl ?? project.liveUrl ?? project.repoUrl;
-const label = project.caseStudyUrl
-  ? "Case study"
-  : project.liveUrl
-    ? "Live"
-    : project.repoUrl
-      ? "Repo"
-      : null;
+// Every link the project has, in priority order; the title uses the first.
+const links: { label: string; href: string }[] = [];
+if (project.caseStudyUrl) links.push({ label: "Case study", href: project.caseStudyUrl });
+if (project.liveUrl) links.push({ label: "Live", href: project.liveUrl });
+if (project.repoUrl) links.push({ label: "Repo", href: project.repoUrl });
+const href = links[0]?.href;
 ---
 
 <article class="project-row" data-reveal style={`--reveal-i: ${index}`}>
@@ -34,17 +32,17 @@ const label = project.caseStudyUrl
 
   <span class="row-aff mono">
     {
-      href && label ? (
+      links.map((link) => (
         <a
           class="row-link"
-          href={href}
+          href={link.href}
           target="_blank"
           rel="noreferrer noopener"
-          aria-label={`${project.title}: ${label}`}
+          aria-label={`${project.title}: ${link.label}`}
         >
-          {label}<span class="arrow" aria-hidden="true">↗</span>
+          {link.label}<span class="arrow" aria-hidden="true">↗</span>
         </a>
-      ) : null
+      ))
     }
   </span>
 </article>

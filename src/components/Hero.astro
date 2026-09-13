@@ -63,6 +63,13 @@
   const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
   const EASE_IN_OUT = "cubic-bezier(0.4, 0, 0.6, 1)";
 
+  // Horizontal-only clips for the v collapse / f reveal. Top and bottom
+  // stay open (-0.5em) so descenders are never cut. CLIP_TO_BOX clips at
+  // the letter's box (width 0 → nothing shows); CLIP_TO_INK lets the italic
+  // f's tail and terminal (up to ~0.14em past the box) show in full.
+  const CLIP_TO_BOX = "inset(-0.5em 0em -0.5em 0em)";
+  const CLIP_TO_INK = "inset(-0.5em -0.2em -0.5em -0.2em)";
+
   const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
   const nextFrame = () =>
     new Promise<void>((r) => requestAnimationFrame(() => r()));
@@ -346,8 +353,8 @@
         anims.push(
           vTrailing.animate(
             [
-              { width: `${w}px`, opacity: 1 },
-              { width: "0px", opacity: 0 },
+              { width: `${w}px`, opacity: 1, clipPath: CLIP_TO_INK },
+              { width: "0px", opacity: 0, clipPath: CLIP_TO_BOX },
             ],
             { duration: 520, easing: EASE_IN_OUT, fill: "forwards" }
           )
@@ -364,8 +371,8 @@
             anims.push(
               f.animate(
                 [
-                  { width: "0px", opacity: 0 },
-                  { width: `${w}px`, opacity: 1 },
+                  { width: "0px", opacity: 0, clipPath: CLIP_TO_BOX },
+                  { width: `${w}px`, opacity: 1, clipPath: CLIP_TO_INK },
                 ],
                 { duration: 460, easing: EASE, fill: "forwards" }
               )

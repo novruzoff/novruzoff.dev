@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
+/* The only web font: Cormorant Italic 600, subset to "N f n o r u v z"
+   (the "Novruzov → novruzoff" morph). Hero handle + footer bookend only. */
 @font-face {
-  font-family: "Playfair Display Subset";
+  font-family: "Cormorant Subset";
   font-style: italic;
-  font-weight: 500;
+  font-weight: 600;
   font-display: swap;
-  src: url("/fonts/playfair-display-italic-500-novruzov.woff2") format("woff2");
-  unicode-range: U+004E, U+006E, U+006F, U+0072, U+0075, U+0076, U+007A, U+0066;
+  src: url("/fonts/cormorant-italic-600-novruzov.woff2") format("woff2");
+  unicode-range: U+004E, U+0066, U+006E, U+006F, U+0072, U+0075, U+0076, U+007A;
 }
 
 /* Tokens are defined once. Colors live in :root below; `@theme inline`
@@ -60,7 +62,7 @@
   --accent-border: rgba(245, 158, 11, 0.25);
   --accent-glow: rgba(245, 158, 11, 0.22);
 
-  --font-display-serif: "Playfair Display Subset", Georgia, "Times New Roman", serif;
+  --font-display-serif: "Cormorant Subset", Georgia, "Times New Roman", serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -110,9 +112,10 @@ a {
   font-feature-settings: "tnum";
 }
 
+/* Shared content column: <main>, the site nav, and the footer meta row. */
 .wrap {
   width: 100%;
-  max-width: 720px;
+  max-width: 828px;
   margin-inline: auto;
   padding-inline: clamp(20px, 4vw, 40px);
 }
@@ -167,7 +170,9 @@ a {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg-page);
-  overflow: hidden;
+  /* Clip sideways only: the handle's descenders (and its scroll-out
+     drift, see hero-exit) must be free to cross the bottom edge. */
+  overflow-x: clip;
   isolation: isolate;
 }
 
@@ -288,11 +293,14 @@ a {
 .hero-name {
   display: block;
   width: 100%;
-  padding: 0 clamp(12px, 2.5vw, 32px) clamp(24px, 3.5vw, 48px);
+  /* Bottom padding never drops below 0.22em: with line-height 0.95 that
+     leaves room for Cormorant's italic f descender (0.275em) under both
+     macOS (hhea) and Windows (win) vertical metrics. */
+  padding: 0 clamp(12px, 2.5vw, 32px) max(clamp(24px, 3.5vw, 48px), 0.22em);
   margin: 0;
   font-family: var(--font-display-serif);
   font-style: italic;
-  font-weight: 500;
+  font-weight: 600;
   font-size: clamp(64px, 18vw, 240px);
   line-height: 0.95;
   letter-spacing: -0.022em;
@@ -301,14 +309,14 @@ a {
   transform-origin: 0 0;
 }
 
+/* No overflow clipping on the letter spans: overflow other than visible
+   would clip the italic f's tail, terminal, and descender, and would move
+   an inline-block's baseline to its bottom edge (raising the letter). The
+   morph's reveal/collapse uses an animated clip-path instead (Hero.astro). */
 .hero-name .L {
   display: inline-block;
   vertical-align: baseline;
   white-space: pre;
-}
-.hero-name .L-v-trailing,
-.hero-name .L-f {
-  overflow: hidden;
 }
 
 /* Settled glyph states (no-JS and reduced-motion users land here) */
@@ -554,8 +562,9 @@ html.js-nav .site-nav.is-visible {
 
 .rows {
   /* Shared by project + experience rows so both lists hold one left edge.
-     Sized to fit "Jul 2025 — May 2026" on one line at 11px mono. */
-  --date-col: 132px;
+     Fits the longest date ("September 2025 — now", 20 chars = 136px in
+     SF Mono at 11px) on one line, with a little room. */
+  --date-col: 144px;
   display: flex;
   flex-direction: column;
 }
@@ -773,7 +782,7 @@ html.js-nav .site-nav.is-visible {
   padding: clamp(16px, 3vw, 32px) clamp(12px, 2.5vw, 32px) clamp(12px, 2vw, 24px);
   font-family: var(--font-display-serif);
   font-style: italic;
-  font-weight: 500;
+  font-weight: 600;
   font-size: clamp(64px, 18vw, 240px);
   line-height: 0.9;
   letter-spacing: -0.022em;

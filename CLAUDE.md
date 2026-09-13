@@ -78,15 +78,16 @@ System stack, plus exactly one web-font exception.
 ```
 --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
---font-display-serif: 'Playfair Display Subset', Georgia, 'Times New Roman', serif;
+--font-display-serif: 'Cormorant Subset', Georgia, 'Times New Roman', serif;
 ```
 
-**The single permitted web font:** Playfair Display Medium Italic (weight 500), subset to the glyphs `[space N f n o r u v z]` (enough for the `Novruzov → novruzoff` morph), self-hosted at `public/fonts/playfair-display-italic-500-novruzov.woff2` (~2 KB). Declared in `global.css` as `"Playfair Display Subset"` with a matching `unicode-range` and `font-display: swap`, preloaded in `Layout.astro`, exposed as `--font-display-serif`. Used ONLY for the hero handle and the footer `novruzoff` bookend. Any other glyph means re-subsetting the file. No other web fonts.
+**The single permitted web font:** Cormorant Italic, weight 600 (SemiBold Italic; OFL), subset to the glyphs `[N f n o r u v z]` — "novruzoff" plus the capital N the entrance shows as "Novruzov" before the morph. Self-hosted at `public/fonts/cormorant-italic-600-novruzov.woff2` (~2.2 KB), fetched from Google Fonts CSS2 (`family=Cormorant:ital,wght@1,600&text=Nnovruzf`). Declared in `global.css` as `"Cormorant Subset"` with a matching `unicode-range` and `font-display: swap`, preloaded in `Layout.astro`, exposed as `--font-display-serif`. Used ONLY for the hero handle and the footer `novruzoff` bookend. 600 rather than 500: Cormorant's hairlines are very fine, and at 500 they nearly vanish at the 64px mobile size on the dark background. Any other glyph means re-subsetting the file. No other web fonts. (Replaced Playfair Display Italic 500.)
 
 Sans owns prose, the hero tagline, and headings; the handle is the serif exception. Mono is reserved for metadata, dates, technical labels, and code. Mono gives design-engineer character through *contrast*, not volume.
 
 Hierarchy:
-- **Hero handle (`novruzoff`):** `--font-display-serif` (Playfair Medium Italic 500), `clamp(64px, 18vw, 240px)`, tracking −0.022em, line-height 0.95, full-width and bottom-anchored in the hero. Footer bookend uses the same face and scale at watermark opacity.
+- **Hero handle (`novruzoff`):** `--font-display-serif` (Cormorant Italic 600), `clamp(64px, 18vw, 240px)`, tracking −0.022em, line-height 0.95, bottom-anchored in the hero. Bottom padding is `max(clamp(24px, 3.5vw, 48px), 0.22em)` so the italic f's 0.275em descender always fits under macOS and Windows metrics. Cormorant sets smaller than Playfair did at the same size (x-height 0.40em vs 0.53em; "novruzoff" 3.4em wide vs 4.2em). Footer bookend uses the same face and scale at watermark opacity.
+- **Never put `overflow` other than `visible` on the handle's letter spans.** It clips the italic f's tail (0.12em left), terminal (0.14em right) and descender, and it moves an inline-block's baseline to its bottom edge, which lifts the letter off the baseline. The morph clips with `clip-path` instead (see Motion system).
 - **Hero tagline:** 13px, sans, top-left, max-width 280px; first line secondary, second line tertiary.
 - **Section headers:** 14-16px, sans, weight 500, sentence case ("Selected work").
 - **Nav (left, the name):** 14-15px, sans, weight 500, sentence case ("Murad Novruzov").
@@ -101,6 +102,7 @@ Motion is a feature, not an afterthought. All of it is vanilla — WAAPI, Inters
 What's implemented:
 
 1. **Hero entrance (load-linked, once per session).** `src/components/Hero.astro`. Phase 1 (0–2.5s): "Murad" (sans) and "Novruzov" (serif, scaled down) fade in centered and hold so the name can be read. Phase 2 (2.5–4.2s): "Murad" exits left while "Novruzov" morphs per letter into `novruzoff` — N→n via a scaleY squash with the glyph swapped at the midpoint, the trailing v collapses, the two f's grow in — and travels to its bottom-anchored rest position. Phase 3 (4.2s): tagline, link bar, and glow settle in; at 5.0s inline transforms are cleared so the layout survives resizes. Plays once per session (`sessionStorage`); replays and restored-scroll loads get a 600ms settle instead. The choreography is approved — don't retime it without asking.
+   - **Letter clipping.** The trailing v's collapse and the f's reveal clip horizontally only, via `clip-path` animated alongside width: `CLIP_TO_BOX` (`inset(-0.5em 0 -0.5em 0)`, the letter's box) ↔ `CLIP_TO_INK` (`inset(-0.5em -0.2em -0.5em -0.2em)`, room for the italic overhangs). Top/bottom stay open so descenders are never cut, and the f's end fully revealed. The `.hero` itself clips only on x (`overflow-x: clip`), so the handle's descenders and its scroll-out drift can cross the hero's bottom edge.
    - **Gate + failsafe.** Base CSS is the settled end state. Start states only apply under `html.js-hero` (set inline in `Layout.astro`) + `prefers-reduced-motion: no-preference`. The hero script claims the gate by adding `hero-live`; if it hasn't by `DOMContentLoaded` (script failed to load), or it throws, the gate is removed and the static page shows. `will-change` lives in the gated CSS and is cleared per element once its entrance finishes.
 
 2. **Cursor-reactive amber gradient.** A 910px radial layer (`circle closest-side`, `--accent-glow` → transparent) inside `.hero-glow`, which is absolute within the hero and clipped to it; a 180px fade to `--bg-page` at the hero's bottom edge keeps it from ending in a hard line. It follows the cursor with a per-frame lerp (damping 0.08) via `transform: translate3d(...)` only — no repaint. Layer opacity animates to 0.22 on entrance. The rAF loop idles once the glow settles and stays off while the tab is hidden or the hero is out of view (IntersectionObserver). Hidden under `(hover: none)` and reduced motion. No `filter: blur()` on the moving element; the gradient itself is the soft form.
@@ -128,9 +130,10 @@ What's implemented:
 - Density over whitespace, EXCEPT in the hero — the hero gets room to breathe (it's the entrance moment).
 - 0.5px borders only. Background layering creates hierarchy.
 - Hero composition: full viewport (`min-height: 100dvh`), no portrait. Tagline top-left. Bottom-anchored: a thin link bar (location in mono · GitHub / LinkedIn / Email · section links) above the massive full-width `novruzoff` handle. Cursor glow behind, clipped to the hero. Same composition on mobile; the location drops out of the link bar under 640px.
-- Project list: three-column grid (132px date | 1fr content | 88px link affordance). Multiple links stack in the affordance column.
-- Experience list: two-column grid (132px date | role + company + location).
-- The 132px date column (`--date-col` on `.rows`) is shared by both lists so they hold one left edge; it fits "Jul 2025 — May 2026" on one line at 11px mono.
+- Content column: `.wrap`, `max-width: 828px` including `clamp(20px, 4vw, 40px)` side padding (748px of content at desktop). Shared by `<main>`, the site nav, and the footer meta row, so they align. The hero is deliberately full-bleed and doesn't use it.
+- Project list: three-column grid (144px date | 1fr content | 88px link affordance). Multiple links stack in the affordance column.
+- Experience list: two-column grid (144px date | role + company + location).
+- The 144px date column (`--date-col` on `.rows`) is shared by both lists so they hold one left edge; it fits the longest date ("September 2025 — now", 20 chars = 136px in SF Mono at 11px) on one line. Re-check it if a longer date lands.
 - Generous side padding on mobile; tighter on desktop for density.
 
 ## Information architecture
@@ -205,8 +208,8 @@ Wrong voice:
 ## Performance budgets (creative-developer mode)
 
 - Total JS shipped: ≤ 60 KB gzipped. Currently ~7.6 KB: hero ~1.9 KB and Lenis + scroll reveals ~5.5 KB (module files), site nav ~0.2 KB (small enough that Astro inlines it). No GSAP or React is installed.
-- Web font: the single Playfair subset, ~2 KB, preloaded.
-- Social/meta: `public/og.png` (1200×630, ~24 KB) is the OG + Twitter `summary_large_image` card; `public/apple-touch-icon.png` (180×180) is the amber italic "n". Both are rasterized from vector outlines of the Playfair subset (plus the system SF for the small line on the card), so they match the site's type exactly. Regenerate them if the handle or tagline changes. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
+- Web font: the single Cormorant subset, ~2.2 KB, preloaded.
+- Social/meta: `public/og.png` (1200×630, ~24 KB) is the OG + Twitter `summary_large_image` card; `public/apple-touch-icon.png` (180×180) is the amber italic "n". Both are rasterized from vector outlines of the Cormorant subset (plus the system SF for the small line on the card), so they match the site's type exactly. Regenerate them if the handle or tagline changes. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
 - Lighthouse performance: ≥ 92 mobile, ≥ 96 desktop.
 - LCP: ≤ 2.0s on 4G.
 - Accessibility, Best Practices, SEO: 100 each, non-negotiable.

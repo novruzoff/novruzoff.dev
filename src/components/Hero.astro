@@ -5,6 +5,9 @@
 // "novruzoff" while the word travels to its bottom-anchored rest position.
 // Phase 3: tagline, chrome, and cursor-reactive gradient settle in.
 //
+// Any scroll during the entrance (wheel, touch, keys, or Lenis) skips it
+// straight to the settled end state: "Murad" is position: fixed while it
+// plays, so it must never be left hanging over a scrolled page.
 // Vanilla WAAPI, no deps. Replays are skipped within a session
 // (sessionStorage) because a 5s entrance is for first impressions only.
 // Reduced-motion and no-JS users land directly on the settled state via CSS.
@@ -104,10 +107,70 @@
     // off-screen (and Murad is position:fixed) — settle instead.
     const skipIntro = seen || window.scrollY > window.innerHeight * 0.4;
 
+    // ── Skip-to-end ──────────────────────────────────────────────────
+    // Fires once, on the first sign the visitor wants to move down the
+    // page. Everything the entrance schedules goes through `after` so a
+    // skip can clear what hasn't run yet.
+    let skipped = false;
+    let lerpStarted = false;
+    const timers: number[] = [];
+    const after = (fn: () => void, ms: number) => {
+      timers.push(window.setTimeout(fn, ms));
+    };
+
+    const SKIP_KEYS = new Set([
+      "PageDown",
+      "PageUp",
+      "ArrowDown",
+      "ArrowUp",
+      "End",
+      "Home",
+      " ",
+      "Spacebar",
+    ]);
+    const onScrollIntent = () => skipToEnd();
+    const onKeyIntent = (e: KeyboardEvent) => {
+      if (SKIP_KEYS.has(e.key)) skipToEnd();
+    };
+
+    function attachSkip() {
+      // Lenis animates native scrollTop, so its scrolls arrive as "scroll".
+      window.addEventListener("scroll", onScrollIntent, { passive: true });
+      window.addEventListener("wheel", onScrollIntent, { passive: true });
+      window.addEventListener("touchmove", onScrollIntent, { passive: true });
+      window.addEventListener("keydown", onKeyIntent);
+    }
+    function detachSkip() {
+      window.removeEventListener("scroll", onScrollIntent);
+      window.removeEventListener("wheel", onScrollIntent);
+      window.removeEventListener("touchmove", onScrollIntent);
+      window.removeEventListener("keydown", onKeyIntent);
+    }
+
+    // Jump the entrance to its Phase 3 end state. release() cancels the
+    // in-flight animations and drops the gate class, which is what puts
+    // "Murad" back on its base display: none — out of the layout entirely,
+    // not a fixed invisible box that could still overlap the page.
+    function skipToEnd() {
+      if (skipped) return;
+      skipped = true;
+      detachSkip();
+      for (const id of timers) clearTimeout(id);
+      timers.length = 0;
+      release();
+      introMurad.style.display = "none";
+      if (gradient) {
+        gradient.style.opacity = "0.22";
+        clearWillChange(gradient);
+      }
+      startGradientLerp();
+    }
+
     try {
       if (skipIntro) {
         settleFast();
       } else {
+        attachSkip();
         runEntrance().catch(release);
       }
     } catch {
@@ -130,8 +193,9 @@
       if (el) el.style.willChange = "auto";
     }
 
-    // Failure path: stop the entrance, drop the gate, and let CSS show the
-    // settled state instead of leaving the hero invisible or half-morphed.
+    // Stop the entrance, drop the gate, and let CSS show the settled state
+    // instead of an invisible or half-morphed hero. Shared by the failure
+    // path and by skipToEnd.
     function release() {
       try {
         for (const a of heroEl.getAnimations({ subtree: true })) {
@@ -200,6 +264,7 @@
         await Promise.race([document.fonts.ready, wait(900)]);
       } catch {}
       await nextFrame();
+      if (skipped) return;
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -255,6 +320,7 @@
         fill: "forwards",
       });
       await wait(2500);
+      if (skipped) return;
 
       // ── Phase 2: Murad exits; the word morphs and travels ──
       const muradExit = introMurad.animate(
@@ -282,6 +348,7 @@
       const morphAnims = scheduleMorph(fTargets);
 
       await wait(1700);
+      if (skipped) return;
 
       // ── Phase 3: tagline, chrome, gradient ──
       tagline?.animate(
@@ -311,6 +378,7 @@
       // ── Finalize: clear pixel-locked widths/transforms so the layout
       // survives window resizes after the entrance. ──
       await wait(800);
+      if (skipped) return;
       heroName.style.opacity = "1";
       heroName.style.transform = "";
       setGlyphEndState();
@@ -320,6 +388,10 @@
         travel.cancel();
         for (const a of morphAnims) a.cancel();
       } catch {}
+
+      // Settled on its own — nothing left to skip, so stop listening.
+      detachSkip();
+      skipped = true;
     }
 
     function scheduleMorph(fTargets: number[]) {
@@ -327,7 +399,7 @@
 
       // N → n: scaleY squash; glyph swaps at the squash midpoint where
       // the eye can't read detail. One motion, not two events.
-      setTimeout(() => {
+      after(() => {
         if (!caseMorph) return;
         anims.push(
           caseMorph.animate(
@@ -339,7 +411,7 @@
             { duration: 440, easing: EASE_IN_OUT, fill: "forwards" }
           )
         );
-        setTimeout(() => {
+        after(() => {
           if (caseUpper) caseUpper.style.display = "none";
           if (caseLower) caseLower.style.display = "inline";
         }, 220);
@@ -347,7 +419,7 @@
 
       // Trailing v: collapse width + opacity. offsetWidth is layout
       // width — immune to the scale transform mid-travel.
-      setTimeout(() => {
+      after(() => {
         if (!vTrailing) return;
         const w = vTrailing.offsetWidth;
         anims.push(
@@ -364,7 +436,7 @@
       // The two f's: expand from width 0, same mechanism as the v
       // in reverse so the morph reads as one operation.
       fTargets.forEach((w, i) => {
-        setTimeout(
+        after(
           () => {
             const f = fNews[i];
             if (!f) return;
@@ -389,8 +461,10 @@
     // never repaints. The loop idles once the glow settles and stays off
     // while the tab is hidden or the hero is scrolled out of view.
     function startGradientLerp() {
+      if (lerpStarted) return;
       if (!gradient) return;
       if (window.matchMedia("(hover: none)").matches) return;
+      lerpStarted = true;
       const glow = gradient;
 
       const damping = 0.08;

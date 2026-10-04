@@ -223,6 +223,8 @@ a {
   color: var(--text-primary);
   transform: translateY(-50%);
   opacity: 0;
+  /* Decorative and aria-hidden: never take pointer events, even mid-entrance. */
+  pointer-events: none;
   white-space: nowrap;
 }
 

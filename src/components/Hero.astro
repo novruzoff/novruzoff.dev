@@ -1,13 +1,14 @@
 ---
-// Hero: three-phase entrance.
-// Phase 1 (hold ~2.5s): "Murad Novruzov" centered, sans + italic serif.
-// Phase 2 (~1.8s): Murad exits left; Novruzov morphs per-letter into
+// Hero: three-phase entrance, ~2.5s end to end.
+// Phase 1 (hold ~1.25s): "Murad Novruzov" centered, sans + italic serif.
+// Phase 2 (~0.85s): Murad exits left; Novruzov morphs per-letter into
 // "novruzoff" while the word travels to its bottom-anchored rest position.
-// Phase 3: tagline, chrome, and cursor-reactive gradient settle in.
+// Phase 3 (~0.4s): tagline, chrome, and cursor-reactive gradient settle in.
 //
-// Any scroll during the entrance (wheel, touch, keys, or Lenis) skips it
-// straight to the settled end state: "Murad" is position: fixed while it
-// plays, so it must never be left hanging over a scrolled page.
+// Any scroll during the entrance (wheel, touch, keys, or Lenis) fast-
+// forwards it to the settled end state over 100ms: "Murad" is position:
+// fixed while it plays, so it must never be left hanging over a scrolled
+// page, but resolving reads better than cutting.
 // Vanilla WAAPI, no deps. Replays are skipped within a session
 // (sessionStorage) because a 5s entrance is for first impressions only.
 // Reduced-motion and no-JS users land directly on the settled state via CSS.
@@ -147,16 +148,102 @@
       window.removeEventListener("keydown", onKeyIntent);
     }
 
-    // Jump the entrance to its Phase 3 end state. release() cancels the
-    // in-flight animations and drops the gate class, which is what puts
-    // "Murad" back on its base display: none — out of the layout entirely,
-    // not a fixed invisible box that could still overlap the page.
+    // Resolve the entrance over SKIP_MS rather than cutting to the end
+    // state: freeze what's on screen, settle the DOM, then animate from the
+    // frozen values into the settled ones. finishSkip() then runs exactly
+    // the cleanup the instant version did, so the end state is unchanged —
+    // only the 100ms it takes to get there is new.
+    const SKIP_MS = 100;
+
     function skipToEnd() {
       if (skipped) return;
       skipped = true;
       detachSkip();
       for (const id of timers) clearTimeout(id);
       timers.length = 0;
+      fastForward();
+    }
+
+    function snapshot(el: HTMLElement) {
+      const cs = getComputedStyle(el);
+      return {
+        opacity: cs.opacity,
+        transform: cs.transform,
+        width: cs.width,
+        clipPath: cs.clipPath,
+      };
+    }
+
+    function fastForward() {
+      const quick = {
+        duration: SKIP_MS,
+        easing: EASE,
+        fill: "forwards" as const,
+      };
+
+      // What the visitor can see right now (WAAPI fills included).
+      const nameFrom = snapshot(heroName);
+      const caseFrom = caseMorph && snapshot(caseMorph);
+      const fFrom = fNews.map(snapshot);
+      const vFrom = vTrailing && snapshot(vTrailing);
+      const muradFrom = snapshot(introMurad);
+      const taglineFrom = tagline && snapshot(tagline);
+      const chromeFrom = chrome && snapshot(chrome);
+      const glowFrom = gradient && getComputedStyle(gradient).opacity;
+
+      // Settle the DOM. Murad keeps its inline placement (so it fades where
+      // it stands instead of jumping to the left edge) and both departing
+      // elements stay displayed until the resolve lands.
+      settleDom([heroName, caseUpper, caseLower, vTrailing, ...fNews]);
+      introMurad.style.display = "block";
+      if (vTrailing) vTrailing.style.display = "inline-block";
+
+      // Everything now animates from the frozen values into the settled ones.
+      heroName.animate([nameFrom, snapshot(heroName)], quick);
+      if (caseMorph && caseFrom) {
+        caseMorph.animate([caseFrom, snapshot(caseMorph)], quick);
+      }
+      fNews.forEach((f, i) => {
+        const from = fFrom[i];
+        f.animate(
+          [
+            {
+              ...from,
+              clipPath: from.clipPath === "none" ? CLIP_TO_BOX : from.clipPath,
+            },
+            { ...snapshot(f), clipPath: CLIP_TO_INK },
+          ],
+          quick
+        );
+      });
+      if (vTrailing && vFrom) {
+        vTrailing.animate(
+          [
+            {
+              ...vFrom,
+              clipPath: vFrom.clipPath === "none" ? CLIP_TO_INK : vFrom.clipPath,
+            },
+            { ...vFrom, width: "0px", opacity: "0", clipPath: CLIP_TO_BOX },
+          ],
+          quick
+        );
+      }
+      introMurad.animate([muradFrom, { ...muradFrom, opacity: "0" }], quick);
+      if (tagline && taglineFrom) {
+        tagline.animate([taglineFrom, snapshot(tagline)], quick);
+      }
+      if (chrome && chromeFrom) {
+        chrome.animate([chromeFrom, snapshot(chrome)], quick);
+      }
+      if (gradient && glowFrom) {
+        gradient.animate([{ opacity: glowFrom }, { opacity: "0.22" }], quick);
+      }
+
+      window.setTimeout(finishSkip, SKIP_MS);
+    }
+
+    // The same end state and cleanup the instant skip used.
+    function finishSkip() {
       release();
       introMurad.style.display = "none";
       if (gradient) {
@@ -197,6 +284,14 @@
     // instead of an invisible or half-morphed hero. Shared by the failure
     // path and by skipToEnd.
     function release() {
+      settleDom([introMurad, heroName, caseUpper, caseLower, vTrailing, ...fNews]);
+    }
+
+    // Cancel the entrance animations, wipe the inline styles the entrance
+    // set on the given elements, and drop the gate so CSS shows the settled
+    // state. The caller picks what to wipe: the fast-forward keeps Murad's
+    // placement so it can fade out where it stands.
+    function settleDom(wipe: (HTMLElement | null)[]) {
       try {
         for (const a of heroEl.getAnimations({ subtree: true })) {
           if (!(a instanceof CSSAnimation) && !(a instanceof CSSTransition)) {
@@ -204,7 +299,7 @@
           }
         }
       } catch {}
-      for (const el of [introMurad, heroName, caseUpper, caseLower, vTrailing, ...fNews]) {
+      for (const el of wipe) {
         el?.removeAttribute("style");
       }
       document.documentElement.classList.remove("js-hero");
@@ -310,16 +405,16 @@
 
       // ── Phase 1: fade in, then hold so the name can actually be read ──
       const nameFade = heroName.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 400,
+        duration: 200,
         easing: EASE,
         fill: "forwards",
       });
       introMurad.animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 400,
+        duration: 200,
         easing: EASE,
         fill: "forwards",
       });
-      await wait(2500);
+      await wait(1250);
       if (skipped) return;
 
       // ── Phase 2: Murad exits; the word morphs and travels ──
@@ -328,7 +423,7 @@
           { transform: "translateY(-50%) translateX(0)", opacity: 1 },
           { transform: "translateY(-50%) translateX(-40vw)", opacity: 0 },
         ],
-        { duration: 700, easing: EASE, fill: "forwards" }
+        { duration: 350, easing: EASE, fill: "forwards" }
       );
       muradExit.finished
         .then(() => {
@@ -342,12 +437,12 @@
           { transform: `translate(${tx}px, ${ty}px) scale(${scale})` },
           { transform: "translate(0, 0) scale(1)" },
         ],
-        { duration: 1500, easing: EASE, fill: "forwards" }
+        { duration: 750, easing: EASE, fill: "forwards" }
       );
 
       const morphAnims = scheduleMorph(fTargets);
 
-      await wait(1700);
+      await wait(850);
       if (skipped) return;
 
       // ── Phase 3: tagline, chrome, gradient ──
@@ -356,18 +451,18 @@
           { opacity: 0, transform: "translateY(8px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 500, easing: EASE, fill: "forwards" }
+        { duration: 250, easing: EASE, fill: "forwards" }
       );
       chrome?.animate(
         [
           { opacity: 0, transform: "translateY(8px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 500, easing: EASE, delay: 80, fill: "forwards" }
+        { duration: 250, easing: EASE, delay: 40, fill: "forwards" }
       );
       gradient
         ?.animate([{ opacity: 0 }, { opacity: 0.22 }], {
-          duration: 600,
+          duration: 300,
           easing: "ease-out",
           fill: "forwards",
         })
@@ -377,7 +472,7 @@
 
       // ── Finalize: clear pixel-locked widths/transforms so the layout
       // survives window resizes after the entrance. ──
-      await wait(800);
+      await wait(400);
       if (skipped) return;
       heroName.style.opacity = "1";
       heroName.style.transform = "";
@@ -408,14 +503,14 @@
               { transform: "scaleY(0.18)", offset: 0.5 },
               { transform: "scaleY(1)" },
             ],
-            { duration: 440, easing: EASE_IN_OUT, fill: "forwards" }
+            { duration: 220, easing: EASE_IN_OUT, fill: "forwards" }
           )
         );
         after(() => {
           if (caseUpper) caseUpper.style.display = "none";
           if (caseLower) caseLower.style.display = "inline";
-        }, 220);
-      }, 200);
+        }, 110);
+      }, 100);
 
       // Trailing v: collapse width + opacity. offsetWidth is layout
       // width — immune to the scale transform mid-travel.
@@ -428,10 +523,10 @@
               { width: `${w}px`, opacity: 1, clipPath: CLIP_TO_INK },
               { width: "0px", opacity: 0, clipPath: CLIP_TO_BOX },
             ],
-            { duration: 520, easing: EASE_IN_OUT, fill: "forwards" }
+            { duration: 260, easing: EASE_IN_OUT, fill: "forwards" }
           )
         );
-      }, 260);
+      }, 130);
 
       // The two f's: expand from width 0, same mechanism as the v
       // in reverse so the morph reads as one operation.
@@ -446,11 +541,11 @@
                   { width: "0px", opacity: 0, clipPath: CLIP_TO_BOX },
                   { width: `${w}px`, opacity: 1, clipPath: CLIP_TO_INK },
                 ],
-                { duration: 460, easing: EASE, fill: "forwards" }
+                { duration: 230, easing: EASE, fill: "forwards" }
               )
             );
           },
-          520 + i * 60
+          260 + i * 30
         );
       });
 

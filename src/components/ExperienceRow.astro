@@ -3,13 +3,24 @@ import type { Experience } from "../data/experience";
 
 type Props = { experience: Experience; index?: number };
 const { experience, index = 0 } = Astro.props;
+
+// The dates are the source of truth for the dot: a role still running
+// gets the filled amber one, everything else the hollow ring.
+const isCurrent = experience.dates.toLowerCase().includes("present");
 ---
 
-<article class="xp-row" data-reveal style={`--reveal-i: ${index}`}>
-  <span class="row-date mono">{experience.dates}</span>
+<li
+  class="xp-node"
+  data-reveal
+  style={`--reveal-i: ${index}`}
+  data-current={isCurrent ? "" : undefined}
+>
   <div class="xp-main">
     <span class="xp-role">{experience.role}</span>
     <span class="xp-co">{experience.company}</span>
-    {experience.location && <span class="xp-loc mono">{experience.location}</span>}
   </div>
-</article>
+  <div class="xp-meta mono">
+    <span>{experience.dates}</span>
+    {experience.location && <span>{experience.location}</span>}
+  </div>
+</li>

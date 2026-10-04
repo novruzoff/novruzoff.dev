@@ -18,6 +18,16 @@ const year = new Date().getFullYear();
   <SiteNav />
 
   <main class="wrap">
+    <section id="experience" class="section">
+      <SectionHeader
+        label="Experience"
+        meta={`0${experience.length} roles`}
+      />
+      <ol class="timeline">
+        {experience.map((entry, i) => <ExperienceRow experience={entry} index={i} />)}
+      </ol>
+    </section>
+
     <section id="work" class="section">
       <SectionHeader
         label="Selected work"
@@ -25,16 +35,6 @@ const year = new Date().getFullYear();
       />
       <div class="rows">
         {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
-      </div>
-    </section>
-
-    <section id="experience" class="section">
-      <SectionHeader
-        label="Experience"
-        meta={`0${experience.length} roles`}
-      />
-      <div class="rows">
-        {experience.map((entry, i) => <ExperienceRow experience={entry} index={i} />)}
       </div>
     </section>
 

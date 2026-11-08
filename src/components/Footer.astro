@@ -1,0 +1,40 @@
+---
+// Site footer: meta row (© · Montreal, GitHub, LinkedIn) and the ghost
+// `novruzoff` bookend. On the home page the bookend goes back to #top
+// (through Lenis); on subpages it goes home.
+//
+// Bookend accessibility: the link's name is visually hidden text that starts
+// with the visible word ("novruzoff, back to top"), so voice control users
+// can say what they see (WCAG 2.5.3). The watermark itself is drawn by
+// .bookend::before in global.css with an empty alt (`content: "…" / ""`),
+// so it's decorative: not announced, and not a text node for contrast checks.
+type Props = {
+  bookendHref?: string;
+};
+
+const { bookendHref = "#top" } = Astro.props;
+const bookendLabel =
+  bookendHref === "#top" ? "novruzoff, back to top" : "novruzoff, home";
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap footer-meta mono">
+    <span>© {year} Murad Novruzov · Montreal</span>
+    <span class="footer-right">
+      <a
+        href="https://github.com/novruzoff"
+        target="_blank"
+        rel="noreferrer noopener">GitHub</a
+      >
+      <a
+        href="https://linkedin.com/in/novruzoff"
+        target="_blank"
+        rel="noreferrer noopener">LinkedIn</a
+      >
+    </span>
+  </div>
+  <a class="bookend" href={bookendHref}>
+    <span class="sr-only">{bookendLabel}</span>
+  </a>
+</footer>

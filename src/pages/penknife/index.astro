@@ -1,0 +1,81 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import AppStorePlaceholder from "../../components/AppStorePlaceholder.astro";
+import Footer from "../../components/Footer.astro";
+import "../../styles/penknife.css";
+
+const tools = [
+  { name: "Link Cleaner", desc: "Removes tracking from links." },
+  { name: "Text Tools", desc: "Counts, case conversion, JSON, Base64, hashes." },
+  { name: "Password Generator", desc: "Strong passwords and passphrases." },
+  { name: "QR Studio", desc: "Create and scan QR codes." },
+  { name: "Photo Privacy", desc: "Removes location and other metadata from photos." },
+  { name: "Image Tools", desc: "Convert, resize and compress images." },
+  { name: "Color Picker", desc: "Pick colors from photos, with a contrast checker." },
+  { name: "PDF Tools", desc: "Merge, edit pages, images to PDF, compress." },
+  { name: "Network Tools", desc: "DNS lookup, HTTPS headers, TCP latency." },
+  { name: "Video Compressor", desc: "Smaller videos, location removed." },
+];
+---
+
+<Layout
+  title="Penknife for iPhone"
+  description="A free iPhone toolkit that works from the share sheet. No account, no ads, no tracking."
+  personSchema={false}
+  preloadHandleFont={false}
+  motionGates={false}
+>
+  <PageHeader current="penknife" />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>Penknife</h1>
+      <p class="lead">
+        A free iPhone toolkit that works from the share sheet. No account, no
+        ads, no tracking.
+      </p>
+      <p class="meta mono">Requires iOS 26 or later</p>
+      <AppStorePlaceholder />
+    </header>
+
+    <section class="section">
+      <SectionHeader label="Tools" meta={`${tools.length} tools`} />
+      <ul class="tools">
+        {
+          tools.map((tool) => (
+            <li>
+              <span class="tool-name">{tool.name}</span>
+              <span class="tool-desc">{tool.desc}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Where it works" />
+      <div class="prose">
+        <p>
+          Works from any app's share sheet, with Shortcuts and Siri, and adapts
+          to iPhone Duo. Requires iOS 26 or later.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Privacy and support" />
+      <ul class="doc-links">
+        <li>
+          <a href="/penknife/privacy">Privacy policy<span class="arrow" aria-hidden="true">→</span></a>
+        </li>
+        <li>
+          <a href="/penknife/support">Support<span class="arrow" aria-hidden="true">→</span></a>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <Footer bookendHref="/" />
+</Layout>

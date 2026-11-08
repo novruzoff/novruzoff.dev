@@ -1,0 +1,40 @@
+---
+// Static header for subpages. Reuses the site nav's look (sticky, 52px,
+// blurred --bg-page backdrop, 0.5px hairline) without its hide-on-hero
+// script: subpages have no hero, so it's simply always there.
+// `.page-header` (src/styles/penknife.css) drops the nav's negative bottom
+// margin, which only exists to overlay <main> right under the hero.
+type Section = "penknife" | "privacy" | "support";
+
+type Props = {
+  current?: Section;
+};
+
+const { current } = Astro.props;
+
+const links: { id: Section; label: string; href: string }[] = [
+  { id: "penknife", label: "Penknife", href: "/penknife" },
+  { id: "privacy", label: "Privacy", href: "/penknife/privacy" },
+  { id: "support", label: "Support", href: "/penknife/support" },
+];
+---
+
+<header class="site-nav page-header">
+  <nav class="wrap site-nav-inner" aria-label="Penknife">
+    <a class="site-nav-name" href="/">Murad Novruzov</a>
+    <ul class="site-nav-links">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              aria-current={link.id === current ? "page" : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>

@@ -1,0 +1,150 @@
+---
+// Effective date of this policy. Change it (both fields) whenever the policy
+// changes; it's shown at the top of the page.
+const EFFECTIVE_DATE = { iso: "2026-11-08", label: "November 8, 2026" } as const;
+
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import Footer from "../../components/Footer.astro";
+import "../../styles/penknife.css";
+
+const SUPPORT_EMAIL = "support@novruzoff.dev";
+---
+
+<Layout
+  title="Penknife privacy policy"
+  description="Penknife collects no data. There are no accounts, analytics, advertising, tracking or third-party SDKs."
+  personSchema={false}
+  preloadHandleFont={false}
+  motionGates={false}
+>
+  <PageHeader current="privacy" />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>Privacy policy</h1>
+      <p class="meta mono">
+        Penknife for iPhone. Effective <time datetime={EFFECTIVE_DATE.iso}>{EFFECTIVE_DATE.label}</time>
+      </p>
+    </header>
+
+    <section class="section">
+      <SectionHeader label="Summary" />
+      <div class="prose">
+        <p>
+          <strong>Penknife collects no data.</strong> There are no accounts,
+          analytics, advertising, tracking or third-party SDKs. The developer
+          receives nothing about what you do in the app.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="On your iPhone" />
+      <div class="prose">
+        <p>
+          Links, text, photos, PDFs, videos and colors are processed on your
+          iPhone and never leave it because of Penknife.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Network" />
+      <div class="prose">
+        <p>
+          Penknife connects to the internet only when you use Network Tools,
+          and only to the address you enter. Opening a cleaned link hands it to
+          your browser.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Permissions" />
+      <div class="prose">
+        <p>Penknife asks for each permission only when you start that action.</p>
+        <dl class="terms">
+          <dt>Photos</dt>
+          <dd>
+            Add-only access, to save results. Penknife can't read your library;
+            it only sees photos you pick or share.
+          </dd>
+          <dt>Camera</dt>
+          <dd>To scan QR codes. Nothing is recorded or stored.</dd>
+          <dt>Notifications</dt>
+          <dd>Local notifications when a video or large file finishes.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Clipboard" />
+      <div class="prose">
+        <p>
+          Penknife copies only when you tap Copy. Generated passwords stay on
+          this iPhone (not shared to your other devices) and are cleared from
+          the clipboard after 1 minute.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Files and retention" />
+      <div class="prose">
+        <p>
+          Temporary copies are deleted when you leave a tool. Finished jobs are
+          deleted after 7 days or when you delete them. Settings are stored on
+          your device. Deleting the app removes everything.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Crash reports from Apple" />
+      <div class="prose">
+        <p>
+          If you choose to share analytics with app developers in iOS Settings,
+          Apple may provide anonymous crash reports. Penknife adds nothing to
+          them.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Children" />
+      <div class="prose">
+        <p>Penknife is suitable for all ages and collects nothing from anyone.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="This website" />
+      <div class="prose">
+        <p>
+          This section is about novruzoff.dev, the website you're reading, not
+          the app. The site is hosted on Vercel, which keeps standard request
+          logs (such as IP address and browser type) to serve and protect it.
+          The site sets no cookies and uses no analytics.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Changes" />
+      <div class="prose">
+        <p>Updates are posted on this page with a new effective date.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Contact" />
+      <div class="prose">
+        <a class="contact-email" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+      </div>
+    </section>
+  </main>
+
+  <Footer bookendHref="/" />
+</Layout>

@@ -1,0 +1,80 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import SectionHeader from "../../components/SectionHeader.astro";
+import Footer from "../../components/Footer.astro";
+import "../../styles/penknife.css";
+
+const SUPPORT_EMAIL = "support@novruzoff.dev";
+
+const faq = [
+  {
+    q: "How do I use Penknife from another app?",
+    a: "Tap Share, then Penknife. To keep it handy, scroll the app row to More, tap Edit and add it to Favorites.",
+  },
+  {
+    q: "Penknife isn't in my share sheet.",
+    a: "Scroll the app row to More and turn Penknife on. It appears for links, text, photos, PDFs and videos.",
+  },
+  {
+    q: "Why are some photos smaller in the share sheet?",
+    a: "The share sheet has limited memory, so large images are reduced there. Full size is available in the Penknife app.",
+  },
+  {
+    q: "Where are my compressed videos?",
+    a: "In the Jobs tab, kept for 7 days.",
+  },
+  {
+    q: "Can I use it with Shortcuts or Siri?",
+    a: "Yes: search “Penknife” in the Shortcuts app.",
+  },
+  {
+    q: "How do I delete my data?",
+    a: "Penknife stores nothing outside your iPhone; deleting the app removes everything.",
+  },
+];
+---
+
+<Layout
+  title="Penknife support"
+  description="Help with Penknife, the share-sheet toolkit for iPhone. Contact support@novruzoff.dev."
+  personSchema={false}
+  preloadHandleFont={false}
+  motionGates={false}
+>
+  <PageHeader current="support" />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>Support</h1>
+      <p class="meta mono">Penknife for iPhone. Requires iOS 26 or later</p>
+    </header>
+
+    <section class="section">
+      <SectionHeader label="Contact" />
+      <div class="prose">
+        <a class="contact-email" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        <p>
+          Please include your iPhone model and iOS version. Penknife requires
+          iOS 26 or later.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <SectionHeader label="Questions" />
+      <div class="faq">
+        {
+          faq.map((item) => (
+            <div>
+              <h3>{item.q}</h3>
+              <p>{item.a}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+  </main>
+
+  <Footer bookendHref="/" />
+</Layout>

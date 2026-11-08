@@ -1,0 +1,233 @@
+/* ─────────────────────────────────────────────────────────
+   Penknife pages (/penknife, /penknife/privacy, /penknife/support)
+   Imported only by src/pages/penknife/*, so the home page's CSS
+   bundle is unchanged. Tokens, .wrap, .section-head, .mono and
+   .contact-email come from global.css.
+   Static by design: no reveals, no scroll-driven motion.
+   ───────────────────────────────────────────────────────── */
+
+/* Header: the site nav minus its overlay margin (no hero to sit under). */
+.site-nav.page-header {
+  margin-bottom: 0;
+}
+.site-nav-links a[aria-current="page"] {
+  color: var(--text-primary);
+}
+/* Name + three links must stay on one line inside the 20px gutter at 320px.
+   (The nav's own ≤480px rule already drops the dots.) */
+@media (max-width: 360px) {
+  .page-header .site-nav-inner {
+    gap: 10px;
+  }
+  .page-header .site-nav-links {
+    gap: 8px;
+  }
+}
+
+.doc {
+  padding-top: clamp(40px, 7vw, 72px);
+}
+
+/* The global section rule draws in on scroll; here it's simply there. */
+.doc .section-rule {
+  transform: none;
+  animation: none;
+}
+
+.doc .section {
+  padding-block: clamp(36px, 5vw, 48px) 0;
+}
+
+/* ── Page head ────────────────────────────────────────── */
+
+.doc-head h1 {
+  font-size: clamp(28px, 5vw, 36px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.doc-head .lead {
+  margin-top: 12px;
+  max-width: 52ch;
+  font-size: 17px;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.doc-head .meta {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ── Prose ────────────────────────────────────────────── */
+
+.prose {
+  margin-top: 16px;
+}
+.prose p {
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.prose > * + * {
+  margin-top: 12px;
+}
+.prose strong {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.prose a:not(.contact-email) {
+  color: var(--accent-light);
+  border-bottom: 0.5px solid var(--accent-border);
+  transition: color 180ms var(--ease-out-expo);
+}
+.prose a:not(.contact-email):hover {
+  color: var(--accent);
+}
+.prose .contact-email {
+  margin-top: 0;
+}
+
+/* Term / description pairs (permissions, retention). */
+.terms {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 12px 24px;
+  max-width: 62ch;
+}
+.terms dt {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+.terms dd {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+@media (max-width: 480px) {
+  .terms {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .terms dd + dt {
+    margin-top: 12px;
+  }
+}
+
+/* ── /penknife: tools ─────────────────────────────────── */
+
+/* Ten items: two columns of five, no per-row rules. */
+.tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 40px;
+  margin-top: 20px;
+}
+.tools li {
+  min-width: 0;
+}
+.tool-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+}
+.tool-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+@media (max-width: 640px) {
+  .tools {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+/* App Store placeholder (src/components/AppStorePlaceholder.astro). */
+.store-slot {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 9px 14px;
+  border: 0.5px dashed var(--border-strong);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Links to the other Penknife pages. */
+.doc-links {
+  margin-top: 16px;
+}
+.doc-links li + li {
+  margin-top: 8px;
+}
+.doc-links a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: color 180ms var(--ease-out-expo);
+}
+.doc-links .arrow {
+  color: var(--text-tertiary);
+  transition:
+    color 180ms var(--ease-out-expo),
+    transform 180ms var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .doc-links a:hover {
+    color: var(--accent-light);
+  }
+  .doc-links a:hover .arrow {
+    color: var(--accent-light);
+    transform: translateX(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .doc-links .arrow {
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .doc-links a:hover .arrow {
+    transform: none;
+  }
+}
+
+/* ── /penknife/support: questions ─────────────────────── */
+
+.faq {
+  margin-top: 20px;
+  max-width: 62ch;
+}
+.faq > div + div {
+  margin-top: 24px;
+}
+.faq h3 {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+.faq p {
+  margin-top: 4px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}

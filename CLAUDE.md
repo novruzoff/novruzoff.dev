@@ -5,6 +5,10 @@ Personal portfolio for Murad Novruzov. CS student at McGill (expected May 2027),
 ## Stack
 
 - Astro 6.x (static site generation). View Transitions planned, not wired yet (no `<ClientRouter />`).
+- URLs have no trailing slash. `astro.config.mjs` sets `build: { format: 'file' }` (so `src/pages/penknife/privacy.astro` builds `dist/penknife/privacy.html`, and `penknife/index.astro` builds `dist/penknife.html`) and `trailingSlash: 'never'`. `vercel.json` sets `cleanUrls: true` (serves `/penknife/privacy` from that `.html` file with a 200, and 308s `*.html` to the clean URL) and `trailingSlash: false` (308s `/penknife/` to `/penknife`). These URLs are in App Store Connect, so don't change the scheme. Two side effects:
+  - With `format: 'file'`, `Astro.url.pathname` is `/index.html` or `/penknife/privacy.html`. `Layout.astro` strips `(/index)?.html` before building the canonical and `og:url`. Use that `pathname`, not `Astro.url.pathname`, for anything URL-shaped.
+  - `@astrojs/sitemap` writes the root as `https://novruzoff.dev` (no slash) under either option; `serialize` can't change it. It's the same URL as the canonical `https://novruzoff.dev/`.
+  - `astro preview` 404s the slash forms (it doesn't read `vercel.json`); only a Vercel deploy shows the 308s.
 - TypeScript strict mode; `pnpm check` runs `astro check` (`@astrojs/check` needs TypeScript 5–6, so it's pinned to `^6` — TS 7 isn't supported yet)
 - Tailwind CSS v4 (via Vite plugin)
 - React and MDX: **not installed** (removed as unused). Add `@astrojs/react` if an interactive island is ever needed, `@astrojs/mdx` when case studies or writing land.
@@ -49,6 +53,8 @@ The background steps (page → elevated → hover) each add ~6-7 per channel and
 
 `--text-tertiary` is the contrast floor for any text: 4.98:1 on `--bg-page` as shipped (the minifier rounds 0.48 to alpha 122/255), 4.93:1 on `--bg-elevated` hover rows, and 4.81:1 at the hero tagline and link bar over the dot grid, drifting glow and cursor glow combined (WCAG AA 4.5:1). Don't lower it — 0.35 failed at 3.19:1.
 
+**Tailwind source scan.** `global.css` has `@source not "../pages/penknife"`. Tailwind v4 reads every source file for class-like words, and prose on those pages (one tool description) was generating a stray utility into the shared CSS. Tailwind also scans CLAUDE.md and the CSS comments, so don't quote a utility-like word in either; it ships. The Penknife pages are styled by `src/styles/penknife.css`, so don't use Tailwind utilities in them; if a new prose-heavy route lands, exclude it the same way.
+
 Wire as CSS custom properties in `global.css`, exposed to Tailwind v4 via `@theme`. Single source of truth, no duplication: color values live only in `:root`; an `@theme inline` block maps Tailwind names onto them (`--color-text-primary: var(--text-primary)`), and the font stacks are defined once in `@theme` under Tailwind's own names (`--font-sans`, `--font-mono`). Components prefer Tailwind utilities (`text-text-primary`) over inline `style="color: var(...)"`.
 
 ### Case (HARD RULE)
@@ -83,7 +89,7 @@ System stack, plus exactly one web-font exception.
 --font-display-serif: 'Cormorant Subset', Georgia, 'Times New Roman', serif;
 ```
 
-**The single permitted web font:** Cormorant Italic, weight 600 (SemiBold Italic; OFL), subset to the glyphs `[N f n o r u v z]` — "novruzoff" plus the capital N the entrance shows as "Novruzov" before the morph. Self-hosted at `public/fonts/cormorant-italic-600-novruzov.woff2` (~2.2 KB), fetched from Google Fonts CSS2 (`family=Cormorant:ital,wght@1,600&text=Nnovruzf`). Declared in `global.css` as `"Cormorant Subset"` with a matching `unicode-range` and `font-display: swap`, preloaded in `Layout.astro`, exposed as `--font-display-serif`. Used ONLY for the hero handle and the footer `novruzoff` bookend. 600 rather than 500: Cormorant's hairlines are very fine, and at 500 they nearly vanish at the 64px mobile size on the dark background. Any other glyph means re-subsetting the file. No other web fonts. (Replaced Playfair Display Italic 500.)
+**The single permitted web font:** Cormorant Italic, weight 600 (SemiBold Italic; OFL), subset to the glyphs `[N f n o r u v z]` — "novruzoff" plus the capital N the entrance shows as "Novruzov" before the morph. Self-hosted at `public/fonts/cormorant-italic-600-novruzov.woff2` (~2.2 KB), fetched from Google Fonts CSS2 (`family=Cormorant:ital,wght@1,600&text=Nnovruzf`). Declared in `global.css` as `"Cormorant Subset"` with a matching `unicode-range` and `font-display: swap`, preloaded in `Layout.astro` on the home page only (`preloadHandleFont`; subpages only use it in the footer, below the fold), exposed as `--font-display-serif`. Used ONLY for the hero handle and the footer `novruzoff` bookend. 600 rather than 500: Cormorant's hairlines are very fine, and at 500 they nearly vanish at the 64px mobile size on the dark background. Any other glyph means re-subsetting the file. No other web fonts. (Replaced Playfair Display Italic 500.)
 
 Sans owns prose, the hero tagline, and headings; the handle is the serif exception. Mono is reserved for metadata, dates, technical labels, and code. Mono gives design-engineer character through *contrast*, not volume.
 
@@ -130,7 +136,7 @@ What's implemented:
 
 ### Smooth scroll
 
-**Lenis**, initialised in a vanilla `<script>` in `src/pages/index.astro` (not a React island). Config: `duration: 1.15`, `easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))` (expo-out). Same-page `#` links are routed through `lenis.scrollTo`, which honours `html { scroll-padding-top: 32px }` and clamps to the page bounds — so anchor clicks land the same with or without Lenis, and the 52px sticky nav clears section headers via that padding plus each section's own top padding. Off under reduced motion. No ScrollTrigger sync is needed: GSAP isn't used, and Lenis drives native scroll, so the CSS scroll-driven animations stay in step. Move it into `Layout.astro` when a second route lands.
+**Lenis**, initialised in a vanilla `<script>` in `src/pages/index.astro` (not a React island). Config: `duration: 1.15`, `easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t))` (expo-out). Same-page `#` links are routed through `lenis.scrollTo`, which honours `html { scroll-padding-top: 32px }` and clamps to the page bounds — so anchor clicks land the same with or without Lenis, and the 52px sticky nav clears section headers via that padding plus each section's own top padding. Off under reduced motion. No ScrollTrigger sync is needed: GSAP isn't used, and Lenis drives native scroll, so the CSS scroll-driven animations stay in step. It stays home-only: the Penknife pages are deliberately static (no Lenis, no reveals). Move it into `Layout.astro` only if a future route wants the same motion.
 
 ### Layout
 
@@ -145,7 +151,16 @@ What's implemented:
 
 ## Information architecture
 
-Single page (`/`). Sections stacked vertically with thin dividers:
+Routes:
+
+| URL | File | Notes |
+|---|---|---|
+| `/` | `src/pages/index.astro` | The portfolio (below) |
+| `/penknife` | `src/pages/penknife/index.astro` | Penknife (iOS app) landing: one line, ten tools, links |
+| `/penknife/privacy` | `src/pages/penknife/privacy.astro` | App Store Privacy Policy URL. `EFFECTIVE_DATE` constant at the top |
+| `/penknife/support` | `src/pages/penknife/support.astro` | App Store Support URL. Contact + FAQ |
+
+The home page (`/`) has sections stacked vertically with thin dividers:
 
 1. **Hero** — name-morph entrance, two-line tagline top-left, link bar with the location in mono ("Montréal, Canada"), massive `novruzoff` handle at the bottom. Cursor-reactive amber glow behind, clipped to the hero. No portrait (deferred). The hero's link bar is the only nav while the hero is on screen.
 2. **Site nav** (`src/components/SiteNav.astro`) — `Murad Novruzov` on the left (sans 14px/500, links to `#top` through Lenis, no decorative mark); "Experience · Work · About · Contact" on the right (sans 13px, secondary, anchors to `#experience` / `#work` / `#about` / `#contact`, matching the page order). It sits in the DOM right after the hero with `position: sticky; top: 0` (52px tall, negative bottom margin so it overlays `<main>` instead of pushing it), aligned to the `.wrap` column, over a 72% `--bg-page` + `backdrop-filter: blur(12px)` backdrop with a 0.5px `--border-subtle` hairline. Hidden while any of the hero is in view (IntersectionObserver on the hero, not a scroll listener); enters with `translateY(-8px) → 0` + fade over 300ms ease-out-expo, exits in 200ms. Hidden state uses `visibility: hidden` (flipped only after the exit fade), so its links leave the tab order and the accessibility tree. Reduced motion: appears/disappears without animating. Gated by `html.js-nav` / `nav-live` like the hero, so no-JS or a failed script leaves it visible. Phones: the dots drop out under 480px, "Experience" under 400px, so it stays on one line.
@@ -153,9 +168,30 @@ Single page (`/`). Sections stacked vertically with thin dividers:
 4. **Selected work** — section header with count, one row per project in `projects.ts`. Each row animates in on scroll.
 5. **About** — two or three first-person sentences.
 6. **Contact** — one line plus the amber `mailto:` link.
-7. **Footer** — © year · Montreal, GitHub, LinkedIn, and a ghost `novruzoff` bookend (serif, watermark opacity) linking back to top.
+7. **Footer** (`src/components/Footer.astro`, shared by every page) — © year · Montreal, GitHub, LinkedIn, and a ghost `novruzoff` bookend (serif, watermark opacity). `bookendHref` defaults to `#top` (home, through Lenis); subpages pass `/`. The watermark is decorative: it's drawn by `.bookend::before` with `content: "novruzoff" / ""` (empty alt, so it's not announced and isn't a text node for contrast checks; 7% white measures 1.17:1, which is fine for decoration but fails Lighthouse as text). The link's name is an `.sr-only` span that starts with the visible word ("novruzoff, back to top" / "novruzoff, home") so voice control matches what's on screen (WCAG 2.5.3). Don't put an `aria-label` back on it: a label that doesn't contain "novruzoff" fails `label-content-name-mismatch`.
 
-No separate pages yet. Case study pages may come later under `/work/[slug]`.
+Case study pages may come later under `/work/[slug]`.
+
+### Layout props
+
+`src/layouts/Layout.astro` takes, with defaults that produce the home page:
+
+- `title`, `description` — per page; also used for `og:title` / `og:description`.
+- `ogImage` (`"/og.png"`), `ogImageAlt` — social card. Site-relative path; made absolute against `site`.
+- `personSchema` (`true`) — Person JSON-LD for Murad.
+- `preloadHandleFont` (`true`) — Cormorant preload.
+- `motionGates` (`true`) — the inline script that adds `js-hero` / `js-reveal` / `js-nav`. Pass `false` on any page without the hero, reveal and nav scripts, or `[data-reveal]` content stays hidden until the DOMContentLoaded failsafe.
+
+The Penknife pages pass `false` for the last three.
+
+### Penknife pages
+
+Static by design: no JS at all, no reveals, no scroll-driven motion (`penknife.css` turns off the section rule's draw-in). Each page is `PageHeader` + `<main class="wrap doc">` + `Footer bookendHref="/"`, imports `src/styles/penknife.css` (small enough that Astro inlines it, so the home page's CSS is unaffected), and reuses `SectionHeader`, `.mono`, `.contact-email` and the tokens.
+
+- **`PageHeader`** (`src/components/PageHeader.astro`): "Murad Novruzov" → `/`, then "Penknife · Privacy · Support" with `aria-current="page"` on the current one. It reuses the site nav's classes (same sticky 52px bar, blurred backdrop, hairline) plus `.page-header`, which drops the nav's negative bottom margin. No hide-on-hero logic. Under 360px the gaps tighten so it stays on one line at 320px. `SiteNav` stays home-only: its links are same-page anchors.
+- **`AppStorePlaceholder`** (`src/components/AppStorePlaceholder.astro`): a dashed "App Store link coming soon" slot on `/penknife`. Replace it with the real link once the listing is public. Apple's official badge or a plain text link; no other Apple logos.
+- **Copy:** US English (matches the app and iOS labels: "colors", "Favorites"). Contact is `support@novruzoff.dev` everywhere. The privacy policy states only facts the developer has confirmed; don't add claims. Change `EFFECTIVE_DATE` whenever the policy changes.
+- Not in `projects.ts` yet.
 
 ## Content schema
 
@@ -214,7 +250,7 @@ Wrong voice:
 
 ## Performance budgets (creative-developer mode)
 
-- Total JS shipped: ≤ 60 KB gzipped. Currently ~7.6 KB: hero ~1.9 KB and Lenis + scroll reveals ~5.5 KB (module files), site nav ~0.2 KB (small enough that Astro inlines it). No GSAP or React is installed.
+- Total JS shipped: ≤ 60 KB gzipped. Currently ~7.6 KB: hero ~1.9 KB and Lenis + scroll reveals ~5.5 KB (module files), site nav ~0.2 KB (small enough that Astro inlines it). No GSAP or React is installed. The Penknife pages ship no JS.
 - Web font: the single Cormorant subset, ~2.2 KB, preloaded.
 - Social/meta: `public/og.png` (1200×630, ~24 KB) is the OG + Twitter `summary_large_image` card; `public/apple-touch-icon.png` (180×180) is the amber italic "n". Both are rasterized from vector outlines of the Cormorant subset (plus the system SF for the small line on the card), so they match the site's type exactly. Regenerate them if the handle or tagline changes. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
 - Lighthouse performance: ≥ 92 mobile, ≥ 96 desktop.

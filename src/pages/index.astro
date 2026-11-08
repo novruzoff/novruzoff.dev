@@ -5,10 +5,9 @@ import SiteNav from "../components/SiteNav.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import ProjectRow from "../components/ProjectRow.astro";
 import ExperienceRow from "../components/ExperienceRow.astro";
+import Footer from "../components/Footer.astro";
 import { projects } from "../data/projects";
 import { experience } from "../data/experience";
-
-const year = new Date().getFullYear();
 ---
 
 <Layout>
@@ -72,26 +71,7 @@ const year = new Date().getFullYear();
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="wrap footer-meta mono">
-      <span>© {year} Murad Novruzov · Montreal</span>
-      <span class="footer-right">
-        <a
-          href="https://github.com/novruzoff"
-          target="_blank"
-          rel="noreferrer noopener">GitHub</a
-        >
-        <a
-          href="https://linkedin.com/in/novruzoff"
-          target="_blank"
-          rel="noreferrer noopener">LinkedIn</a
-        >
-      </span>
-    </div>
-    <a class="bookend" href="#top" aria-label="Back to top">
-      <span aria-hidden="true">novruzoff</span>
-    </a>
-  </footer>
+  <Footer />
 </Layout>
 
 <script>

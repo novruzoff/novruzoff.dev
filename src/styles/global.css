@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* The Penknife pages are styled by src/styles/penknife.css, not utilities.
+   Their prose would otherwise be picked up as class names (a tool
+   description once added a stray utility to every page's CSS). Don't quote
+   example words here: Tailwind scans this file and CLAUDE.md too. */
+@source not "../pages/penknife";
+
 /* The only web font: Cormorant Italic 600, subset to "N f n o r u v z"
    (the "Novruzov → novruzoff" morph). Hero handle + footer bookend only. */
 @font-face {
@@ -950,6 +956,14 @@ html.js-nav .site-nav.is-visible {
 }
 .bookend:hover {
   color: rgba(255, 255, 255, 0.28);
+}
+/* The watermark word. Generated content with an empty alt is decorative:
+   screen readers skip it and contrast checks don't treat it as text. The
+   link's accessible name is the .sr-only span in Footer.astro. The first
+   declaration is the fallback for browsers without content alt text. */
+.bookend::before {
+  content: "novruzoff";
+  content: "novruzoff" / "";
 }
 
 /* ─────────────────────────────────────────────────────────

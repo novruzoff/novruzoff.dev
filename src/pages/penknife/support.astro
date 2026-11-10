@@ -3,6 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import PageHeader from "../../components/PageHeader.astro";
 import SectionHeader from "../../components/SectionHeader.astro";
 import Footer from "../../components/Footer.astro";
+import { PENKNIFE_APP_ID } from "../../data/penknife";
 import "../../styles/penknife.css";
 
 const SUPPORT_EMAIL = "support@novruzoff.dev";
@@ -41,6 +42,7 @@ const faq = [
   personSchema={false}
   preloadHandleFont={false}
   motionGates={false}
+  appStoreId={PENKNIFE_APP_ID}
 >
   <PageHeader current="support" />
 

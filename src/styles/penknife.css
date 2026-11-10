@@ -157,15 +157,20 @@
   }
 }
 
-/* App Store placeholder (src/components/AppStorePlaceholder.astro). */
-.store-slot {
+/* Apple's official App Store badge, unedited. The site is dark-only, so it's
+   always the white badge (Apple's variant for dark backgrounds). Fixed at its
+   native 120×40: Apple's minimum on screen is 40px tall, so the base img
+   reset (max-width: 100%) must not shrink it. */
+.store-badge {
   display: inline-block;
   margin-top: 24px;
-  padding: 9px 14px;
-  border: 0.5px dashed var(--border-strong);
-  border-radius: 6px;
-  font-size: 12px;
-  color: var(--text-tertiary);
+  border-radius: 7px;
+}
+.store-badge img {
+  display: block;
+  width: 120px;
+  max-width: none;
+  height: 40px;
 }
 
 /* Links to the other Penknife pages. */

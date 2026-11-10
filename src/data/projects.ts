@@ -1,9 +1,12 @@
+import { PENKNIFE_APP_STORE_URL } from "./penknife";
+
 export type Project = {
   slug: string;
   title: string;
   dates: string;
   blurb: string;
   liveUrl?: string;
+  appStoreUrl?: string;
   repoUrl?: string;
   caseStudyUrl?: string;
 };
@@ -27,6 +30,15 @@ export const projects: Project[] = [
       "Full-Stack Developer, Team lead. Student wellness platform for McGill, rebuilt off legacy WordPress. Lighthouse SEO 54→92, LCP 7.9s→3.2s, infrastructure cost down 97%.",
     liveUrl: "https://mindvista.ca",
     repoUrl: "https://github.com/MindVista/website",
+  },
+  {
+    slug: "penknife",
+    title: "Penknife",
+    dates: "2026",
+    blurb:
+      "Free, privacy-first iPhone toolkit: clean photos and links, compress images, videos and PDFs, and more.",
+    liveUrl: "/penknife",
+    appStoreUrl: PENKNIFE_APP_STORE_URL,
   },
   {
     slug: "ssmu-websites",

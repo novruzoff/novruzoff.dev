@@ -65,7 +65,7 @@ All rendered text is in sentence case as written in source.
 - NEVER apply `text-transform: uppercase` to body content (acceptable only for short ≤5-char mono labels like tag pills, used sparingly).
 - Section headers: "Selected work", "Experience", "Writing".
 - Nav links: "Work", "Experience", "About", "Contact" ("Writing" joins when that section exists).
-- Project link affordances: "Live", "Repo", "Case study", or arrow glyphs (`↗`).
+- Project link affordances: "Live", "App Store", "Repo", "Case study", or arrow glyphs (`↗`).
 - Proper nouns (Murad Novruzov, McGill, True Competency, MindVista, SSMU) ALWAYS sentence case.
 
 **Exception:** the hero handle `novruzoff` is rendered lowercase because it is a handle (GitHub `@novruzoff`, domain `novruzoff.dev`, email prefix `murad@novruzoff.dev`), not styled text. This is the *only* lowercase rendering on the entire site. Proper nouns elsewhere stay sentence case.
@@ -181,17 +181,19 @@ Case study pages may come later under `/work/[slug]`.
 - `personSchema` (`true`) — Person JSON-LD for Murad.
 - `preloadHandleFont` (`true`) — Cormorant preload.
 - `motionGates` (`true`) — the inline script that adds `js-hero` / `js-reveal` / `js-nav`. Pass `false` on any page without the hero, reveal and nav scripts, or `[data-reveal]` content stays hidden until the DOMContentLoaded failsafe.
+- `appStoreId` (unset) — adds `<meta name="apple-itunes-app">` (Safari's Smart App Banner). The Penknife pages pass `PENKNIFE_APP_ID`.
 
-The Penknife pages pass `false` for the last three.
+The Penknife pages pass `false` for `personSchema`, `preloadHandleFont` and `motionGates`.
 
 ### Penknife pages
 
 Static by design: no JS at all, no reveals, no scroll-driven motion (`penknife.css` turns off the section rule's draw-in). Each page is `PageHeader` + `<main class="wrap doc">` + `Footer bookendHref="/"`, imports `src/styles/penknife.css` (small enough that Astro inlines it, so the home page's CSS is unaffected), and reuses `SectionHeader`, `.mono`, `.contact-email` and the tokens.
 
 - **`PageHeader`** (`src/components/PageHeader.astro`): "Murad Novruzov" → `/`, then "Penknife · Privacy · Support" with `aria-current="page"` on the current one. It reuses the site nav's classes (same sticky 52px bar, blurred backdrop, hairline) plus `.page-header`, which drops the nav's negative bottom margin. No hide-on-hero logic. Under 360px the gaps tighten so it stays on one line at 320px. `SiteNav` stays home-only: its links are same-page anchors.
-- **`AppStorePlaceholder`** (`src/components/AppStorePlaceholder.astro`): a dashed "App Store link coming soon" slot on `/penknife`. Replace it with the real link once the listing is public. Apple's official badge or a plain text link; no other Apple logos.
+- **App Store badge** on `/penknife`: Apple's official badge, unedited, from `public/badges/`, linking to `PENKNIFE_APP_STORE_URL` (no tracking parameters). The site is dark-only, so it's always the white badge (Apple's variant for dark backgrounds); the black one is kept in `public/badges/` but unused. Shown at its native 120×40 (Apple's minimum is 40px tall), with the base image reset's max-width overridden so it never shrinks. Don't redraw or recolor it; no other Apple logos.
+- **App ID and URL** live in `src/data/penknife.ts` (`PENKNIFE_APP_ID`, `PENKNIFE_APP_STORE_URL`), shared by the badge, the Smart App Banner and `projects.ts`.
 - **Copy:** US English (matches the app and iOS labels: "colors", "Favorites"). Contact is `support@novruzoff.dev` everywhere. The privacy policy states only facts the developer has confirmed; don't add claims. Change `EFFECTIVE_DATE` whenever the policy changes.
-- Not in `projects.ts` yet.
+- Listed in `projects.ts`: "Live" goes to `/penknife`, "App Store" to the listing.
 
 ## Content schema
 
@@ -204,11 +206,12 @@ Static by design: no JS at all, no reveals, no scroll-driven motion (`penknife.c
   blurb: string         // 1-3 short sentences of concrete facts and numbers. Don't drop facts to hit a length.
   liveUrl?: string
   repoUrl?: string
+  appStoreUrl?: string  // rendered as "App Store"
   caseStudyUrl?: string // for future tier-1 case studies
 }
 ```
 
-Only include URLs that resolve publicly; omit a link rather than ship a 404. `ProjectRow` renders every link present (Case study, Live, Repo); the title links to the first.
+Only include URLs that resolve publicly; omit a link rather than ship a 404. `ProjectRow` renders every link present (Case study, Live, App Store, Repo); the title links to the first. Absolute `http(s)` links open in a new tab; site-relative ones (`/penknife`) don't.
 
 ### Experience
 ```ts

@@ -13,6 +13,8 @@ type Props = {
   preloadHandleFont?: boolean;
   /** The hero / reveal / nav motion gates. Only pages with those scripts. */
   motionGates?: boolean;
+  /** App Store app ID; adds Safari's Smart App Banner. Penknife pages only. */
+  appStoreId?: string;
 };
 
 const {
@@ -23,6 +25,7 @@ const {
   personSchema = true,
   preloadHandleFont = true,
   motionGates = true,
+  appStoreId,
 } = Astro.props;
 
 // build.format 'file' reports pages as /index.html and /penknife/privacy.html.
@@ -98,6 +101,7 @@ const personSchemaJson = JSON.stringify({
     )}
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#0f0f10" />
+    {appStoreId && <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />

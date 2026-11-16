@@ -2,7 +2,7 @@
 
 Personal portfolio for Murad Novruzov. CS student at McGill (expected May 2027), Founding Developer at True Competency, based in Montreal.
 
-> **Redesign in progress (branch `redesign`).** The site is moving to a new design: a panel-layout homepage, Geist Mono only, lowercase copy, Barça blue. Design direction, Color system, Case and Typography below already describe the new system and are binding. Sections marked **LEGACY** or **CHANGING** still describe the old home page (hero, scroll sections, Lenis) until the step that replaces them rewrites them. Don't extend legacy code; don't "fix" new-system code back toward the legacy rules.
+> **Redesign (branch `redesign`).** Panel-layout homepage, Geist Mono only, lowercase copy, Barça blue. Everything below describes the new system and is binding. The old hero, Lenis, scroll reveals and the Cormorant font are deleted; don't bring any of them back or "fix" new code toward the old rules.
 
 ## Stack
 
@@ -15,7 +15,7 @@ Personal portfolio for Murad Novruzov. CS student at McGill (expected May 2027),
 - Tailwind CSS v4 (via Vite plugin)
 - React and MDX: **not installed** (removed as unused). Add `@astrojs/react` if an interactive island is ever needed, `@astrojs/mdx` when case studies or writing land.
 - GSAP: **removed** (never used). All motion is vanilla (WAAPI, IntersectionObserver, CSS).
-- Lenis (smooth scroll) — LEGACY, home page only; removed with the home page rewrite.
+- No smooth-scroll library (Lenis was removed with the old home page): native scrolling everywhere.
 - Deployed on Vercel
 - Domain: novruzoff.dev
 
@@ -25,7 +25,7 @@ The homepage is a full-viewport row of vertical, full-height panels side by side
 
 Everything is monospace and lowercase (see Case and Typography). Dark-only.
 
-**Retired: the "creative-developer, motion is a feature" direction.** The name-morph hero entrance, the cursor glow, the dot-grid mesh, Lenis smooth scroll and the scroll choreography (reveals, progress hairline, drawing section rules) belong to the old home page and leave with it. Don't add them back, port them to new pages, or build new work on them. Motion in the new design is small and specific: a short load-in of the panels and hover states, documented in Motion system when it's built.
+**Retired: the "creative-developer, motion is a feature" direction.** The name-morph hero entrance, the cursor glow, the dot-grid mesh, Lenis smooth scroll and the scroll choreography (reveals, progress hairline, drawing section rules) belonged to the old home page and were deleted with it. Don't add them back or build new work on them. Motion in the new design is small and specific: a short load-in of the panels, the video loop, and hover states (see Motion system).
 
 ### Color system
 
@@ -49,9 +49,6 @@ Dark-only. Near-black, not pure black. Barça blue is the only accent.
 --accent-light:   #9BC1F1                     /* brighter link tint */
 --accent-bg:      rgba(93, 149, 218, 0.20)    /* selection background */
 --accent-border:  rgba(93, 149, 218, 0.35)    /* link underlines */
---accent-glow:    rgba(93, 149, 218, 0.22)    /* LEGACY: hero cursor glow */
---hero-dot:       rgba(255, 255, 255, 0.12)   /* LEGACY: hero dot grid */
---hero-drift:     rgba(0, 77, 152, 0.30)      /* LEGACY: hero glow (fill blue) */
 ```
 
 **The two blues have fixed roles. Never swap them.**
@@ -84,7 +81,7 @@ Wire as CSS custom properties in `global.css`, exposed to Tailwind v4 via `@them
 
 Page `<title>`s and meta descriptions are normally cased on purpose: they're search and social snippets, not page copy ("Projects — Murad Novruzov").
 
-Not converted yet (each converts in the step that rewrites it, so don't mass-lowercase them now): the legacy hero and home sections (though the data they render is already lowercase); the Penknife pages' body copy (sentence case, US English; the header and footer on those pages are already lowercase).
+Not converted yet: the Penknife pages' body copy (sentence case, US English; the header and footer on those pages are already lowercase). Convert it, or explicitly exempt it, in its own step; don't mass-lowercase it in passing.
 
 `text-transform: uppercase` is still not allowed on body content.
 
@@ -98,7 +95,7 @@ Not converted yet (each converts in the step that rewrites it, so don't mass-low
 
 ### Typography
 
-**One family: Geist Mono (OFL), weights 400 and 600.** No sans, no serif, no other web fonts. (Cormorant Italic survives only inside the legacy hero and is deleted with it; nothing new may use it or `--font-display-serif`.)
+**One family: Geist Mono (OFL), weights 400 and 600.** No sans, no serif, no other web fonts. (Cormorant Italic, the old hero's serif, is deleted.)
 
 ```
 --font-mono: "Geist Mono", "Geist Mono Fallback", "Geist Mono Fallback Consolas", ui-monospace, monospace;
@@ -120,23 +117,20 @@ Hierarchy:
 - **Footer:** 12px.
 - **Section headers:** 14px/600, `--text-secondary`.
 - **Page titles** (Penknife `h1`): `clamp(28px, 5vw, 36px)`/600, −0.01em.
-- **Panel display text** (homepage, not built yet): 600; sizes are set in the panel step and documented here then.
+- **Panel display text** (homepage greeting and statement): 600, line-height 1.15, −0.01em, sized to the panel's width with container-query units (each panel is `container-type: inline-size`): `clamp(20px, 8.5cqi, 40px)` on phones (where the text panels span both columns), `clamp(20px, 10cqi, 44px)` in the 2×2 layout, `clamp(18px, 12cqi, 44–48px)` in the four- and five-column layouts. Roughly 13 characters per line in a five-column panel.
 
-### Motion system — LEGACY
+### Motion system
 
-> Everything in this section describes the old home page and is deleted when `index.astro` is rewritten as panels. Don't extend it, retime it, or reuse it on other pages. The new design's motion (panel load-in, hover states, video behavior) gets documented here when it's built.
+Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-triggered animation anywhere on the site.
 
-All of it is vanilla — WAAPI, IntersectionObserver, CSS scroll-driven animations — in Astro `<script>` blocks. No GSAP, no React.
-
-1. **Hero entrance (load-linked, once per session, ~2.5s total).** `src/components/Hero.astro`. Phase 1 (0–1.25s): "Murad" and "Novruzov" (serif, scaled down) fade in over 200ms and hold. Phase 2 (1.25–2.1s): "Murad" exits left (350ms) while "Novruzov" morphs per letter into `novruzoff` — N→n via a scaleY squash with the glyph swapped at the midpoint, the trailing v collapses, the two f's grow in on a 30ms stagger — and travels to its bottom-anchored rest position (750ms). Phase 3 (2.1s): tagline, link bar, and glow settle in (250–300ms); at 2.5s inline transforms are cleared so the layout survives resizes. Plays once per session (`sessionStorage`); replays and restored-scroll loads get a 600ms settle instead. ("Murad" now renders in Geist Mono since the body font changed; that's expected until the hero is removed.)
-   - **Skip on scroll.** `scroll`, `wheel`, `touchmove` (passive) or a PageUp/PageDown/Arrow Up/Arrow Down/Home/End/Space `keydown` fast-forwards the entrance to its settled end state over 100ms, then runs the normal cleanup. "Murad" is `position: fixed` while the entrance plays, so it must end on its base `display: none`.
-   - **Letter clipping.** The trailing v's collapse and the f's reveal clip horizontally only, via `clip-path` (`CLIP_TO_BOX` ↔ `CLIP_TO_INK`), so descenders are never cut. **Never put `overflow` other than `visible` on the handle's letter spans**: it clips the italic f and lifts inline-blocks off the baseline. The `.hero` clips only on x.
-   - **Gate + failsafe.** Base CSS is the settled end state. Start states only apply under `html.js-hero` + `prefers-reduced-motion: no-preference`. The gate is set by an inline script at the top of `index.astro` (moved out of `Layout.astro`, since only this page uses it). The hero script claims it by adding `hero-live`; if it hasn't by `DOMContentLoaded`, or it throws, the gate is removed and the static hero shows.
-   - The Cormorant subset (`public/fonts/cormorant-italic-600-novruzov.woff2`, `"Cormorant Subset"`, `--font-display-serif`) is used only by the hero handle and is no longer preloaded; the entrance waits for `document.fonts.ready` (up to 900ms) before measuring. Delete the file, the `@font-face` and the token together with `Hero.astro`.
-
-2. **Hero background.** Inside `.hero-glow` (absolute, `overflow: hidden`, `pointer-events: none`, 180px fade at the bottom): a white 24px dot grid drifting one tile per 18s under a fixed radial mask; one drifting glow in the fill blue (`--hero-drift`, 0.30); and a cursor glow (910px, `--accent-glow`, layer opacity 0.22, per-frame lerp at damping 0.08, transform only, idle when settled, hidden tab or out of view; hidden under `(hover: none)` and reduced motion). Worst case — tertiary text on the drift glow's peak with the cursor glow on top — measures 4.55:1; no text sits there anyway.
-
-3. **Scroll reveals.** `[data-reveal]` elements fade up 14px (700ms ease-out-expo, 70ms stagger via `--reveal-i`) when an IntersectionObserver adds `.is-in`, fire-once. Gated by `html.js-reveal` with the same claim/failsafe pattern (`reveal-live`), set by the same inline script in `index.astro`. CSS scroll-driven animations add the scroll-progress hairline, section rules drawing in, and the hero's bottom dimming as it exits.
+1. **Panel entrance (home, CSS only, no gate).** Each panel fades in and rises 12px over 500ms ease-out-expo, 70ms apart left to right (`--i` on each panel, 0–4; the delay is `--i × 70ms`). The keyframes run only under `prefers-reduced-motion: no-preference`, so reduced motion and no-JS both get the static page with nothing ever hidden. No JS gate is needed because nothing depends on a script.
+2. **The video loop** (home, the page's only script, ~0.5 KB gzipped, inline):
+   - The `<video>` ships with no `<source>` and `preload="none"`; the script attaches the sources on `window` `load`, so the loop never competes with the LCP image.
+   - It plays only while on screen (IntersectionObserver) and while the tab is visible (`visibilitychange`).
+   - Under `prefers-reduced-motion: reduce` or Save-Data (`navigator.connection.saveData`) the sources are never attached: only the poster shows, and the toggle stays hidden.
+   - **Pause/play toggle** (WCAG 2.2.2: moving content longer than 5s needs a way to pause it): a small mono button bottom-left over the video, `--accent` text on a 92% `--bg-page` backdrop (5.12:1 even over a pure-white frame; 0.88 measured 4.52:1, too close). Its label follows the video's real state through `play`/`pause` events, so it reads "play" when the browser refuses autoplay (iOS Low Power Mode). Accessible name "pause background video" / "play background video" (starts with the visible word). A user pause sticks until they press play.
+   - The video itself is decorative: `aria-hidden="true"`, `tabindex="-1"`, `muted loop playsinline autoplay disablepictureinpicture disableRemotePlayback` (camelCase in source: Astro's types want it that way; HTML attributes are case-insensitive).
+3. **Hover states:** color transitions at 180ms ease-out-expo; link arrows nudge 2–3px. Nothing moves on scroll.
 
 #### Motion principles (from emil-design-eng) — still apply to new work
 
@@ -146,33 +140,44 @@ All of it is vanilla — WAAPI, IntersectionObserver, CSS scroll-driven animatio
 - ALWAYS respect `prefers-reduced-motion: reduce` — collapse to static end-states.
 - `will-change` sparingly, only on actively animating elements. Remove after animation.
 
-### Smooth scroll — LEGACY
-
-**Lenis**, initialised in a vanilla `<script>` in `src/pages/index.astro`. Config: `duration: 1.15`, expo-out easing. Same-page `#` links are routed through `lenis.scrollTo`, which honours `html { scroll-padding-top: 32px }`. Off under reduced motion. Home-only, and removed with the home page rewrite (the panel homepage fits the viewport on desktop, and the sub-pages are short documents). Don't add it to other pages.
-
-### Layout — CHANGING
-
-> The homepage panel grid (columns per breakpoint, height guard, mobile stacking) is defined in the panel step and documented here then. What follows still holds for the sub-pages and the Penknife pages, except where marked legacy.
+### Layout
 
 - 0.5px borders only. Background layering creates hierarchy.
-- Content column: `.wrap`, `max-width: 828px` including `clamp(20px, 4vw, 40px)` side padding (748px of content at desktop). Shared by `<main>`, the header and the footer, so they align.
+- Content column: `.wrap`, `max-width: 828px` including `clamp(20px, 4vw, 40px)` side padding (748px of content at desktop). Shared by the document pages' `<main>`, header and footer. The home page uses `.wrap-wide` instead (full width, `clamp(16px, 2vw, 24px)` side padding), and so do its header and footer (`wide` prop).
 - Header (`src/components/Header.astro`): sticky, 52px, 72% `--bg-page` + `backdrop-filter: blur(12px)` with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 280px row).
-- Document pages (`/projects`, `/resume`, `/contact`, Penknife): `Header` + `<main class="wrap doc">` + `Footer`. `.doc`, `.doc-head` (h1, `.lead`, `.meta`) and `.prose` live in `global.css`. `.doc [id]` has a 76px `scroll-margin-top`, so `/projects#mindvista` lands below the 52px sticky header. No JS, no reveals: the section rule is static under `.doc`.
+
+#### Home panel grid (`src/pages/index.astro`)
+
+Header, panel grid, footer in one flex column. Five panels: **photo a · greeting · video · statement · photo b**. Every panel has a 0.5px `--border-subtle` frame and a 12px gap; from 640px up the whole grid sits in a 0.5px outer frame with 12px of padding.
+
+| Viewport | Layout |
+|---|---|
+| ≥ 1024px | Five columns: a, greeting, video, statement, b |
+| 768–1023px, landscape | Four columns, photo b hidden |
+| 640–1023px otherwise (portrait tablets, 640–767px) | 2×2: a + greeting over video + statement, photo b hidden. Four columns on a portrait tablet would be ~170px wide and ~900px tall: a sliver, not a panel |
+| < 640px | Two columns that scroll: greeting across the top, photo a + video side by side (3:4 each), statement across the bottom, photo b hidden, no outer frame. About one phone screen (verified at 375×812 and 320×640) |
+
+- **Height guard.** From 640px wide *and* 640px tall, the page is locked to exactly one viewport (`100dvh`) and the grid rows share what's left; media panels drop their aspect ratio and fill the cell. Below 640px tall, nothing is locked: media panels keep their aspect ratio (3:4 in 2×2 and on phones, 2:3 in the four- and five-column layouts), text panels match their row, and the page scrolls. Text panels never clip, so text can't be squeezed out.
+- **Greeting:** `--accent-fill` panel, `--text-primary` text (7.70:1), top-left, as the page's `<h1>`: "hi." / "i'm murad, a software engineer in montréal."
+- **Statement:** `--bg-elevated` panel, `--accent` text (5.81:1), bottom-right: "i build software for the web, end to end." Pure vibe: no company names, no metrics.
+- **Media panels** crop from the center with `object-fit: cover`, so any source proportion works; native proportions (photo a 2:3, photo b 4:5, video 9:16) crop least.
+- **Missing media** renders a quiet `--bg-elevated` block labelled "photo a" / "video" / "photo b" (11px, tertiary, `aria-hidden`). See Homepage media.
+
+#### Document pages
+
+- `/projects`, `/resume`, `/contact`, Penknife: `Header` + `<main class="wrap doc">` + `Footer`. `.doc`, `.doc-head` (h1, `.lead`, `.meta`) and `.prose` live in `global.css`. `.doc [id]` has a 76px `scroll-margin-top`, so `/projects#mindvista` lands below the 52px sticky header. No JS, no reveals; section rules are static.
 - **Project entries** (`ProjectRow variant="detail"`, /projects): title | dates on one line, a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.81:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
-- **Compact project rows** (`ProjectRow`, default variant, legacy home page only): three-column grid (144px date | 1fr content | 88px link affordance). The 144px `--date-col` fits the longest date ("nov 2024 — present", 18 chars = 119px in Geist Mono at 11px); re-check if a longer date lands.
+- **Compact project rows** (`ProjectRow`'s default variant, `.project-row` in `global.css`) and `ExperienceRow`'s compact (non-`detail`) form are **unused** since the home rewrite, and still carry inert `data-reveal` attributes (as does `SectionHeader`). Remove them, and the `variant`/`detail` props, in a cleanup pass that may touch `/projects` and `/resume`.
 - Experience list: a vertical timeline (`<ol class="timeline">` of `.xp-node` items, most recent first): a 28px gutter (20px under 480px) holding a 9px dot, then role over company | date over location (right-aligned, tertiary). The dot is filled `--accent` when the role's `dates` contain "present" (`data-current`), otherwise a hollow 1px `--text-tertiary` ring. The 0.5px connector is trimmed to the dot on the first and last node. `ExperienceRow detail` (/resume) adds the bullets and the `→ /projects#<slug>` link under both columns, and under 480px moves date and location onto a line below the company (otherwise long company names break over four lines).
 - Inline lists with "·" separators (stack, skills) draw the dot **after** each item but the last, so a wrapped line never starts with a separator.
-- LEGACY hero composition: full viewport, tagline top-left, link bar above the massive `novruzoff` handle at the bottom.
 
-## Information architecture — CHANGING
-
-> The sub-pages are built and hold all the substance. The next step replaces the home page with the panel layout; until then the legacy home page below still renders the same data in compact form.
+## Information architecture
 
 Routes:
 
 | URL | File | Notes |
 |---|---|---|
-| `/` | `src/pages/index.astro` | The portfolio (below; legacy, being replaced) |
+| `/` | `src/pages/index.astro` | The panel homepage (see Layout → Home panel grid). Vibe only |
 | `/projects` | `src/pages/projects.astro` | Full depth on every project, in `projects.ts` order; each entry is `/projects#<slug>` |
 | `/resume` | `src/pages/resume.astro` | Lean: about, timeline with 1–2 bullets per role (linking to `/projects#<slug>`), skills, education |
 | `/contact` | `src/pages/contact.astro` | One line, the `mailto:` link, GitHub and LinkedIn |
@@ -180,22 +185,27 @@ Routes:
 | `/penknife/privacy` | `src/pages/penknife/privacy.astro` | App Store Privacy Policy URL. `EFFECTIVE_DATE` constant at the top |
 | `/penknife/support` | `src/pages/penknife/support.astro` | App Store Support URL. Contact + FAQ |
 
-**/projects carries the depth; /resume does not repeat it.** A resume bullet is one line with at most a couple of numbers, then the link to the project entry. Put new detail on the project, not the role. The sub-pages ship no JS and pass `personSchema={false}` (the Person JSON-LD stays on `/`).
+**The homepage carries no substance; /projects carries the depth; /resume does not repeat it.** A resume bullet is one line with at most a couple of numbers, then the link to the project entry. Put new detail on the project, not the role. The sub-pages ship no JS and pass `personSchema={false}` (the Person JSON-LD stays on `/`).
 
-The home page (`/`) currently has sections stacked vertically with thin dividers:
+Old home anchors (`/#work`, `/#experience`, `/#about`, `/#contact`) no longer exist; fragments never reach the server, so they can't be redirected. They land on the homepage.
 
-1. **Hero** (legacy) — name-morph entrance, tagline, link bar, massive `novruzoff` handle.
-2. **Header** — `<Header overlay />`, placed right after the hero (see below).
-3. **Experience** — one timeline node per role in `experience.ts`.
-4. **Selected work** — one row per project in `projects.ts`.
-5. **About** — two first-person paragraphs.
-6. **Contact** — one line plus the `mailto:` link.
-7. **Footer**.
+### Homepage media (`src/assets/home/`)
+
+Optional at build time: `index.astro` finds each file with `import.meta.glob`, so a missing file is simply absent and its panel renders the placeholder. Nothing else needs changing when a file is added; rebuild.
+
+| File | Shape | Notes |
+|---|---|---|
+| `photo-a.{jpg,jpeg,png,webp,avif,tif,tiff}` | portrait, ~2:3, ≥ 1440px wide | Panel 1, the LCP image: `loading="eager"`, `fetchpriority="high"`. Astro `<Picture>` → AVIF + WebP + JPEG at 360/540/720/960w, `sizes` matched to the grid. Subject in the middle half of the width (desktop crops the sides hard) |
+| `photo-b.{…}` | portrait, ~4:5, ≥ 1440px wide | Panel 5, desktop only, `loading="lazy"` |
+| `loop.webm` and/or `loop.mp4` | portrait 9:16, ideally 720×1280 | Copied as-is (`?url` import), not transcoded. WebM (VP9/AV1) is listed first, MP4 (H.264, faststart) second. No audio track; 8–12s; seamless loop; no flashing (WCAG 2.3.1); keep detail in the center 60%; target ≤ 1 MB WebM, ≤ 2 MB MP4. A wider source still works (center-cropped), but 9:16 crops least |
+| `loop-poster.{…}` | same frame as the loop's first frame | Converted to a 720w WebP poster. Shown before load, under reduced motion and Save-Data, and when autoplay is refused, so it must look intentional on its own |
+
+**Strip GPS/EXIF from photos before committing**: the repo is public, and git history keeps the original files even though the served images are re-encoded. Set `PHOTO_A_ALT` / `PHOTO_B_ALT` in `index.astro` to describe the photos (they're empty, i.e. decorative, until real photos land).
 
 ### Shared chrome
 
-- **Header** (`src/components/Header.astro`, every page; replaces the old `SiteNav` and `PageHeader`). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `aria-current="page"` goes on whichever link's `href` equals the page's served URL (the name link included, on `/`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). `overlay` adds a negative bottom margin so it overlays `<main>`; only the legacy home page uses it (the header sits after the full-height hero there, so it scrolls up and then sticks). No script, no hide-on-hero logic: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
-- **Footer** (`src/components/Footer.astro`, every page): "© {year} murad novruzov · montreal" on the left; `[github]` `[linkedin]` `[email]` on the right (`mailto:murad@novruzoff.dev`), wrapping below the line on phones. The brackets are CSS with empty alt text, so each link's accessible name is the visible word (WCAG 2.5.3). No props. The old Cormorant `novruzoff` bookend is gone.
+- **Header** (`src/components/Header.astro`, every page; replaces the old `SiteNav` and `PageHeader`). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `aria-current="page"` goes on whichever link's `href` equals the page's served URL (the name link included, on `/`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). `wide` swaps the 828px `.wrap` column for the full-width `.wrap-wide` (home only). No script: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
+- **Footer** (`src/components/Footer.astro`, every page): "© {year} murad novruzov · montreal" on the left; `[github]` `[linkedin]` `[email]` on the right (`mailto:murad@novruzoff.dev`), wrapping below the line on phones. The brackets are CSS with empty alt text, so each link's accessible name is the visible word (WCAG 2.5.3). `wide` (home only) uses `.wrap-wide` and drops the top margin and hairline, since the panel grid's frame closes the page.
 - Keep link labels on the same line as their `<a>` tag in both components: whitespace inside the link renders as a gap after the CSS `/` or inside the brackets.
 
 Case study pages may come later under `/projects/[slug]`.
@@ -205,11 +215,11 @@ Case study pages may come later under `/projects/[slug]`.
 `src/layouts/Layout.astro` takes, with defaults that produce the home page:
 
 - `title`, `description` — per page; also used for `og:title` / `og:description`.
-- `ogImage` (`"/og.png"`), `ogImageAlt` — social card. Site-relative path; made absolute against `site`. The default alt describes the current `og.png` (the old italic handle); change both together when the card is regenerated.
+- `ogImage` (`"/og.png"`), `ogImageAlt` — social card. Site-relative path; made absolute against `site`. The default alt describes the current `og.png` (a miniature of the home panels); change both together when the card is regenerated.
 - `personSchema` (`true`) — Person JSON-LD for Murad.
 - `appStoreId` (unset) — adds `<meta name="apple-itunes-app">` (Safari's Smart App Banner). The Penknife pages pass `PENKNIFE_APP_ID`.
 
-Layout always preloads Geist Mono 600. It no longer has `preloadHandleFont` or `motionGates`: the motion gates moved into `index.astro`, the only page with the scripts they gate. The Penknife pages pass `false` for `personSchema`.
+Layout always preloads Geist Mono 600 (it carries the homepage's display text, which is the LCP element until photo a exists). There are no motion gates anywhere. The sub-pages and the Penknife pages pass `false` for `personSchema`.
 
 ### Penknife pages
 
@@ -230,7 +240,7 @@ Static by design: no JS at all, no reveals, no scroll-driven motion. Each page i
   slug: string          // also the id on /projects: /projects#<slug>
   title: string         // "true competency", "SSMU websites"
   dates: string
-  blurb: string         // one sentence: what it is (the legacy home page shows only this)
+  blurb: string         // one sentence: what it is
   metrics?: { value: string; label: string }[]  // scannable tiles: { value: "99.9%", label: "uptime" }
   highlights?: string[] // the detail, one fact per bullet
   stack?: string[]      // vendor casing: "Next.js", "Supabase (PostgreSQL + RLS)"
@@ -288,13 +298,14 @@ Wrong voice:
 
 ## Performance budgets
 
-- Total JS shipped: ≤ 60 KB gzipped. Currently ~7.4 KB, all of it legacy home-page code: hero ~1.9 KB and Lenis + scroll reveals ~5.5 KB (module files). The header and footer ship no JS. No GSAP or React is installed. The Penknife pages ship no JS.
-- Web fonts: Geist Mono 400 (9.7 KB) and 600 (9.8 KB); only the 600 is preloaded. The legacy Cormorant subset (~2.2 KB) still loads on the home page for the hero handle, unpreloaded, until the hero is removed.
-- Social/meta: `public/og.png` (1200×630, ~24 KB) is the OG + Twitter `summary_large_image` card; `public/apple-touch-icon.png` (180×180) and `public/favicon.svg` are an italic "n" in the old amber. **All three still show the old design** (Cormorant / Georgia italic, amber) and need regenerating in Geist Mono and Barça blue. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
+- Total JS shipped: ≤ 60 KB gzipped. Currently **553 B gzipped** (969 B raw), all of it the homepage video script, inlined by Astro. Every other page ships no JS. No GSAP, React or Lenis is installed.
+- Web fonts: Geist Mono 400 (9.7 KB) and 600 (9.8 KB); only the 600 is preloaded.
+- Homepage transfer without media: ~27 KB gzipped (HTML 3.0 KB, CSS 4.5 KB, fonts 19.5 KB, favicon). Media adds roughly: photo a 40–150 KB at the served size, photo b similar (desktop only, lazy), poster ≤ 50 KB, loop ≤ 1 MB WebM after `load`.
+- Social/meta, all in the new system and regenerated together: `public/og.png` (1200×630, ~52 KB) is a miniature of the home panels (blue greeting panel, a blue gradient standing in for the video, the statement) rendered in Geist Mono with headless Chromium; `public/favicon.svg` is Geist Mono 600's "n" as a vector path (no font needed), white on a `#004D98` rounded square; `public/apple-touch-icon.png` (180×180) is the same, full-bleed (iOS applies its own mask). Regenerate them if the greeting, statement or palette changes. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
 - Lighthouse performance: ≥ 92 mobile, ≥ 96 desktop.
 - LCP: ≤ 2.0s on 4G.
 - Accessibility, Best Practices, SEO: 100 each, non-negotiable.
-- Homepage media (photos, video): budgets and formats are set in the panel step.
+- Homepage media: see Information architecture → Homepage media for formats and sizes. The loop never loads before `window` `load`.
 
 ## Out of scope (don't build without asking)
 

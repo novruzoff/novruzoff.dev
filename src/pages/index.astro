@@ -1,157 +1,493 @@
 ---
+// Home: a full-viewport row of vertical panels (see CLAUDE.md, Layout).
+//   1 photo a · 2 greeting (blue fill) · 3 video loop · 4 statement · 5 photo b
+// It's the vibe page: no metrics, no timeline, no project list; the header
+// links carry visitors to /projects, /resume and /contact.
+//
+// Media is optional at build time. Each asset is looked up in
+// src/assets/home/ with import.meta.glob, so a missing file is simply absent
+// (no import error) and its panel renders a labelled placeholder instead.
+//   photo-a.{jpg,jpeg,png,webp,avif,tif,tiff}   portrait, ~2:3
+//   photo-b.{…same}                              portrait, ~4:5
+//   loop.webm and/or loop.mp4                    portrait 9:16, no audio
+//   loop-poster.{…same as photos}                the loop's first frame
+import type { ImageMetadata } from "astro";
+import { Picture, getImage } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
-import Hero from "../components/Hero.astro";
 import Header from "../components/Header.astro";
-import SectionHeader from "../components/SectionHeader.astro";
-import ProjectRow from "../components/ProjectRow.astro";
-import ExperienceRow from "../components/ExperienceRow.astro";
 import Footer from "../components/Footer.astro";
-import { projects } from "../data/projects";
-import { experience } from "../data/experience";
+
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/home/*.{jpg,jpeg,png,webp,avif,tif,tiff}",
+  { eager: true }
+);
+// ?url makes Vite copy the file into the build with a hashed name and hand
+// back its URL; video isn't processed, only served.
+const videos = import.meta.glob<string>("../assets/home/loop.{webm,mp4}", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+
+const findImage = (name: string) =>
+  Object.entries(images).find(([path]) =>
+    new RegExp(`/${name}\\.[a-z]+$`).test(path)
+  )?.[1].default;
+
+const photoA = findImage("photo-a");
+const photoB = findImage("photo-b");
+const posterImage = findImage("loop-poster");
+
+// WebM (VP9/AV1, smaller) first, MP4 (H.264) as the fallback Safari and
+// older browsers pick. The browser plays the first type it supports.
+const loopSources = Object.entries(videos)
+  .map(([path, src]) => ({
+    src,
+    type: path.endsWith(".webm") ? "video/webm" : "video/mp4",
+  }))
+  .sort((a, b) => (a.type === "video/webm" ? -1 : b.type === "video/webm" ? 1 : 0));
+
+const poster = posterImage
+  ? (await getImage({ src: posterImage, format: "webp", width: 720 })).src
+  : undefined;
+
+// Alt text: describe the photo once the real one lands. Empty alt marks an
+// image as decorative, which is correct only if it carries no information.
+const PHOTO_A_ALT = "";
+const PHOTO_B_ALT = "";
+
+// Rendered widths: phones ~165px (two columns), 2×2 tablets ~350px,
+// 4 columns ~240px, 5 columns 180–500px. srcset covers 1x and 2x of those.
+const PHOTO_WIDTHS = [360, 540, 720, 960];
+const PHOTO_A_SIZES =
+  "(min-width: 1024px) 20vw, (min-width: 768px) and (orientation: landscape) 25vw, 50vw";
+const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
 ---
 
 <Layout>
-  {/* LEGACY motion gates, moved here from Layout.astro: only this page has
-      the hero and reveal scripts, and all three go together when the page
-      is rewritten. Runs before any content is parsed, so CSS holds the
-      hero and [data-reveal] content at their start states from the first
-      paint. Module scripts run before DOMContentLoaded, so a gate still
-      unclaimed by then means its script failed to load: drop it and show
-      the static content. */}
-  <script is:inline>
-    (() => {
-      const root = document.documentElement;
-      root.classList.add("js-hero", "js-reveal");
-      document.addEventListener("DOMContentLoaded", () => {
-        if (!root.classList.contains("hero-live")) root.classList.remove("js-hero");
-        if (!root.classList.contains("reveal-live")) root.classList.remove("js-reveal");
-      });
-    })();
+  <div class="home">
+    <Header wide />
+
+    <main class="wrap-wide home-main">
+      <div class="panels">
+        <div class="panel panel-media panel-a" style="--i: 0">
+          {
+            photoA ? (
+              <Picture
+                src={photoA}
+                alt={PHOTO_A_ALT}
+                widths={PHOTO_WIDTHS}
+                sizes={PHOTO_A_SIZES}
+                formats={["avif", "webp"]}
+                fallbackFormat="jpg"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
+                class="media"
+              />
+            ) : (
+              <div class="placeholder" aria-hidden="true">photo a</div>
+            )
+          }
+        </div>
+
+        <div class="panel panel-text panel-greet" style="--i: 1">
+          <h1 class="display">
+            <span>hi.</span>
+            <span>i'm murad, a software engineer in montréal.</span>
+          </h1>
+        </div>
+
+        <div class="panel panel-media panel-video" style="--i: 2">
+          {
+            loopSources.length > 0 ? (
+              <>
+                {/* No <source> in the HTML on purpose: the script adds them
+                    after window load. Decorative, so hidden from assistive
+                    tech and out of the tab order; the toggle below is the
+                    accessible control. */}
+                <video
+                  class="media"
+                  data-loop
+                  data-sources={JSON.stringify(loopSources)}
+                  poster={poster}
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  disablepictureinpicture
+                  disableRemotePlayback
+                  preload="none"
+                  aria-hidden="true"
+                  tabindex="-1"
+                />
+                <button type="button" class="loop-toggle" data-loop-toggle hidden>
+                  pause
+                </button>
+              </>
+            ) : (
+              <div class="placeholder" aria-hidden="true">video</div>
+            )
+          }
+        </div>
+
+        <div class="panel panel-text panel-statement" style="--i: 3">
+          <p class="display">i build software for the web, end to end.</p>
+        </div>
+
+        <div class="panel panel-media panel-b" style="--i: 4">
+          {
+            photoB ? (
+              <Picture
+                src={photoB}
+                alt={PHOTO_B_ALT}
+                widths={PHOTO_WIDTHS}
+                sizes={PHOTO_B_SIZES}
+                formats={["avif", "webp"]}
+                fallbackFormat="jpg"
+                loading="lazy"
+                decoding="async"
+                class="media"
+              />
+            ) : (
+              <div class="placeholder" aria-hidden="true">photo b</div>
+            )
+          }
+        </div>
+      </div>
+    </main>
+
+    <Footer wide />
+  </div>
+
+  {/* Inside <Layout> so it renders in <body>; after it would land past </html>. */}
+  <script>
+    // The loop video, and the only script on the page. Nothing else needs JS.
+    // - Sources are attached after window load, so the video never competes
+    //   with the LCP image for bandwidth (preload="none" until then).
+    // - Plays only while on screen and the tab is visible.
+    // - Reduced motion or Save-Data: never attached, so only the poster shows
+    //   and the toggle stays hidden.
+    // - The toggle (WCAG 2.2.2: moving content over 5s needs a pause) reflects
+    //   the video's real state via play/pause events, so it also reads "play"
+    //   when the browser blocks autoplay (e.g. iOS Low Power Mode).
+    type LoopSource = { src: string; type: string };
+    type NetworkInformationLike = { saveData?: boolean };
+
+    const video = document.querySelector<HTMLVideoElement>("[data-loop]");
+    const toggle = document.querySelector<HTMLButtonElement>("[data-loop-toggle]");
+
+    if (video && toggle) {
+      let sources: LoopSource[] = [];
+      try {
+        sources = JSON.parse(video.dataset.sources ?? "[]");
+      } catch {}
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const connection = (navigator as Navigator & { connection?: NetworkInformationLike })
+        .connection;
+      const saveData = connection?.saveData === true;
+
+      if (sources.length > 0 && !reduce && !saveData) {
+        let inView = false;
+        let userPaused = false;
+
+        const sync = () => {
+          if (inView && !document.hidden && !userPaused) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        };
+
+        const render = () => {
+          const action = video.paused ? "play" : "pause";
+          toggle.textContent = action;
+          // Starts with the visible word, so voice control can say what it sees.
+          toggle.setAttribute("aria-label", `${action} background video`);
+        };
+
+        const attach = () => {
+          for (const { src, type } of sources) {
+            const source = document.createElement("source");
+            source.src = src;
+            source.type = type;
+            video.append(source);
+          }
+          video.load();
+          toggle.hidden = false;
+          render();
+          new IntersectionObserver((entries) => {
+            for (const entry of entries) inView = entry.isIntersecting;
+            sync();
+          }).observe(video);
+          document.addEventListener("visibilitychange", sync);
+        };
+
+        video.addEventListener("play", render);
+        video.addEventListener("pause", render);
+        toggle.addEventListener("click", () => {
+          userPaused = !video.paused;
+          if (userPaused) video.pause();
+          else video.play().catch(() => {});
+        });
+
+        if (document.readyState === "complete") attach();
+        else window.addEventListener("load", attach, { once: true });
+      }
+    }
   </script>
-
-  <span class="scroll-progress" aria-hidden="true"></span>
-
-  <Hero />
-  <Header overlay />
-
-  <main class="wrap">
-    <section id="experience" class="section">
-      <SectionHeader
-        label="Experience"
-        meta={`0${experience.length} roles`}
-      />
-      <ol class="timeline">
-        {experience.map((entry, i) => <ExperienceRow experience={entry} index={i} />)}
-      </ol>
-    </section>
-
-    <section id="work" class="section">
-      <SectionHeader
-        label="Selected work"
-        meta={`${projects.length} projects`}
-      />
-      <div class="rows">
-        {projects.map((project, i) => <ProjectRow project={project} index={i} />)}
-      </div>
-    </section>
-
-    <section id="about" class="section">
-      <SectionHeader label="About" />
-      <div class="about" data-reveal>
-        <p>
-          I am Murad Novruzov, a.k.a <i>novruzoff</i>, a software developer based in Montreal, Canada.
-          I was born and raised in Baku.
-         <p>I study Computer Science at <a
-            href="https://mcgill.ca"
-            target="_blank"
-            rel="noreferrer noopener">McGill University</a>
-             into my final year. I'm the Founding Developer and CTO at
-          <a
-            href="https://truecompetency.com"
-            target="_blank"
-            rel="noreferrer noopener">True Competency</a>
-          , and most of my other work is full-stack web.</p>
-        </p>
-      </div>
-    </section>
-
-    <section id="contact" class="section">
-      <SectionHeader label="Contact" />
-      <p class="contact-line" data-reveal>
-        Open to internships, contract work, and interesting problems.
-      </p>
-      <a
-        class="contact-email"
-        data-reveal
-        style="--reveal-i: 1"
-        href="mailto:murad@novruzoff.dev">murad@novruzoff.dev</a
-      >
-    </section>
-  </main>
-
-  <Footer />
 </Layout>
 
-<script>
-  import Lenis from "lenis";
+<style>
+  /* ── Page frame ───────────────────────────────────────────
+     Header, panel grid, footer in one column. From 640px wide AND
+     640px tall the column is locked to the viewport and the grid takes
+     whatever height is left (the height guard: on shorter screens the
+     panels keep their own aspect ratio and the page scrolls, so text can
+     never be squeezed out of a panel). */
+  .home {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .home-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+  }
 
-  const root = document.documentElement;
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* ── Grid ─────────────────────────────────────────────────
+     Phones (< 640px): two columns that scroll, about one screen tall.
+     Greeting across the top, photo a + video side by side, statement
+     across the bottom. Photo b is hidden. No outer frame: at 343px of
+     width it would only cost space. */
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "greet greet"
+      "a     video"
+      "state state";
+    gap: 12px;
+  }
 
-  // Claim the reveal gate so the failsafe above leaves it in place; if setup
-  // throws, drop the gate so content stays visible instead of stuck hidden.
-  root.classList.add("reveal-live");
+  .panel {
+    position: relative;
+    min-width: 0;
+    border: 0.5px solid var(--border-subtle);
+    /* Text inside sizes itself to the panel's width (cqi units). */
+    container-type: inline-size;
+  }
+  .panel-a {
+    grid-area: a;
+  }
+  .panel-greet {
+    grid-area: greet;
+  }
+  .panel-video {
+    grid-area: video;
+  }
+  .panel-statement {
+    grid-area: state;
+  }
+  .panel-b {
+    grid-area: b;
+    display: none;
+  }
 
-  // Scroll reveals — IO adds .is-in once, CSS does the rest.
-  try {
-    const revealEls = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-reveal]")
-    );
-    if (!reduce && "IntersectionObserver" in window) {
-      const io = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("is-in");
-              io.unobserve(entry.target);
-            }
-          }
-        },
-        { rootMargin: "0px 0px -8% 0px" }
-      );
-      for (const el of revealEls) io.observe(el);
-    } else {
-      for (const el of revealEls) el.classList.add("is-in");
+  /* Media panels own their shape; photos and video fill them, cropped from
+     the center (object-fit: cover), whatever the source's proportions. */
+  .panel-media {
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    background: var(--bg-elevated);
+  }
+  .panel-media :global(.media) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Missing asset: a quiet labelled block, so the layout reads as intended. */
+  .placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  /* ── Text panels ──────────────────────────────────────────
+     Text panels never clip: they grow to fit their text, and the height
+     guard keeps that from happening on locked layouts. */
+  .panel-text {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+  .display {
+    font-size: clamp(20px, 8.5cqi, 40px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+  .display span {
+    display: block;
+  }
+
+  /* Greeting: the blue fill, text top-left. --text-primary on
+     --accent-fill measures 7.70:1. */
+  .panel-greet {
+    justify-content: flex-start;
+    background: var(--accent-fill);
+    color: var(--text-primary);
+  }
+
+  /* Statement: elevated panel, blue text bottom-right. --accent on
+     --bg-elevated measures 5.81:1. */
+  .panel-statement {
+    justify-content: flex-end;
+    min-height: 112px;
+    background: var(--bg-elevated);
+    color: var(--accent);
+    text-align: right;
+  }
+
+  /* ── Video toggle ─────────────────────────────────────────
+     Small mono label, bottom-left over the video. Its own near-opaque
+     backdrop keeps it legible over any frame: --accent on it measures
+     5.12:1 even over a pure white frame (at 0.88 it was 4.52:1, too close).
+     6px of block padding: ~30px tall (WCAG 2.5.8). */
+  .loop-toggle {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    z-index: 1;
+    padding: 6px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: 2px;
+    background: rgba(15, 15, 16, 0.92);
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--accent);
+    cursor: pointer;
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .loop-toggle:hover {
+    color: var(--accent-light);
+  }
+  .loop-toggle[hidden] {
+    display: none;
+  }
+
+  /* ── 640px and up: 2×2 ────────────────────────────────────
+     photo a + greeting on top, video + statement below, photo b hidden.
+     This also covers portrait tablets up to 1023px: four columns there
+     would be ~170px wide and ~900px tall, a sliver, not a panel. */
+  @media (min-width: 640px) {
+    .home-main {
+      padding-bottom: 12px;
     }
-  } catch {
-    root.classList.remove("js-reveal");
+    .panels {
+      grid-template-areas:
+        "a     greet"
+        "video state";
+      padding: 12px;
+      border: 0.5px solid var(--border-subtle);
+    }
+    .panel-text {
+      padding: 18px;
+    }
+    .display {
+      font-size: clamp(20px, 10cqi, 44px);
+    }
+    .panel-statement {
+      min-height: 0;
+    }
   }
 
-  // Smooth scroll — Lenis animates native scrollTop, so the CSS
-  // scroll-driven animations (progress bar, rules, hero exit) stay synced.
-  if (!reduce) {
-    const lenis = new Lenis({
-      duration: 1.15,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-    });
-    const raf = (time: number) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
-    requestAnimationFrame(raf);
-
-    // Route same-page anchors through Lenis for a smooth glide.
-    document.addEventListener("click", (e) => {
-      const target = e.target instanceof Element ? e.target : null;
-      const a = target?.closest('a[href^="#"]');
-      if (!a) return;
-      const hash = a.getAttribute("href");
-      if (!hash || hash.length < 2) return;
-      const dest = document.querySelector<HTMLElement>(hash);
-      if (!dest) return;
-      e.preventDefault();
-      lenis.scrollTo(dest);
-      history.replaceState(null, "", hash);
-    });
+  /* ── 768–1023px, landscape: four columns, photo b hidden ──── */
+  @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+    .panels {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-areas: "a greet video state";
+    }
+    .panel-media {
+      aspect-ratio: 2 / 3;
+    }
+    .display {
+      font-size: clamp(18px, 12cqi, 44px);
+    }
   }
-</script>
+
+  /* ── 1024px and up: all five ─────────────────────────────── */
+  @media (min-width: 1024px) {
+    .panels {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-areas: "a greet video state b";
+    }
+    .panel-b {
+      display: block;
+    }
+    .panel-media {
+      aspect-ratio: 2 / 3;
+    }
+    .display {
+      font-size: clamp(18px, 12cqi, 48px);
+    }
+  }
+
+  /* ── Height lock (the guard's other side) ─────────────────
+     Tall enough: the page is exactly one viewport and the grid's rows
+     share what's left, so media panels drop their aspect ratio and fill
+     their cell. */
+  @media (min-width: 640px) and (min-height: 640px) {
+    .home {
+      height: 100vh;
+      height: 100dvh;
+    }
+    .home-main {
+      min-height: 0;
+    }
+    .panels {
+      flex: 1;
+      min-height: 0;
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+    .panel-media {
+      aspect-ratio: auto;
+    }
+  }
+  @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) and (min-height: 640px),
+    (min-width: 1024px) and (min-height: 640px) {
+    .panels {
+      grid-template-rows: minmax(0, 1fr);
+    }
+  }
+
+  /* ── Entrance ─────────────────────────────────────────────
+     CSS only, no gate: each panel fades and rises 12px over 500ms
+     (ease-out-expo), 70ms apart left to right (--i). Nothing is hidden
+     unless motion is allowed, so reduced motion gets the static page. */
+  @media (prefers-reduced-motion: no-preference) {
+    .panel {
+      animation: panel-in 500ms var(--ease-out-expo) both;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+</style>

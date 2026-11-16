@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Tailwind reads every source file for class-like words and generates a
-   utility for each one it recognizes. Two sources are excluded:
+   utility for each one it recognizes. Three sources are excluded:
    - The Penknife pages, styled by src/styles/penknife.css, not utilities.
      Their prose would otherwise be picked up as class names (a tool
      description once added a stray utility to every page's CSS).
@@ -89,19 +89,6 @@
   line-gap-override: 0%;
 }
 
-/* LEGACY, hero only. Cormorant Italic 600, subset to "N f n o r u v z"
-   for the hero's "Novruzov → novruzoff" morph. Nothing new may use it;
-   this face, --font-display-serif and the woff2 are deleted together
-   with Hero.astro. No longer preloaded. */
-@font-face {
-  font-family: "Cormorant Subset";
-  font-style: italic;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/cormorant-italic-600-novruzov.woff2") format("woff2");
-  unicode-range: U+004E, U+0066, U+006E, U+006F, U+0072, U+0075, U+0076, U+007A;
-}
-
 /* Tokens are defined once. Colors live in :root below; `@theme inline`
    only maps Tailwind utility names onto them (text-text-primary →
    var(--text-primary)), so no value is repeated. */
@@ -123,7 +110,6 @@
   --color-accent-fill: var(--accent-fill);
   --color-accent-bg: var(--accent-bg);
   --color-accent-border: var(--accent-border);
-  --color-accent-glow: var(--accent-glow);
 }
 
 /* One font family. `--font-*: initial` drops Tailwind's default sans and
@@ -166,15 +152,6 @@
   --accent-light: #9bc1f1;
   --accent-bg: rgba(93, 149, 218, 0.20);
   --accent-border: rgba(93, 149, 218, 0.35);
-  --accent-glow: rgba(93, 149, 218, 0.22);
-
-  /* LEGACY, hero only (deleted with Hero.astro): a fine white dot grid plus
-     one drifting glow in the fill blue. Worst case, tertiary text on the
-     glow's peak with the cursor glow on top measures 4.55:1; in practice
-     no text sits there. */
-  --hero-dot: rgba(255, 255, 255, 0.12);
-  --hero-drift: rgba(0, 77, 152, 0.30);
-  --font-display-serif: "Cormorant Subset", Georgia, "Times New Roman", serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -186,7 +163,7 @@ html {
   scroll-padding-top: 32px;
 }
 
-/* Mono runs wider than the old sans, so the base drops to 14px. Only two
+/* Mono runs wider than the old sans, so the base is 14px. Only two
    weights exist (400, 600): a 500 would quietly render as 400, and faux
    bold is off so a 700 can't be smeared out of the 600. */
 html,
@@ -231,7 +208,7 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* Shared content column: <main>, the header, and the footer row. */
+/* Shared content column: document pages' <main>, header and footer. */
 .wrap {
   width: 100%;
   max-width: 828px;
@@ -239,346 +216,15 @@ a {
   padding-inline: clamp(20px, 4vw, 40px);
 }
 
-/* ─────────────────────────────────────────────────────────
-   LEGACY (home page only, removed with the index.astro rewrite):
-   scroll progress hairline, native scroll-driven, no JS
-   ───────────────────────────────────────────────────────── */
-
-.scroll-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.9;
-}
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .scroll-progress {
-      animation: progress-grow linear both;
-      animation-timeline: scroll(root);
-    }
-  }
-}
-@keyframes progress-grow {
-  to {
-    transform: scaleX(1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .scroll-progress {
-    display: none;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────
-   LEGACY: Hero (removed with Hero.astro)
-   Base styles = settled end state (what no-JS users see).
-   The entrance start states are gated behind html.js-hero +
-   prefers-reduced-motion: no-preference further down. The
-   gate is set and failsafed by the inline script at the top
-   of index.astro.
-   ───────────────────────────────────────────────────────── */
-
-.hero {
-  position: relative;
+/* Full-bleed variant for the home page, whose panel grid spans the
+   viewport: header, panels and footer share this side padding. */
+.wrap-wide {
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: var(--bg-page);
-  /* Clip sideways only: the handle's descenders (and its scroll-out
-     drift, see hero-exit) must be free to cross the bottom edge. */
-  overflow-x: clip;
-  isolation: isolate;
-}
-
-/* Cursor glow. Clipped to the hero; the layer itself only ever
-   moves via transform (set from JS), so it never repaints. */
-.hero-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  pointer-events: none;
-}
-/* Fade the glow out before the hero's bottom edge so it can't
-   end in a hard line against the next section. */
-.hero-glow::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 180px;
-  background: linear-gradient(to bottom, transparent, var(--bg-page));
-}
-
-/* Hero background. Two layers, both transform-only so they stay on the
-   compositor and never repaint: a fine white dot grid that drifts
-   diagonally, and a single blue glow drifting on its own clock. */
-.hero-dots {
-  position: absolute;
-  inset: 0;
-  /* Hold the grid back from the text: clear through the middle, strongest
-     in a soft band, gone again at the edges. The mask is on this wrapper,
-     so it stays put while the pattern moves underneath it. */
-  -webkit-mask-image: radial-gradient(
-    ellipse 85% 75% at 50% 42%,
-    transparent 0%,
-    rgba(0, 0, 0, 0.45) 32%,
-    #000 60%,
-    transparent 92%
-  );
-  mask-image: radial-gradient(
-    ellipse 85% 75% at 50% 42%,
-    transparent 0%,
-    rgba(0, 0, 0, 0.45) 32%,
-    #000 60%,
-    transparent 92%
-  );
-}
-.hero-dots > span {
-  position: absolute;
-  /* Oversized, so a tile of travel never exposes an edge. */
-  inset: -40px;
-  display: block;
-  background-image: radial-gradient(circle, var(--hero-dot) 1px, transparent 1.4px);
-  background-size: 24px 24px;
-  animation: dot-drift 18s linear infinite;
-}
-
-/* The one colored element: a soft glow over the upper hero, clear of
-   the tagline (top left) and the link bar (bottom). */
-.hero-drift {
-  position: absolute;
-  top: -22%;
-  left: 30%;
-  width: min(1100px, 95vw);
-  aspect-ratio: 1;
-  background: radial-gradient(circle closest-side, var(--hero-drift), transparent);
-  animation: drift 11s ease-in-out infinite alternate;
-}
-
-/* Exactly one tile of travel per loop, so the grid never jumps. */
-@keyframes dot-drift {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(24px, 24px, 0);
-  }
-}
-@keyframes drift {
-  from {
-    transform: translate3d(-4vw, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(6vw, 4vh, 0) scale(1.08);
-  }
-}
-
-/* Reduced motion: hold both at rest — the grid as laid out, the glow parked
-   where CSS puts it, above and right of center. */
-@media (prefers-reduced-motion: reduce) {
-  .hero-dots > span,
-  .hero-drift {
-    animation: none;
-  }
-}
-.hero-gradient {
-  --glow-size: 910px;
-  position: absolute;
-  top: calc(var(--glow-size) / -2);
-  left: calc(var(--glow-size) / -2);
-  width: var(--glow-size);
-  height: var(--glow-size);
-  opacity: 0;
-  background: radial-gradient(circle closest-side, var(--accent-glow), transparent);
-}
-/* The cursor layer is pointer-driven: no pointer, no layer. The dots and
-   the drifting glow stay either way (frozen under reduced motion). */
-@media (hover: none), (prefers-reduced-motion: reduce) {
-  .hero-gradient {
-    display: none;
-  }
-}
-
-.intro-murad {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 0;
-  z-index: 4;
-  font-size: clamp(54px, 8vw, 110px);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
-  transform: translateY(-50%);
-  opacity: 0;
-  /* Decorative and aria-hidden: never take pointer events, even mid-entrance. */
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-.hero-tagline {
-  position: absolute;
-  top: clamp(20px, 4vw, 40px);
-  left: clamp(20px, 4vw, 40px);
-  z-index: 3;
-  max-width: 280px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-.hero-tagline span {
-  display: block;
-}
-.hero-tagline span + span {
-  color: var(--text-tertiary);
-  margin-top: 2px;
-}
-
-.hero-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-}
-
-.hero-chrome {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: baseline;
-  gap: 24px;
-  padding: 14px clamp(20px, 4vw, 40px) 18px;
-  border-top: 0.5px solid var(--border-subtle);
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-.hero-chrome > * {
-  min-width: 0;
-}
-.hero-chrome .left {
-  text-align: left;
-  color: var(--text-tertiary);
-}
-.hero-chrome .center {
-  text-align: center;
-}
-.hero-chrome .right {
-  text-align: right;
-}
-.hero-chrome a {
-  transition: color 180ms var(--ease-out-expo);
-}
-.hero-chrome a:hover {
-  color: var(--text-primary);
-}
-.hero-chrome .sep {
-  color: var(--text-tertiary);
-  margin: 0 2px;
-}
-
-.hero-name {
-  display: block;
-  width: 100%;
-  /* Bottom padding never drops below 0.22em: with line-height 0.95 that
-     leaves room for Cormorant's italic f descender (0.275em) under both
-     macOS (hhea) and Windows (win) vertical metrics. */
-  padding: 0 clamp(12px, 2.5vw, 32px) max(clamp(24px, 3.5vw, 48px), 0.22em);
-  margin: 0;
-  font-family: var(--font-display-serif);
-  font-style: italic;
-  font-weight: 600;
-  font-size: clamp(64px, 18vw, 240px);
-  line-height: 0.95;
-  letter-spacing: -0.022em;
-  color: var(--text-primary);
-  white-space: nowrap;
-  transform-origin: 0 0;
-}
-
-/* No overflow clipping on the letter spans: overflow other than visible
-   would clip the italic f's tail, terminal, and descender, and would move
-   an inline-block's baseline to its bottom edge (raising the letter). The
-   morph's reveal/collapse uses an animated clip-path instead (Hero.astro). */
-.hero-name .L {
-  display: inline-block;
-  vertical-align: baseline;
-  white-space: pre;
-}
-
-/* Settled glyph states (no-JS and reduced-motion users land here) */
-.hero-name .g-up {
-  display: none;
-}
-.hero-name .g-lo {
-  display: inline;
-}
-.hero-name .L-v-trailing {
-  display: none;
-}
-
-/* Entrance start states — only while the hero script holds the gate
-   and motion is allowed. will-change lives here too; the script
-   clears it once each element's entrance finishes. */
-@media (prefers-reduced-motion: no-preference) {
-  html.js-hero .intro-murad {
-    display: block;
-    will-change: transform, opacity;
-  }
-  html.js-hero .hero-name {
-    opacity: 0;
-    will-change: transform, opacity;
-  }
-  html.js-hero .hero-gradient {
-    will-change: opacity;
-  }
-  html.js-hero .hero-name .g-up {
-    display: inline;
-  }
-  html.js-hero .hero-name .g-lo {
-    display: none;
-  }
-  html.js-hero .hero-name .L-v-trailing {
-    display: inline-block;
-  }
-  html.js-hero .hero-name .L-f {
-    width: 0;
-    opacity: 0;
-  }
-  html.js-hero .hero-tagline,
-  html.js-hero .hero-chrome {
-    opacity: 0;
-  }
-}
-
-/* Hero lags slightly and dims as it scrolls away (scroll-linked, subtle) */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-bottom {
-      animation: hero-exit linear both;
-      animation-timeline: view();
-      animation-range: exit 0% exit 90%;
-    }
-  }
-}
-@keyframes hero-exit {
-  to {
-    transform: translateY(48px);
-    opacity: 0.15;
-  }
+  padding-inline: clamp(16px, 2vw, 24px);
 }
 
 /* ─────────────────────────────────────────────────────────
-   Sections
+   Sections (/resume, Penknife)
    ───────────────────────────────────────────────────────── */
 
 .section {
@@ -601,52 +247,17 @@ a {
   color: var(--text-tertiary);
 }
 
-/* Header rule draws itself in as the section enters the viewport */
 .section-rule {
   display: block;
   height: 0.5px;
   background: var(--border);
-  transform-origin: 0 50%;
-}
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .section-rule {
-      transform: scaleX(0);
-      animation: rule-draw linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 60%;
-    }
-  }
-}
-@keyframes rule-draw {
-  to {
-    transform: scaleX(1);
-  }
 }
 
 /* ─────────────────────────────────────────────────────────
-   Scroll reveals (IntersectionObserver adds .is-in)
-   Hidden state gated behind html.js-reveal so no-JS users —
-   and anyone whose reveal script fails — see content.
-   ───────────────────────────────────────────────────────── */
-
-@media (prefers-reduced-motion: no-preference) {
-  html.js-reveal [data-reveal] {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-      opacity 700ms var(--ease-out-expo),
-      transform 700ms var(--ease-out-expo);
-    transition-delay: calc(var(--reveal-i, 0) * 70ms);
-  }
-  html.js-reveal [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────
-   Project rows
+   Compact project rows (ProjectRow's default variant). Unused
+   since the home page rewrite: /projects uses the detail
+   variant. Kept with the component until the variant is
+   removed (see CLAUDE.md, Layout).
    ───────────────────────────────────────────────────────── */
 
 .rows {
@@ -756,8 +367,22 @@ a {
   transition: transform 240ms var(--ease-out-expo);
 }
 
+@media (max-width: 640px) {
+  .project-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "date aff"
+      "content content";
+    row-gap: 6px;
+  }
+  .row-aff {
+    flex-direction: row;
+    gap: 12px;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────
-   Experience timeline
+   Experience timeline (/resume)
    One hairline runs from the first dot to the last: every node
    draws its own segment, and the first and last are trimmed to
    their dot, so the line can't dangle past either end whatever
@@ -862,37 +487,9 @@ a {
 }
 
 /* ─────────────────────────────────────────────────────────
-   About + contact
+   Contact email (/contact, Penknife): the one big blue link.
    ───────────────────────────────────────────────────────── */
 
-.about p {
-  max-width: 64ch;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-}
-.about p + p {
-  margin-top: 14px;
-}
-.about a {
-  color: var(--accent-light);
-  border-bottom: 0.5px solid var(--accent-border);
-  transition: color 180ms var(--ease-out-expo);
-}
-.about a:hover {
-  color: var(--accent);
-}
-.about strong {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.contact-line {
-  max-width: 64ch;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-}
 .contact-email {
   display: inline-block;
   margin-top: 14px;
@@ -913,12 +510,6 @@ a {
 
 .doc {
   padding-top: clamp(40px, 7vw, 72px);
-}
-
-/* The global section rule draws in on scroll; here it's simply there. */
-.doc .section-rule {
-  transform: none;
-  animation: none;
 }
 
 .doc .section {
@@ -984,33 +575,4 @@ a {
    header instead of under it. */
 .doc [id] {
   scroll-margin-top: 76px;
-}
-
-/* ─────────────────────────────────────────────────────────
-   Mobile
-   ───────────────────────────────────────────────────────── */
-
-@media (max-width: 640px) {
-  .hero-chrome {
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-  }
-  .hero-chrome .left {
-    display: none;
-  }
-  .hero-chrome .center {
-    text-align: left;
-  }
-
-  .project-row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "date aff"
-      "content content";
-    row-gap: 6px;
-  }
-  .row-aff {
-    flex-direction: row;
-    gap: 12px;
-  }
 }

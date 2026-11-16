@@ -8,6 +8,15 @@
 // control users can say what they see (WCAG 2.5.3).
 type FooterLink = { label: string; href: string; external?: boolean };
 
+type Props = {
+  /**
+   * Span the full viewport width (.wrap-wide) and drop the top margin and
+   * hairline. Only the home page, where the footer closes the panel grid.
+   */
+  wide?: boolean;
+};
+const { wide = false } = Astro.props;
+
 const links: FooterLink[] = [
   { label: "github", href: "https://github.com/novruzoff", external: true },
   { label: "linkedin", href: "https://linkedin.com/in/novruzoff", external: true },
@@ -17,8 +26,8 @@ const links: FooterLink[] = [
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer">
-  <div class="wrap site-footer-inner">
+<footer class:list={["site-footer", { "is-wide": wide }]}>
+  <div class:list={[wide ? "wrap-wide" : "wrap", "site-footer-inner"]}>
     <span class="site-footer-meta">© {year} murad novruzov · montreal</span>
     <ul class="site-footer-links">
       {/* Label kept on the closing line of the <a>: surrounding whitespace
@@ -43,6 +52,11 @@ const year = new Date().getFullYear();
   .site-footer {
     margin-top: clamp(32px, 6vw, 64px);
     border-top: 0.5px solid var(--border-subtle);
+  }
+  /* Home: the panel grid's frame already closes the page above. */
+  .site-footer.is-wide {
+    margin-top: 0;
+    border-top: 0;
   }
 
   .site-footer-inner {

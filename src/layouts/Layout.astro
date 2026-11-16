@@ -13,13 +13,13 @@ type Props = {
   appStoreId?: string;
 };
 
-// The og:image alt describes public/og.png as it is now (it still shows the
-// old italic handle). Change both together when the card is regenerated.
+// The og:image alt describes public/og.png: a miniature of the home page's
+// panels. Change both together when the card is regenerated.
 const {
   title = "Murad Novruzov — Software engineer",
   description = "Software engineer in Montreal. Founding Developer at True Competency, studying CS at McGill.",
   ogImage: ogImagePath = "/og.png",
-  ogImageAlt = "“novruzoff” in large italic type, under “Murad Novruzov — Software engineer”.",
+  ogImageAlt = "Three panels in monospace type: a blue panel reading “hi. i'm murad, a software engineer in montréal.”, a blue gradient, and “i build software for the web, end to end.” in blue.",
   personSchema = true,
   appStoreId,
 } = Astro.props;

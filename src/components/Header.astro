@@ -1,8 +1,7 @@
 ---
-// Site header, shared by every page. Replaces SiteNav (home) and
-// PageHeader (Penknife): a sticky 52px bar with the handle on the left and
-// a link list on the right. No hide-on-hero logic and no script; it's
-// plain links, so keyboard and screen-reader behaviour is native.
+// Site header, shared by every page: a sticky 52px bar with the handle on
+// the left and a link list on the right. No script; it's plain links, so
+// keyboard and screen-reader behaviour is native.
 //
 // Each link gets aria-current="page" when its href is the page being
 // rendered. The comparison uses the served URL (/penknife/privacy), not
@@ -20,28 +19,26 @@ type Props = {
   /** Accessible name of the <nav> landmark. */
   label?: string;
   /**
-   * Overlay the top of <main> instead of pushing it down. Only for the home
-   * page, where the header sits right after the full-height hero.
+   * Span the full viewport width (.wrap-wide) instead of the 828px document
+   * column. Only the home page, whose panel grid is full-bleed.
    */
-  overlay?: boolean;
+  wide?: boolean;
 };
 
-// /projects, /resume and /contact are built in the next step; until then
-// these links 404.
 const DEFAULT_LINKS: HeaderLink[] = [
   { label: "projects", href: "/projects" },
   { label: "resume", href: "/resume" },
   { label: "contact", href: "/contact" },
 ];
 
-const { links = DEFAULT_LINKS, label = "Primary", overlay = false } = Astro.props;
+const { links = DEFAULT_LINKS, label = "Primary", wide = false } = Astro.props;
 
 const pathname = Astro.url.pathname.replace(/(\/index)?\.html$/, "") || "/";
 const current = (href: string) => (href === pathname ? "page" : undefined);
 ---
 
-<header class:list={["site-header", { "is-overlay": overlay }]}>
-  <nav class="wrap site-header-inner" aria-label={label}>
+<header class="site-header">
+  <nav class:list={[wide ? "wrap-wide" : "wrap", "site-header-inner"]} aria-label={label}>
     <a class="site-header-name" href="/" aria-current={current("/")}>novruzoff</a>
     <ul class="site-header-links">
       {/* Label kept on the <a> line: surrounding whitespace would render
@@ -74,9 +71,6 @@ const current = (href: string) => (href === pathname ? "page" : undefined);
     .site-header {
       background: color-mix(in srgb, var(--bg-page) 96%, transparent);
     }
-  }
-  .site-header.is-overlay {
-    margin-bottom: calc(var(--header-h) * -1);
   }
 
   .site-header-inner {

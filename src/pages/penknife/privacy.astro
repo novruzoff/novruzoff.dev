@@ -4,10 +4,10 @@
 const EFFECTIVE_DATE = { iso: "2026-11-08", label: "November 8, 2026" } as const;
 
 import Layout from "../../layouts/Layout.astro";
-import PageHeader from "../../components/PageHeader.astro";
+import Header from "../../components/Header.astro";
 import SectionHeader from "../../components/SectionHeader.astro";
 import Footer from "../../components/Footer.astro";
-import { PENKNIFE_APP_ID } from "../../data/penknife";
+import { PENKNIFE_APP_ID, PENKNIFE_NAV } from "../../data/penknife";
 import "../../styles/penknife.css";
 
 const SUPPORT_EMAIL = "support@novruzoff.dev";
@@ -17,11 +17,9 @@ const SUPPORT_EMAIL = "support@novruzoff.dev";
   title="Penknife privacy policy"
   description="Penknife collects no data. There are no accounts, analytics, advertising, tracking or third-party SDKs."
   personSchema={false}
-  preloadHandleFont={false}
-  motionGates={false}
   appStoreId={PENKNIFE_APP_ID}
 >
-  <PageHeader current="privacy" />
+  <Header links={PENKNIFE_NAV} label="Penknife" />
 
   <main class="wrap doc">
     <header class="doc-head">
@@ -154,5 +152,5 @@ const SUPPORT_EMAIL = "support@novruzoff.dev";
     </section>
   </main>
 
-  <Footer bookendHref="/" />
+  <Footer />
 </Layout>

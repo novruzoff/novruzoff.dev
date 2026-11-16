@@ -1,0 +1,120 @@
+---
+// /contact: one line, the email as the main action, then the profiles.
+// No form (out of scope; mailto only). Static: no JS.
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+const EMAIL = "murad@novruzoff.dev";
+
+// Label | value rows. The value is the readable address, so what's on
+// screen is exactly where the link goes. Brand names keep their casing.
+const profiles = [
+  { label: "GitHub", value: "github.com/novruzoff", href: "https://github.com/novruzoff" },
+  { label: "LinkedIn", value: "linkedin.com/in/novruzoff", href: "https://linkedin.com/in/novruzoff" },
+];
+---
+
+<Layout
+  title="Contact — Murad Novruzov"
+  description="Get in touch with Murad Novruzov: open to internships, contract work, and interesting problems. murad@novruzoff.dev."
+  personSchema={false}
+>
+  <Header />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>contact</h1>
+      <p class="lead">open to internships, contract work, and interesting problems.</p>
+    </header>
+
+    <a class="contact-email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+
+    <dl class="profiles">
+      {
+        profiles.map((profile) => (
+          <div>
+            <dt>{profile.label}</dt>
+            <dd>
+              {/* Value on the <a> line: whitespace would gap the arrow. */}
+              <a href={profile.href} target="_blank" rel="noreferrer noopener">{profile.value}<span class="arrow" aria-hidden="true">↗</span></a>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* The email is the page's one action: bigger, blue, underlined. */
+  .contact-email {
+    margin-top: 28px;
+    font-size: clamp(16px, 3.6vw, 20px);
+  }
+
+  .profiles {
+    margin-top: 32px;
+    border-top: 0.5px solid var(--border-subtle);
+  }
+  /* 80px fits "LinkedIn" (53px at 11px). The longest value with its arrow,
+     "linkedin.com/in/novruzoff ↗", is 224px at 14px, so the row needs
+     320px; under 400px the label goes above the value instead. */
+  .profiles > div {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 16px;
+    align-items: baseline;
+    border-bottom: 0.5px solid var(--border-subtle);
+  }
+  .profiles dt {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  @media (max-width: 400px) {
+    .profiles > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .profiles dt {
+      padding-top: 12px;
+    }
+    .profiles a {
+      padding-top: 2px;
+    }
+  }
+  /* 10px of block padding: each row link is ~37px tall (WCAG 2.5.8). */
+  .profiles a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-block: 10px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .profiles .arrow {
+    display: inline-block;
+    color: var(--text-tertiary);
+    transition:
+      color 180ms var(--ease-out-expo),
+      transform 240ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .profiles a:hover {
+      color: var(--text-primary);
+    }
+    .profiles a:hover .arrow {
+      color: var(--accent);
+      transform: translate(2px, -2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .profiles a:hover .arrow {
+      transform: none;
+    }
+  }
+</style>

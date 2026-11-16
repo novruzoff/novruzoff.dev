@@ -1,0 +1,37 @@
+---
+// /projects: the full depth on every project, one entry each, in the
+// order of projects.ts. Each entry is deep-linkable at /projects#<slug>
+// (/resume links into these). Static: no JS, no reveals.
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import ProjectRow from "../components/ProjectRow.astro";
+import Footer from "../components/Footer.astro";
+import { projects } from "../data/projects";
+---
+
+<Layout
+  title="Projects — Murad Novruzov"
+  description="Projects by Murad Novruzov: True Competency, MindVista, Penknife, SSMU club websites, OpenRobotics and MyMeetings, with stacks and numbers."
+  personSchema={false}
+>
+  <Header />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>projects</h1>
+      <p class="meta mono">{projects.length} projects · what i built, the stack, the numbers</p>
+    </header>
+
+    <div class="project-list">
+      {projects.map((project) => <ProjectRow project={project} variant="detail" />)}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .project-list {
+    margin-top: clamp(16px, 3vw, 24px);
+  }
+</style>

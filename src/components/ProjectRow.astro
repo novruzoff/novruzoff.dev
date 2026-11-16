@@ -1,15 +1,26 @@
 ---
 import type { Project } from "../data/projects";
 
-type Props = { project: Project; index?: number };
-const { project, index = 0 } = Astro.props;
+// Two variants of one project:
+// - "compact" (default): the legacy home page's three-column row (date |
+//   title + one-line blurb | links). Styled in global.css (.project-row).
+// - "detail": the full entry on /projects — summary, metric tiles, detail
+//   bullets, stack, links — with id={slug} so /projects#<slug> deep-links
+//   (the scroll margin for the sticky header is in global.css). Styled below.
+type Props = {
+  project: Project;
+  index?: number;
+  variant?: "compact" | "detail";
+};
+const { project, index = 0, variant = "compact" } = Astro.props;
 
-// Every link the project has, in priority order; the title uses the first.
+// Every link the project has, in priority order. Lowercase labels, except
+// "App Store", which keeps Apple's casing (CLAUDE.md, Case).
 const links: { label: string; href: string }[] = [];
-if (project.caseStudyUrl) links.push({ label: "Case study", href: project.caseStudyUrl });
-if (project.liveUrl) links.push({ label: "Live", href: project.liveUrl });
+if (project.caseStudyUrl) links.push({ label: "case study", href: project.caseStudyUrl });
+if (project.liveUrl) links.push({ label: "live", href: project.liveUrl });
 if (project.appStoreUrl) links.push({ label: "App Store", href: project.appStoreUrl });
-if (project.repoUrl) links.push({ label: "Repo", href: project.repoUrl });
+if (project.repoUrl) links.push({ label: "repo", href: project.repoUrl });
 const href = links[0]?.href;
 
 // Off-site links open in a new tab; pages on this site (/penknife) don't.
@@ -19,36 +30,242 @@ const target = (url: string) =>
     : {};
 ---
 
-<article class="project-row" data-reveal style={`--reveal-i: ${index}`}>
-  <span class="row-date mono">{project.dates}</span>
+{
+  variant === "detail" ? (
+    <article class="project-entry" id={project.slug}>
+      <header class="pe-head">
+        <h2 class="pe-title">{project.title}</h2>
+        <span class="pe-date">{project.dates}</span>
+      </header>
 
-  <div class="row-content">
-    <h3 class="row-title">
-      {
-        href ? (
-          <a href={href} {...target(href)}>
-            {project.title}
+      <p class="pe-blurb">{project.blurb}</p>
+
+      {project.metrics && (
+        <ul class="pe-metrics">
+          {project.metrics.map((metric) => (
+            <li>
+              <span class="pe-value">{metric.value}</span>
+              <span class="pe-label">{metric.label}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {project.highlights && (
+        <ul class="pe-highlights">
+          {project.highlights.map((line) => <li>{line}</li>)}
+        </ul>
+      )}
+
+      {project.stack && (
+        <div class="pe-stack">
+          <span class="pe-stack-label">stack</span>
+          <ul>
+            {project.stack.map((tech) => <li>{tech}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {links.length > 0 && (
+        <ul class="pe-links">
+          {links.map((link) => (
+            <li>
+              {/* Label on the <a> line: whitespace would gap the arrow. */}
+              <a
+                href={link.href}
+                {...target(link.href)}
+                aria-label={`${project.title}: ${link.label}`}
+              >{link.label}<span class="arrow" aria-hidden="true">↗</span></a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </article>
+  ) : (
+    <article class="project-row" data-reveal style={`--reveal-i: ${index}`}>
+      <span class="row-date mono">{project.dates}</span>
+
+      <div class="row-content">
+        <h3 class="row-title">
+          {href ? (
+            <a href={href} {...target(href)}>
+              {project.title}
+            </a>
+          ) : (
+            project.title
+          )}
+        </h3>
+        <p class="row-blurb">{project.blurb}</p>
+      </div>
+
+      <span class="row-aff mono">
+        {links.map((link) => (
+          <a
+            class="row-link"
+            href={link.href}
+            {...target(link.href)}
+            aria-label={`${project.title}: ${link.label}`}
+          >
+            {link.label}
+            <span class="arrow" aria-hidden="true">↗</span>
           </a>
-        ) : (
-          project.title
-        )
-      }
-    </h3>
-    <p class="row-blurb">{project.blurb}</p>
-  </div>
+        ))}
+      </span>
+    </article>
+  )
+}
 
-  <span class="row-aff mono">
-    {
-      links.map((link) => (
-        <a
-          class="row-link"
-          href={link.href}
-          {...target(link.href)}
-          aria-label={`${project.title}: ${link.label}`}
-        >
-          {link.label}<span class="arrow" aria-hidden="true">↗</span>
-        </a>
-      ))
+<style>
+  /* Entries are separated by a hairline; no cards, no hover lift. The
+     page is a document, meant to be read and scanned. */
+  .project-entry {
+    padding-block: 32px;
+  }
+  .project-entry + .project-entry {
+    border-top: 0.5px solid var(--border-subtle);
+  }
+
+  .pe-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 16px;
+  }
+  .pe-title {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+  }
+  .pe-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .pe-blurb {
+    margin-top: 8px;
+    max-width: 68ch;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+  }
+
+  /* Metric tiles: the scannable layer. 150px minimum fits the longest
+     label ("assessment questions", 20 chars = 132px at 11px) and keeps
+     two tiles per row at 375px. */
+  .pe-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .pe-metrics li {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--border-subtle);
+    border-radius: 4px;
+    background: var(--bg-elevated);
+  }
+  /* --accent on --bg-elevated measures 5.81:1. */
+  .pe-value {
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .pe-label {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+  }
+
+  /* Detail bullets with a hanging "-" marker (decorative, not announced;
+     the list semantics already say "bullet"). */
+  .pe-highlights {
+    margin-top: 18px;
+    max-width: 72ch;
+  }
+  .pe-highlights li {
+    position: relative;
+    padding-left: 2ch;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+  }
+  .pe-highlights li + li {
+    margin-top: 6px;
+  }
+  .pe-highlights li::before {
+    content: "-";
+    content: "-" / "";
+    position: absolute;
+    left: 0;
+    color: var(--text-tertiary);
+  }
+
+  .pe-stack {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    margin-top: 16px;
+    font-size: 12px;
+  }
+  .pe-stack-label {
+    color: var(--text-tertiary);
+  }
+  .pe-stack ul {
+    display: flex;
+    flex-wrap: wrap;
+    color: var(--text-secondary);
+  }
+  /* Separator after each item but the last, so a wrapped line ends on a
+     dot instead of starting with one. Decorative: not announced. */
+  .pe-stack li:not(:last-child)::after {
+    content: "·";
+    content: "·" / "";
+    margin-inline: 8px;
+    color: var(--text-tertiary);
+  }
+
+  /* 6px of block padding: each link is ~31px tall (WCAG 2.5.8). */
+  .pe-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .pe-links a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-block: 6px;
+    color: var(--accent);
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .pe-links .arrow {
+    display: inline-block;
+    transition: transform 240ms var(--ease-out-expo);
+  }
+  @media (hover: hover) {
+    .pe-links a:hover {
+      color: var(--accent-light);
     }
-  </span>
-</article>
+    .pe-links a:hover .arrow {
+      transform: translate(2px, -2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pe-links a:hover .arrow {
+      transform: none;
+    }
+  }
+</style>

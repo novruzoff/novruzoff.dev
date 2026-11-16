@@ -1,98 +1,13 @@
 /* ─────────────────────────────────────────────────────────
    Penknife pages (/penknife, /penknife/privacy, /penknife/support)
    Imported only by src/pages/penknife/*, so the home page's CSS
-   bundle is unchanged. Tokens, .wrap, .section-head, .mono and
-   .contact-email come from global.css.
+   bundle is unchanged. Tokens, .wrap, .section-head, .mono,
+   .contact-email and the document-page styles (.doc, .doc-head,
+   .prose) come from global.css; the header and footer style
+   themselves (Header.astro, Footer.astro).
    Static by design: no reveals, no scroll-driven motion.
+   Geist Mono has only 400 and 600, so emphasis is 600, never 500.
    ───────────────────────────────────────────────────────── */
-
-/* Header: the site nav minus its overlay margin (no hero to sit under). */
-.site-nav.page-header {
-  margin-bottom: 0;
-}
-.site-nav-links a[aria-current="page"] {
-  color: var(--text-primary);
-}
-/* Name + three links must stay on one line inside the 20px gutter at 320px.
-   (The nav's own ≤480px rule already drops the dots.) */
-@media (max-width: 360px) {
-  .page-header .site-nav-inner {
-    gap: 10px;
-  }
-  .page-header .site-nav-links {
-    gap: 8px;
-  }
-}
-
-.doc {
-  padding-top: clamp(40px, 7vw, 72px);
-}
-
-/* The global section rule draws in on scroll; here it's simply there. */
-.doc .section-rule {
-  transform: none;
-  animation: none;
-}
-
-.doc .section {
-  padding-block: clamp(36px, 5vw, 48px) 0;
-}
-
-/* ── Page head ────────────────────────────────────────── */
-
-.doc-head h1 {
-  font-size: clamp(28px, 5vw, 36px);
-  font-weight: 500;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-  text-wrap: balance;
-}
-.doc-head .lead {
-  margin-top: 12px;
-  max-width: 52ch;
-  font-size: 17px;
-  line-height: 1.55;
-  letter-spacing: -0.01em;
-  color: var(--text-secondary);
-  text-wrap: pretty;
-}
-.doc-head .meta {
-  margin-top: 14px;
-  font-size: 12px;
-  color: var(--text-tertiary);
-}
-
-/* ── Prose ────────────────────────────────────────────── */
-
-.prose {
-  margin-top: 16px;
-}
-.prose p {
-  max-width: 62ch;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-  text-wrap: pretty;
-}
-.prose > * + * {
-  margin-top: 12px;
-}
-.prose strong {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-.prose a:not(.contact-email) {
-  color: var(--accent-light);
-  border-bottom: 0.5px solid var(--accent-border);
-  transition: color 180ms var(--ease-out-expo);
-}
-.prose a:not(.contact-email):hover {
-  color: var(--accent);
-}
-.prose .contact-email {
-  margin-top: 0;
-}
 
 /* Term / description pairs (permissions, retention). */
 .terms {
@@ -103,7 +18,7 @@
 }
 .terms dt {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.7;
   color: var(--text-primary);
 }
@@ -138,8 +53,7 @@
 .tool-name {
   display: block;
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .tool-desc {
@@ -223,9 +137,8 @@
 }
 .faq h3 {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.5;
-  letter-spacing: -0.005em;
   color: var(--text-primary);
   text-wrap: balance;
 }

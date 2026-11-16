@@ -1,13 +1,98 @@
 @import "tailwindcss";
 
-/* The Penknife pages are styled by src/styles/penknife.css, not utilities.
-   Their prose would otherwise be picked up as class names (a tool
-   description once added a stray utility to every page's CSS). Don't quote
-   example words here: Tailwind scans this file and CLAUDE.md too. */
+/* Tailwind reads every source file for class-like words and generates a
+   utility for each one it recognizes. Two sources are excluded:
+   - The Penknife pages, styled by src/styles/penknife.css, not utilities.
+     Their prose would otherwise be picked up as class names (a tool
+     description once added a stray utility to every page's CSS).
+   - CLAUDE.md, whose rules necessarily name CSS keywords; scanning it used
+     to ship two unused text utilities on every page.
+   - src/data: project and resume prose, never class names.
+   Don't quote example words here either. */
 @source not "../pages/penknife";
+@source not "../../CLAUDE.md";
+@source not "../data";
 
-/* The only web font: Cormorant Italic 600, subset to "N f n o r u v z"
-   (the "Novruzov → novruzoff" morph). Hero handle + footer bookend only. */
+/* ─────────────────────────────────────────────────────────
+   Fonts
+   Geist Mono is the only font family on the site (OFL; license in
+   public/fonts/geist-mono-OFL.txt). Two static weights, 400 and 600,
+   subset to Basic Latin plus the few extra glyphs the copy uses. The
+   unicode-range matches the subset exactly, so anything outside it
+   falls through to the fallback faces instead of rendering as tofu.
+   Re-subset (and extend the range) if copy needs another glyph.
+   ───────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/geist-mono-400.woff2") format("woff2");
+  unicode-range: U+0020-007E, U+00A0, U+00A9, U+00B7, U+00D7, U+00E9, U+2013,
+    U+2014, U+2018, U+2019, U+201C, U+201D, U+2026, U+2192, U+2197, U+2212;
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/geist-mono-600.woff2") format("woff2");
+  unicode-range: U+0020-007E, U+00A0, U+00A9, U+00B7, U+00D7, U+00E9, U+2013,
+    U+2014, U+2018, U+2019, U+201C, U+201D, U+2026, U+2192, U+2197, U+2212;
+}
+
+/* Metric-matched fallbacks, used until Geist Mono arrives (font-display:
+   swap) so the swap doesn't reflow text. In a monospace font the advance
+   width decides line length, so size-adjust scales each local font's
+   advance to Geist's 0.600em:
+   - Menlo / DejaVu Sans Mono (macOS, iOS, most Linux): 0.6021em → 99.66%
+   - Consolas (Windows): 0.5498em → 109.13%
+   The vertical overrides are Geist's own (ascent 1.005em, descent 0.295em,
+   no line gap) divided by that size-adjust, so baselines land where
+   Geist's will. Each family has a 600 face pointing at the local bold,
+   because faux bold is turned off sitewide (font-synthesis-weight). */
+@font-face {
+  font-family: "Geist Mono Fallback";
+  font-weight: 400;
+  src: local("Menlo"), local("Menlo-Regular"), local("DejaVu Sans Mono");
+  size-adjust: 99.66%;
+  ascent-override: 100.84%;
+  descent-override: 29.6%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Geist Mono Fallback";
+  font-weight: 600;
+  src: local("Menlo Bold"), local("Menlo-Bold"), local("DejaVu Sans Mono Bold");
+  size-adjust: 99.66%;
+  ascent-override: 100.84%;
+  descent-override: 29.6%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Geist Mono Fallback Consolas";
+  font-weight: 400;
+  src: local("Consolas");
+  size-adjust: 109.13%;
+  ascent-override: 92.09%;
+  descent-override: 27.03%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Geist Mono Fallback Consolas";
+  font-weight: 600;
+  src: local("Consolas Bold"), local("Consolas-Bold");
+  size-adjust: 109.13%;
+  ascent-override: 92.09%;
+  descent-override: 27.03%;
+  line-gap-override: 0%;
+}
+
+/* LEGACY, hero only. Cormorant Italic 600, subset to "N f n o r u v z"
+   for the hero's "Novruzov → novruzoff" morph. Nothing new may use it;
+   this face, --font-display-serif and the woff2 are deleted together
+   with Hero.astro. No longer preloaded. */
 @font-face {
   font-family: "Cormorant Subset";
   font-style: italic;
@@ -35,16 +120,20 @@
 
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
+  --color-accent-fill: var(--accent-fill);
   --color-accent-bg: var(--accent-bg);
   --color-accent-border: var(--accent-border);
   --color-accent-glow: var(--accent-glow);
 }
 
-/* Font stacks use Tailwind's own variable names, so preflight and
-   font-sans / font-mono utilities read the same single definition. */
+/* One font family. `--font-*: initial` drops Tailwind's default sans and
+   serif stacks (and their utilities), and --default-font-family points
+   preflight's html rule at the mono stack too. */
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-*: initial;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", "Geist Mono Fallback Consolas",
+    ui-monospace, monospace;
+  --default-font-family: var(--font-mono);
 }
 
 :root {
@@ -58,24 +147,33 @@
 
   --text-primary: rgba(255, 255, 255, 0.95);
   --text-secondary: rgba(255, 255, 255, 0.55);
-  /* Floor for text: ~5:1 on --bg-page, ≥4.93:1 on elevated rows and
-     under the hero glow (WCAG AA 4.5:1). Don't go lower. */
+  /* Floor for text: 4.98:1 on --bg-page (WCAG AA 4.5:1). Don't go lower. */
   --text-tertiary: rgba(255, 255, 255, 0.48);
 
-  --accent: #f59e0b;
-  --accent-light: #fbbf54;
-  --accent-bg: rgba(245, 158, 11, 0.10);
-  --accent-border: rgba(245, 158, 11, 0.25);
-  --accent-glow: rgba(245, 158, 11, 0.22);
-  /* Hero background: a fine white dot grid plus one amber glow. The dots
-     are white on purpose — low-alpha amber spread over near-black just
-     muddies to brown. The glow's alpha is bounded by the contrast budget
-     (see the --text-tertiary note). Written as rgba, not color-mix(): the
-     minifier emits a full-opacity fallback for a color-mix it can't
-     resolve, which would turn a 15% glow into a solid amber disc. */
-  --hero-dot: rgba(255, 255, 255, 0.12);
-  --hero-drift: rgba(245, 158, 11, 0.15);
+  /* Barça blue. Two roles, never swapped:
+     - --accent-fill is the deep brand blue, for solid fills only. As text
+       on --bg-page it measures 2.29:1 and fails; on it, white text
+       measures 8.35:1 and --text-primary 7.70:1.
+     - --accent is the same hue (OKLCH 254.8°) lifted to L 0.66, for blue
+       text on the dark background: 6.16:1 on --bg-page, 5.81:1 on
+       --bg-elevated, 5.47:1 on --bg-hover.
+     --accent-light (L 0.80) is the brighter link tint: 10.28:1 on
+     --bg-page. The alpha tokens are --accent at fixed opacities, written
+     as rgba rather than color-mix(): the minifier emits a full-opacity
+     fallback for a color-mix() it can't resolve. */
+  --accent-fill: #004d98;
+  --accent: #5d95da;
+  --accent-light: #9bc1f1;
+  --accent-bg: rgba(93, 149, 218, 0.20);
+  --accent-border: rgba(93, 149, 218, 0.35);
+  --accent-glow: rgba(93, 149, 218, 0.22);
 
+  /* LEGACY, hero only (deleted with Hero.astro): a fine white dot grid plus
+     one drifting glow in the fill blue. Worst case, tertiary text on the
+     glow's peak with the cursor glow on top measures 4.55:1; in practice
+     no text sits there. */
+  --hero-dot: rgba(255, 255, 255, 0.12);
+  --hero-drift: rgba(0, 77, 152, 0.30);
   --font-display-serif: "Cormorant Subset", Georgia, "Times New Roman", serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -88,13 +186,17 @@ html {
   scroll-padding-top: 32px;
 }
 
+/* Mono runs wider than the old sans, so the base drops to 14px. Only two
+   weights exist (400, 600): a 500 would quietly render as 400, and faux
+   bold is off so a 700 can't be smeared out of the 600. */
 html,
 body {
   background: var(--bg-page);
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 15px;
+  font-family: var(--font-mono);
+  font-size: 14px;
   line-height: 1.6;
+  font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -114,19 +216,22 @@ a {
   text-decoration: none;
 }
 
+/* --accent against the page is 6.16:1, well over the 3:1 a focus
+   indicator needs. */
 :focus-visible {
-  outline: 1px solid var(--accent-border);
+  outline: 1px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
+/* Every font is mono now, so this only adds tabular figures (Geist Mono's
+   digits are already fixed-width). Kept because many components use it. */
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
 }
 
-/* Shared content column: <main>, the site nav, and the footer meta row. */
+/* Shared content column: <main>, the header, and the footer row. */
 .wrap {
   width: 100%;
   max-width: 828px;
@@ -135,7 +240,8 @@ a {
 }
 
 /* ─────────────────────────────────────────────────────────
-   Scroll progress hairline (native scroll-driven, no JS)
+   LEGACY (home page only, removed with the index.astro rewrite):
+   scroll progress hairline, native scroll-driven, no JS
    ───────────────────────────────────────────────────────── */
 
 .scroll-progress {
@@ -171,11 +277,12 @@ a {
 }
 
 /* ─────────────────────────────────────────────────────────
-   Hero
+   LEGACY: Hero (removed with Hero.astro)
    Base styles = settled end state (what no-JS users see).
    The entrance start states are gated behind html.js-hero +
    prefers-reduced-motion: no-preference further down. The
-   gate is dropped if the hero script fails (Layout.astro).
+   gate is set and failsafed by the inline script at the top
+   of index.astro.
    ───────────────────────────────────────────────────────── */
 
 .hero {
@@ -211,8 +318,7 @@ a {
 
 /* Hero background. Two layers, both transform-only so they stay on the
    compositor and never repaint: a fine white dot grid that drifts
-   diagonally, and a single amber glow drifting on its own clock. One
-   colored element only — several low-alpha amber washes just read as mud. */
+   diagonally, and a single blue glow drifting on its own clock. */
 .hero-dots {
   position: absolute;
   inset: 0;
@@ -244,7 +350,7 @@ a {
   animation: dot-drift 18s linear infinite;
 }
 
-/* The one colored element: a soft amber glow over the upper hero, clear of
+/* The one colored element: a soft glow over the upper hero, clear of
    the tagline (top left) and the link bar (bottom). */
 .hero-drift {
   position: absolute;
@@ -307,7 +413,7 @@ a {
   left: 0;
   z-index: 4;
   font-size: clamp(54px, 8vw, 110px);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--text-primary);
@@ -327,7 +433,6 @@ a {
   font-size: 13px;
   line-height: 1.45;
   color: var(--text-secondary);
-  letter-spacing: -0.005em;
 }
 .hero-tagline span {
   display: block;
@@ -356,7 +461,6 @@ a {
   border-top: 0.5px solid var(--border-subtle);
   font-size: 13px;
   color: var(--text-secondary);
-  letter-spacing: -0.005em;
 }
 .hero-chrome > * {
   min-width: 0;
@@ -474,112 +578,6 @@ a {
 }
 
 /* ─────────────────────────────────────────────────────────
-   Site nav
-   Sticky right after the hero, so it only sticks once the hero
-   is gone. Base styles = visible (no-JS / failed script). Under
-   html.js-nav it stays hidden until the script marks it visible;
-   visibility (not just opacity) keeps hidden links out of the
-   tab order and the accessibility tree.
-   ───────────────────────────────────────────────────────── */
-
-.site-nav {
-  --nav-h: 52px;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  height: var(--nav-h);
-  /* Overlay the top of <main> instead of pushing it down. */
-  margin-bottom: calc(var(--nav-h) * -1);
-  border-bottom: 0.5px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--bg-page) 72%, transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  backdrop-filter: blur(12px) saturate(140%);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .site-nav {
-    background: color-mix(in srgb, var(--bg-page) 96%, transparent);
-  }
-}
-
-.site-nav-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  height: 100%;
-}
-.site-nav-name {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-.site-nav-links {
-  display: flex;
-  align-items: baseline;
-  font-size: 13px;
-  letter-spacing: -0.005em;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-.site-nav-links li + li::before {
-  content: "·";
-  content: "·" / "";
-  margin: 0 8px;
-  color: var(--text-tertiary);
-}
-.site-nav-links a {
-  transition: color 180ms var(--ease-out-expo);
-}
-.site-nav-links a:hover {
-  color: var(--text-primary);
-}
-
-/* Hidden until the hero is gone. Enter 300ms, exit faster (200ms);
-   visibility flips only after the exit fade has finished. */
-html.js-nav .site-nav {
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(-8px);
-  transition:
-    opacity 200ms var(--ease-out-expo),
-    transform 200ms var(--ease-out-expo),
-    visibility 0s linear 200ms;
-}
-html.js-nav .site-nav.is-visible {
-  visibility: visible;
-  opacity: 1;
-  transform: none;
-  transition:
-    opacity 300ms var(--ease-out-expo),
-    transform 300ms var(--ease-out-expo),
-    visibility 0s;
-}
-@media (prefers-reduced-motion: reduce) {
-  html.js-nav .site-nav,
-  html.js-nav .site-nav.is-visible {
-    transform: none;
-    transition: none;
-  }
-}
-
-/* Keep it one line on phones: drop the dots, then Experience. */
-@media (max-width: 480px) {
-  .site-nav-links {
-    gap: 14px;
-  }
-  .site-nav-links li + li::before {
-    content: none;
-  }
-}
-@media (max-width: 400px) {
-  .site-nav-optional {
-    display: none;
-  }
-}
-
-/* ─────────────────────────────────────────────────────────
    Sections
    ───────────────────────────────────────────────────────── */
 
@@ -595,9 +593,8 @@ html.js-nav .site-nav.is-visible {
 }
 .section-head h2 {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: -0.005em;
 }
 .section-head .meta {
   font-size: 11px;
@@ -653,9 +650,9 @@ html.js-nav .site-nav.is-visible {
    ───────────────────────────────────────────────────────── */
 
 .rows {
-  /* Shared by project + experience rows so both lists hold one left edge.
-     Fits the longest date ("September 2025 — now", 20 chars = 136px in
-     SF Mono at 11px) on one line, with a little room. */
+  /* Fits the longest date ("nov 2024 — present", 18 chars = 119px in
+     Geist Mono at 11px, 0.6em per character) on one line, with room.
+     Re-check if a longer date lands. */
   --date-col: 144px;
   display: flex;
   flex-direction: column;
@@ -726,16 +723,15 @@ html.js-nav .site-nav.is-visible {
   min-width: 0;
 }
 .row-title {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
   line-height: 1.3;
 }
 .row-blurb {
   margin-top: 4px;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--text-secondary);
 }
 .row-aff {
@@ -788,7 +784,7 @@ html.js-nav .site-nav.is-visible {
   padding: var(--node-pad) 0 var(--node-pad) 28px;
 }
 
-/* The node's dot. Filled amber while the role is current, hollow
+/* The node's dot. Filled blue while the role is current, hollow
    otherwise; the page-colored fill keeps the line from showing
    through a hollow one. */
 .xp-node::before {
@@ -846,7 +842,7 @@ html.js-nav .site-nav.is-visible {
 }
 .xp-role {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .xp-co {
@@ -870,8 +866,8 @@ html.js-nav .site-nav.is-visible {
    ───────────────────────────────────────────────────────── */
 
 .about p {
-  max-width: 60ch;
-  font-size: 15px;
+  max-width: 64ch;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text-secondary);
 }
@@ -888,20 +884,19 @@ html.js-nav .site-nav.is-visible {
 }
 .about strong {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .contact-line {
-  max-width: 60ch;
-  font-size: 15px;
+  max-width: 64ch;
+  font-size: 14px;
   line-height: 1.7;
   color: var(--text-secondary);
 }
 .contact-email {
   display: inline-block;
   margin-top: 14px;
-  font-size: 17px;
-  letter-spacing: -0.01em;
+  font-size: 16px;
   color: var(--accent-light);
   border-bottom: 0.5px solid var(--accent-border);
   transition: color 180ms var(--ease-out-expo);
@@ -911,59 +906,84 @@ html.js-nav .site-nav.is-visible {
 }
 
 /* ─────────────────────────────────────────────────────────
-   Footer + bookend
+   Document pages: /projects, /resume, /contact and the
+   Penknife pages. Header + <main class="wrap doc"> + Footer.
+   Static by design: no reveals, no scroll-driven motion, no JS.
    ───────────────────────────────────────────────────────── */
 
-.footer {
-  margin-top: clamp(32px, 6vw, 64px);
-  overflow-x: clip;
-}
-.footer-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px 16px;
-  padding-block: 16px;
-  border-top: 0.5px solid var(--border-subtle);
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-.footer-right {
-  display: flex;
-  gap: 16px;
-  align-items: baseline;
-}
-.footer-meta a {
-  transition: color 180ms var(--ease-out-expo);
-}
-.footer-meta a:hover {
-  color: var(--text-secondary);
+.doc {
+  padding-top: clamp(40px, 7vw, 72px);
 }
 
-/* Ghost bookend: the handle again, watermark-weight, links back to top */
-.bookend {
-  display: block;
-  padding: clamp(16px, 3vw, 32px) clamp(12px, 2.5vw, 32px) clamp(12px, 2vw, 24px);
-  font-family: var(--font-display-serif);
-  font-style: italic;
+/* The global section rule draws in on scroll; here it's simply there. */
+.doc .section-rule {
+  transform: none;
+  animation: none;
+}
+
+.doc .section {
+  padding-block: clamp(36px, 5vw, 48px) 0;
+}
+
+/* ── Page head ────────────────────────────────────────── */
+
+.doc-head h1 {
+  font-size: clamp(28px, 5vw, 36px);
   font-weight: 600;
-  font-size: clamp(64px, 18vw, 240px);
-  line-height: 0.9;
-  letter-spacing: -0.022em;
-  white-space: nowrap;
-  color: rgba(255, 255, 255, 0.07);
-  transition: color 600ms var(--ease-out-expo);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-wrap: balance;
 }
-.bookend:hover {
-  color: rgba(255, 255, 255, 0.28);
+.doc-head .lead {
+  margin-top: 12px;
+  max-width: 52ch;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  text-wrap: pretty;
 }
-/* The watermark word. Generated content with an empty alt is decorative:
-   screen readers skip it and contrast checks don't treat it as text. The
-   link's accessible name is the .sr-only span in Footer.astro. The first
-   declaration is the fallback for browsers without content alt text. */
-.bookend::before {
-  content: "novruzoff";
-  content: "novruzoff" / "";
+.doc-head .meta {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* ── Prose ────────────────────────────────────────────── */
+
+.prose {
+  margin-top: 16px;
+}
+.prose p {
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+.prose > * + * {
+  margin-top: 12px;
+}
+.prose strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.prose a:not(.contact-email) {
+  color: var(--accent-light);
+  border-bottom: 0.5px solid var(--accent-border);
+  transition: color 180ms var(--ease-out-expo);
+}
+.prose a:not(.contact-email):hover {
+  color: var(--accent);
+}
+.prose .contact-email {
+  margin-top: 0;
+}
+
+/* In-page anchors (/projects#mindvista) land below the 52px sticky
+   header instead of under it. */
+.doc [id] {
+  scroll-margin-top: 76px;
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -993,5 +1013,4 @@ html.js-nav .site-nav.is-visible {
     flex-direction: row;
     gap: 12px;
   }
-
 }

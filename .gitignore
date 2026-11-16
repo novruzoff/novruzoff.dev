@@ -152,3 +152,6 @@ dist/
 .agents/
 .claude/
 .cursor/
+
+# macOS Finder metadata (it was shipping to production via public/)
+.DS_Store

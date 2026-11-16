@@ -1,40 +1,95 @@
 ---
-// Site footer: meta row (© · Montreal, GitHub, LinkedIn) and the ghost
-// `novruzoff` bookend. On the home page the bookend goes back to #top
-// (through Lenis); on subpages it goes home.
+// Site footer, shared by every page: a copyright line on the left and
+// bracket-style links on the right.
 //
-// Bookend accessibility: the link's name is visually hidden text that starts
-// with the visible word ("novruzoff, back to top"), so voice control users
-// can say what they see (WCAG 2.5.3). The watermark itself is drawn by
-// .bookend::before in global.css with an empty alt (`content: "…" / ""`),
-// so it's decorative: not announced, and not a text node for contrast checks.
-type Props = {
-  bookendHref?: string;
-};
+// The brackets are drawn in CSS (::before / ::after) with empty alt text,
+// so they show on screen but aren't announced: each link's accessible name
+// is just the word ("github"), which is also the visible word, so voice
+// control users can say what they see (WCAG 2.5.3).
+type FooterLink = { label: string; href: string; external?: boolean };
 
-const { bookendHref = "#top" } = Astro.props;
-const bookendLabel =
-  bookendHref === "#top" ? "novruzoff, back to top" : "novruzoff, home";
+const links: FooterLink[] = [
+  { label: "github", href: "https://github.com/novruzoff", external: true },
+  { label: "linkedin", href: "https://linkedin.com/in/novruzoff", external: true },
+  { label: "email", href: "mailto:murad@novruzoff.dev" },
+];
+
 const year = new Date().getFullYear();
 ---
 
-<footer class="footer">
-  <div class="wrap footer-meta mono">
-    <span>© {year} Murad Novruzov · Montreal</span>
-    <span class="footer-right">
-      <a
-        href="https://github.com/novruzoff"
-        target="_blank"
-        rel="noreferrer noopener">GitHub</a
-      >
-      <a
-        href="https://linkedin.com/in/novruzoff"
-        target="_blank"
-        rel="noreferrer noopener">LinkedIn</a
-      >
-    </span>
+<footer class="site-footer">
+  <div class="wrap site-footer-inner">
+    <span class="site-footer-meta">© {year} murad novruzov · montreal</span>
+    <ul class="site-footer-links">
+      {/* Label kept on the closing line of the <a>: surrounding whitespace
+          would render as a gap inside the CSS brackets ("[ github ]"). */}
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              {...(link.external
+                ? { target: "_blank", rel: "noreferrer noopener" }
+                : {})}
+            >{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
   </div>
-  <a class="bookend" href={bookendHref}>
-    <span class="sr-only">{bookendLabel}</span>
-  </a>
 </footer>
+
+<style>
+  .site-footer {
+    margin-top: clamp(32px, 6vw, 64px);
+    border-top: 0.5px solid var(--border-subtle);
+  }
+
+  .site-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding-block: 14px 18px;
+    font-size: 12px;
+  }
+
+  .site-footer-meta {
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .site-footer-links {
+    display: flex;
+    gap: 16px;
+    color: var(--text-secondary);
+  }
+  /* 6px of block padding makes each link ~31px tall, over the 24px
+     minimum target size (WCAG 2.5.8). */
+  .site-footer-links a {
+    display: inline-block;
+    padding-block: 6px;
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .site-footer-links a::before {
+    content: "[";
+    content: "[" / "";
+  }
+  .site-footer-links a::after {
+    content: "]";
+    content: "]" / "";
+  }
+  .site-footer-links a::before,
+  .site-footer-links a::after {
+    color: var(--text-tertiary);
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .site-footer-links a:hover {
+    color: var(--text-primary);
+  }
+  .site-footer-links a:hover::before,
+  .site-footer-links a:hover::after {
+    color: var(--accent);
+  }
+</style>

@@ -9,22 +9,18 @@ type Props = {
   ogImageAlt?: string;
   /** Person JSON-LD for Murad. Home page only in practice. */
   personSchema?: boolean;
-  /** Preload the Cormorant subset (the hero handle is above the fold). */
-  preloadHandleFont?: boolean;
-  /** The hero / reveal / nav motion gates. Only pages with those scripts. */
-  motionGates?: boolean;
   /** App Store app ID; adds Safari's Smart App Banner. Penknife pages only. */
   appStoreId?: string;
 };
 
+// The og:image alt describes public/og.png as it is now (it still shows the
+// old italic handle). Change both together when the card is regenerated.
 const {
   title = "Murad Novruzov — Software engineer",
   description = "Software engineer in Montreal. Founding Developer at True Competency, studying CS at McGill.",
   ogImage: ogImagePath = "/og.png",
   ogImageAlt = "“novruzoff” in large italic type, under “Murad Novruzov — Software engineer”.",
   personSchema = true,
-  preloadHandleFont = true,
-  motionGates = true,
   appStoreId,
 } = Astro.props;
 
@@ -69,36 +65,21 @@ const personSchemaJson = JSON.stringify({
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    {motionGates && <script is:inline>
-      // Motion gates: while these classes are on <html>, CSS holds the hero,
-      // [data-reveal] content, and the site nav at their start states. Module
-      // scripts run before DOMContentLoaded, so a gate still unclaimed by then
-      // means its script failed to load — drop it and show static content.
-      (() => {
-        const root = document.documentElement;
-        root.classList.add("js-hero", "js-reveal", "js-nav");
-        document.addEventListener("DOMContentLoaded", () => {
-          if (!root.classList.contains("hero-live")) root.classList.remove("js-hero");
-          if (!root.classList.contains("reveal-live")) root.classList.remove("js-reveal");
-          if (!root.classList.contains("nav-live")) root.classList.remove("js-nav");
-        });
-      })();
-    </script>}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    {preloadHandleFont && (
-      <link
-        rel="preload"
-        href="/fonts/cormorant-italic-600-novruzov.woff2"
-        as="font"
-        type="font/woff2"
-        crossorigin="anonymous"
-      />
-    )}
+    {/* Geist Mono is the only font. Just the 600 weight is preloaded: it
+        carries the large display text. 400 is found through global.css. */}
+    <link
+      rel="preload"
+      href="/fonts/geist-mono-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#0f0f10" />
     {appStoreId && <meta name="apple-itunes-app" content={`app-id=${appStoreId}`} />}

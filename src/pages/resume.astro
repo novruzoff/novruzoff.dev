@@ -1,0 +1,177 @@
+---
+// /resume: the lean version. About, a timeline of roles with one or two
+// bullets each (each linking to its /projects entry for the detail),
+// skills, education. Don't repeat project detail here; /projects carries
+// it. Static: no JS, no reveals.
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import ExperienceRow from "../components/ExperienceRow.astro";
+import Footer from "../components/Footer.astro";
+import { experience } from "../data/experience";
+import { skills, education, RESUME_PDF_URL } from "../data/resume";
+---
+
+<Layout
+  title="Resume — Murad Novruzov"
+  description="Murad Novruzov's resume: founding developer at True Competency, full stack developer and team lead at MindVista, CS at McGill (expected May 2027)."
+  personSchema={false}
+>
+  <Header />
+
+  <main class="wrap doc">
+    <header class="doc-head">
+      <h1>resume</h1>
+      <p class="meta mono">
+        the short version. the detail is on <a href="/projects">/projects</a>
+        {
+          RESUME_PDF_URL && (
+            <>
+              {" · "}
+              <a href={RESUME_PDF_URL} download>download pdf</a>
+            </>
+          )
+        }
+      </p>
+    </header>
+
+    <section class="section" aria-labelledby="about">
+      <SectionHeader label="about" id="about" />
+      <div class="prose">
+        <p>
+          i'm murad novruzov, a.k.a. novruzoff, a software developer in montreal,
+          born and raised in baku. i'm in my final year of computer science at <a
+            href="https://mcgill.ca"
+            target="_blank"
+            rel="noreferrer noopener">McGill</a>, and i'm the founding developer at <a
+            href="https://truecompetency.com"
+            target="_blank"
+            rel="noreferrer noopener">true competency</a>. most of my other work
+          is full-stack web.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="experience">
+      <SectionHeader label="experience" id="experience" meta={`${experience.length} roles`} />
+      <ol class="timeline">
+        {experience.map((entry) => <ExperienceRow experience={entry} detail />)}
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="skills">
+      <SectionHeader label="skills" id="skills" />
+      <dl class="skills">
+        {
+          skills.map((group) => (
+            <div>
+              <dt>{group.label}</dt>
+              <dd>
+                <ul>
+                  {group.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="section" aria-labelledby="education">
+      <SectionHeader label="education" id="education" />
+      <div class="education">
+        <div class="edu-main">
+          <span class="edu-degree">{education.degree}</span>
+          <span class="edu-school">{education.school}</span>
+        </div>
+        <span class="edu-dates">{education.dates}</span>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .doc-head .meta a {
+    color: var(--accent);
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .doc-head .meta a:hover {
+    color: var(--accent-light);
+  }
+
+  /* The timeline sits a little below the header rule, like the old
+     home page's section. */
+  .timeline {
+    margin-top: 6px;
+  }
+
+  /* Label column | items. 200px fits "infrastructure & security"
+     (25 chars = 165px at 11px) on one line. Stacks under 560px. */
+  .skills {
+    margin-top: 16px;
+  }
+  .skills > div {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 4px 16px;
+    align-items: baseline;
+  }
+  .skills > div + div {
+    margin-top: 12px;
+  }
+  .skills dt {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .skills dd ul {
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  /* Separator after each item but the last, so a wrapped line ends on a
+     dot instead of starting with one. Decorative: not announced. */
+  .skills li:not(:last-child)::after {
+    content: "·";
+    content: "·" / "";
+    margin-inline: 8px;
+    color: var(--text-tertiary);
+  }
+  @media (max-width: 560px) {
+    .skills > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Same shape as a timeline node, without the line: degree over school
+     on the left, date on the right. */
+  .education {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 18px;
+    align-items: baseline;
+    margin-top: 16px;
+  }
+  .edu-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .edu-degree {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .edu-school {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .edu-dates {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+</style>

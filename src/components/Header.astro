@@ -1,0 +1,145 @@
+---
+// Site header, shared by every page. Replaces SiteNav (home) and
+// PageHeader (Penknife): a sticky 52px bar with the handle on the left and
+// a link list on the right. No hide-on-hero logic and no script; it's
+// plain links, so keyboard and screen-reader behaviour is native.
+//
+// Each link gets aria-current="page" when its href is the page being
+// rendered. The comparison uses the served URL (/penknife/privacy), not
+// Astro.url.pathname: build.format 'file' reports pages as /index.html
+// and /penknife/privacy.html, so the extension and the index segment are
+// stripped first. Layout.astro normalizes the canonical the same way.
+//
+// The "/" in front of each label is decorative, drawn in CSS with empty
+// alt text, so a screen reader announces "projects", not "slash projects".
+export type HeaderLink = { label: string; href: string };
+
+type Props = {
+  /** Right-hand links. Defaults to the portfolio's own pages. */
+  links?: HeaderLink[];
+  /** Accessible name of the <nav> landmark. */
+  label?: string;
+  /**
+   * Overlay the top of <main> instead of pushing it down. Only for the home
+   * page, where the header sits right after the full-height hero.
+   */
+  overlay?: boolean;
+};
+
+// /projects, /resume and /contact are built in the next step; until then
+// these links 404.
+const DEFAULT_LINKS: HeaderLink[] = [
+  { label: "projects", href: "/projects" },
+  { label: "resume", href: "/resume" },
+  { label: "contact", href: "/contact" },
+];
+
+const { links = DEFAULT_LINKS, label = "Primary", overlay = false } = Astro.props;
+
+const pathname = Astro.url.pathname.replace(/(\/index)?\.html$/, "") || "/";
+const current = (href: string) => (href === pathname ? "page" : undefined);
+---
+
+<header class:list={["site-header", { "is-overlay": overlay }]}>
+  <nav class="wrap site-header-inner" aria-label={label}>
+    <a class="site-header-name" href="/" aria-current={current("/")}>novruzoff</a>
+    <ul class="site-header-links">
+      {/* Label kept on the <a> line: surrounding whitespace would render
+          as a gap after the CSS "/" prefix. */}
+      {
+        links.map((link) => (
+          <li>
+            <a href={link.href} aria-current={current(link.href)}>{link.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    --header-h: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    border-bottom: 0.5px solid var(--border-subtle);
+    background: color-mix(in srgb, var(--bg-page) 72%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+  }
+  /* Without a backdrop blur the 72% tint would let text show through. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .site-header {
+      background: color-mix(in srgb, var(--bg-page) 96%, transparent);
+    }
+  }
+  .site-header.is-overlay {
+    margin-bottom: calc(var(--header-h) * -1);
+  }
+
+  .site-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 100%;
+  }
+
+  .site-header-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .site-header-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  /* 6px of block padding makes each link ~33px tall, over the 24px
+     minimum target size (WCAG 2.5.8). */
+  .site-header-links a {
+    display: inline-block;
+    padding-block: 6px;
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .site-header-links a::before {
+    content: "/";
+    content: "/" / "";
+    color: var(--text-tertiary);
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .site-header-links a:hover,
+  .site-header-links a[aria-current="page"] {
+    color: var(--text-primary);
+  }
+  .site-header-links a[aria-current="page"]::before {
+    color: var(--accent);
+  }
+
+  /* Geist Mono is 0.6em per character, so widths are exact. The longest
+     set ("/penknife /privacy /support", 25 chars) needs 319px at 13px with
+     16px gaps; at 12px with 12px gaps it needs 292px, which fits from
+     360px up (320px of row). Under 360px the slashes go too: 270px, inside
+     the 280px row at 320px. */
+  @media (max-width: 400px) {
+    .site-header-inner {
+      gap: 12px;
+    }
+    .site-header-links {
+      gap: 12px;
+      font-size: 12px;
+    }
+  }
+  @media (max-width: 359px) {
+    .site-header-links a::before {
+      content: none;
+    }
+  }
+</style>

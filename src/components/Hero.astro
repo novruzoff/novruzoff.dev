@@ -12,7 +12,7 @@
 // Vanilla WAAPI, no deps. Replays are skipped within a session
 // (sessionStorage) because a 5s entrance is for first impressions only.
 // Reduced-motion and no-JS users land directly on the settled state via CSS.
-// Start states are gated by html.js-hero (see Layout.astro): if this script
+// Start states are gated by html.js-hero (set at the top of index.astro): if this script
 // never runs or throws, the gate drops and CSS shows the settled state.
 ---
 
@@ -84,7 +84,7 @@
   const hero = document.querySelector<HTMLElement>(".hero");
 
   if (hero && !reduce) {
-    // Claim the motion gate so Layout's failsafe leaves it in place.
+    // Claim the motion gate so the failsafe in index.astro leaves it in place.
     document.documentElement.classList.add("hero-live");
 
     const heroEl = hero;

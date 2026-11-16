@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
-import SiteNav from "../components/SiteNav.astro";
+import Header from "../components/Header.astro";
 import SectionHeader from "../components/SectionHeader.astro";
 import ProjectRow from "../components/ProjectRow.astro";
 import ExperienceRow from "../components/ExperienceRow.astro";
@@ -11,10 +11,28 @@ import { experience } from "../data/experience";
 ---
 
 <Layout>
+  {/* LEGACY motion gates, moved here from Layout.astro: only this page has
+      the hero and reveal scripts, and all three go together when the page
+      is rewritten. Runs before any content is parsed, so CSS holds the
+      hero and [data-reveal] content at their start states from the first
+      paint. Module scripts run before DOMContentLoaded, so a gate still
+      unclaimed by then means its script failed to load: drop it and show
+      the static content. */}
+  <script is:inline>
+    (() => {
+      const root = document.documentElement;
+      root.classList.add("js-hero", "js-reveal");
+      document.addEventListener("DOMContentLoaded", () => {
+        if (!root.classList.contains("hero-live")) root.classList.remove("js-hero");
+        if (!root.classList.contains("reveal-live")) root.classList.remove("js-reveal");
+      });
+    })();
+  </script>
+
   <span class="scroll-progress" aria-hidden="true"></span>
 
   <Hero />
-  <SiteNav />
+  <Header overlay />
 
   <main class="wrap">
     <section id="experience" class="section">
@@ -80,7 +98,7 @@ import { experience } from "../data/experience";
   const root = document.documentElement;
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Claim the reveal gate so Layout's failsafe leaves it in place; if setup
+  // Claim the reveal gate so the failsafe above leaves it in place; if setup
   // throws, drop the gate so content stays visible instead of stuck hidden.
   root.classList.add("reveal-live");
 

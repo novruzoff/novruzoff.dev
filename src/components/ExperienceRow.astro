@@ -1,18 +1,27 @@
 ---
 import type { Experience } from "../data/experience";
 
-type Props = { experience: Experience; index?: number };
-const { experience, index = 0 } = Astro.props;
+// One timeline node. The base node (role over company | dates over
+// location, dot on the left) is styled in global.css (.xp-node).
+// `detail` (used on /resume) adds the role's one or two bullets and, when
+// the role has a project entry, a link to /projects#<slug>. The legacy home
+// page leaves it off, so its timeline stays compact and keeps its reveal.
+type Props = { experience: Experience; index?: number; detail?: boolean };
+const { experience, index = 0, detail = false } = Astro.props;
 
 // The dates are the source of truth for the dot: a role still running
-// gets the filled amber one, everything else the hollow ring.
+// gets the filled blue one, everything else the hollow ring.
 const isCurrent = experience.dates.toLowerCase().includes("present");
+
+const projectHref = experience.projectSlug
+  ? `/projects#${experience.projectSlug}`
+  : undefined;
 ---
 
 <li
-  class="xp-node"
-  data-reveal
-  style={`--reveal-i: ${index}`}
+  class:list={["xp-node", { "is-detail": detail }]}
+  data-reveal={detail ? undefined : ""}
+  style={detail ? undefined : `--reveal-i: ${index}`}
   data-current={isCurrent ? "" : undefined}
 >
   <div class="xp-main">
@@ -23,4 +32,84 @@ const isCurrent = experience.dates.toLowerCase().includes("present");
     <span>{experience.dates}</span>
     {experience.location && <span>{experience.location}</span>}
   </div>
+
+  {
+    detail && (experience.highlights || projectHref) && (
+      <div class="xp-detail">
+        {experience.highlights && (
+          <ul class="xp-highlights">
+            {experience.highlights.map((line) => <li>{line}</li>)}
+          </ul>
+        )}
+        {projectHref && (
+          // Label on the <a> line: whitespace would gap the arrow.
+          <a class="xp-more" href={projectHref}><span aria-hidden="true">→ </span>{projectHref}</a>
+        )}
+      </div>
+    )
+  }
 </li>
+
+<style>
+  /* Phones, detail variant: the right-hand date/location column (~120px)
+     would squeeze role and company into a narrow strip ("ARB (azerbaijan
+     republic broadcaster)" broke over four lines at 375px). One column
+     instead, with date and location on a line under the company. The dot
+     still centers on the role, which stays first. */
+  @media (max-width: 480px) {
+    .xp-node.is-detail {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .is-detail .xp-meta {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 0 12px;
+      margin-top: 4px;
+      text-align: left;
+    }
+  }
+
+  /* Spans both columns, under role and dates: the metadata column is
+     ~120px wide, so bullets squeezed beside it would wrap every few words
+     on a phone. */
+  .xp-detail {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+
+  .xp-highlights {
+    max-width: 72ch;
+  }
+  .xp-highlights li {
+    position: relative;
+    padding-left: 2ch;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+  }
+  .xp-highlights li + li {
+    margin-top: 4px;
+  }
+  /* Decorative marker; the list semantics already say "bullet". */
+  .xp-highlights li::before {
+    content: "-";
+    content: "-" / "";
+    position: absolute;
+    left: 0;
+    color: var(--text-tertiary);
+  }
+
+  /* 6px of block padding: ~31px tall (WCAG 2.5.8). */
+  .xp-more {
+    display: inline-block;
+    margin-top: 2px;
+    padding-block: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    transition: color 180ms var(--ease-out-expo);
+  }
+  .xp-more:hover {
+    color: var(--accent-light);
+  }
+</style>

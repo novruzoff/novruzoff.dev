@@ -71,6 +71,9 @@ const personSchemaJson = JSON.stringify({
     <title>{title}</title>
     <meta name="description" content={description} />
     {canonical && <link rel="canonical" href={canonical} />}
+    {/* Icons: the .ico (16 + 32px) for browsers and tools that don't take
+        SVG favicons; sizes="32x32" keeps SVG-capable browsers on the SVG. */}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     {/* Geist Mono is the only font. Just the 600 weight is preloaded: it

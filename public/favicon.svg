@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Geist Mono SemiBold "n" as an outline (no font needed): --panel-dark on --panel-muted.
-       The muted square keeps 2.7-4.5:1 against light and dark browser tab bars; a dark square vanishes on dark ones. -->
-  <rect width="64" height="64" rx="14" fill="#6A8BAF"/>
-  <path fill="#0B141E" transform="translate(13.32 49) scale(0.06227 -0.06227)" d="M76 0V534H184L187 438Q208 493 251.5 519.5Q295 546 351 546Q410 546 448 520Q486 494 505 448.5Q524 403 524 345V0H406V317Q406 445 311 445Q263 445 228.5 411.5Q194 378 194 313V0Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-83 -738 766 766">
+  <!-- Favicon: an "8" in the site's muted blue (#6A8BAF, the panel-muted token), traced from
+       Geist Mono SemiBold (the site font) as a vector path, since favicons can't load web fonts.
+       (No double hyphens anywhere in this comment: XML forbids them inside comments, and an
+       invalid file shows no icon at all.) Transparent, no tile.
+       The path is in font units (y up), so scale(1 -1) flips it. The glyph spans x 42–558,
+       y −16–726 (742 tall); the square viewBox is 742 + 12 + 12 = 766 units, centred on the
+       glyph (x 300, y 355), so the 8 fills the full height with ~1.6% padding top and bottom.
+       public/favicon.ico (16, 32) and apple-touch-icon.png are rendered from the same path. -->
+  <path fill="#6A8BAF" transform="scale(1 -1)" d="M300 -16Q224 -16 166 8Q108 32 75 78.5Q42 125 42 194Q42 264 79.5 312Q117 360 182 382Q133 401 103 438Q73 475 73 531Q73 587 101.5 631Q130 675 181 700.5Q232 726 300 726Q368 726 419 700.5Q470 675 498.5 631Q527 587 527 531Q527 475 497.5 438Q468 401 418 382Q482 360 520 312Q558 264 558 194Q558 125 525 78.5Q492 32 434 8Q376 -16 300 -16ZM300 431Q345 431 372.5 454Q400 477 400 524Q400 566 373 590Q346 614 300 614Q254 614 227 590Q200 566 200 524Q200 477 227.5 454Q255 431 300 431ZM300 96Q355 96 392.5 122Q430 148 430 206Q430 260 396.5 291.5Q363 323 300 323Q237 323 203.5 291.5Q170 260 170 206Q170 148 207.5 122Q245 96 300 96Z"/>
 </svg>

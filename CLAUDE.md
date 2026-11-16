@@ -54,7 +54,7 @@ Dark-only. Near-black, not pure black. **Exactly two blues**, one muted hue; not
 **Two blues, one hue.** `--panel-dark` (`#0B141E`, HSL 211.6° / 46% / 8%) and `--panel-muted` (`#6A8BAF`, 211.3° / 30% / 55%) are the site's only colors besides the neutrals. Both are muted: no saturated fills anywhere. (They replaced an earlier saturated Barça blue and a separate brighter link blue; don't reintroduce either, or add a third blue.)
 
 - **As a pair** (the homepage text panels, the favicon, the social cards' name panels): one is the other's text. **5.23:1 either way** (AA is 4.5:1). The greeting is `--panel-muted` on `--panel-dark`; the statement, the favicon and the cards' name panels are `--panel-dark` on `--panel-muted`. `--panel-dark` is only 1.03:1 against `--bg-page`, so a `--panel-dark` panel relies on its 0.5px `--border-subtle` frame to read as a panel; keep the frame. `--panel-dark` is never a text color on the page itself.
-- **As the accent** (`--accent` is `--panel-muted` under its job name): links, accent text, the current-page `/` in the header, the current-role dot, focus rings, the metric values on /projects. Measured: **5.41:1 on `--bg-page`, 5.10:1 on `--bg-elevated`** (metric tiles), 4.80:1 on `--bg-hover` (unused today), 5.33:1 on the header's blurred backdrop over a tile. Focus rings need 3:1 and get 5.41:1 / 5.10:1.
+- **As the accent** (`--accent` is `--panel-muted` under its job name): links, accent text, **all header and footer text** (the name, the nav links, the copyright line, the social links), the current-page underline, the current-role dot, focus rings, the metric values on /projects. Measured: **5.41:1 on `--bg-page`, 5.10:1 on `--bg-elevated`** (metric tiles), 4.80:1 on `--bg-hover` (unused today), and on the header's translucent backdrop (94% `--bg-page` over whatever scrolls beneath) 5.41:1 over the page and **4.73:1 worst case**, over a pure-white region (a photo highlight, the App Store badge); at the old 72% it was 2.20:1, and 3.68:1 over the light statement panel. The footer is solid `--bg-page`: 5.41:1. Focus rings need 3:1 and get 5.41:1 / 5.10:1.
 - **There's no lighter link blue.** Hovering an accent-colored link goes to `--text-primary`; hovering a neutral link (the Penknife page links, the header) goes to `--accent` or `--text-primary`. A link inside a line of text needs its `--accent-border` underline: `--accent` is only 1.15:1 against the surrounding `--text-secondary` grey (WCAG 1.4.1).
 - **Selected text** is `--text-primary` on `--accent-bg` (13.55:1). `--accent` on `--accent-bg` would be 4.21:1, so don't use it there.
 - Any new use of either blue as text must be measured against its real background and clear 4.5:1; if it doesn't, change the background or use a neutral, not a new blue.
@@ -81,7 +81,7 @@ Wire as CSS custom properties in `global.css`, exposed to Tailwind v4 via `@them
 - Acronyms and initialisms: APSC, RLS, JWT, SEO, LCP, SSMU, ARB, SCS, RBAC, MCQ, IVUS, OCT, CSS, PDF, JSON (and any other acronym — never "apsc" or "rls"). So the project is "SSMU websites" and the company is "ARB (azerbaijan republic broadcaster)". "BSc" keeps its casing.
 - Brand and product casing: McGill (the one organization that keeps its casing), and third-party product and technology names — iOS, iPhone, iCal, GitHub, LinkedIn, WordPress, Lighthouse, PageSpeed, App Store, Next.js, TypeScript, PostgreSQL, Swift, SwiftUI, App Intents, JavaFX, and every name in a stack or skills list, exactly as the vendor writes it. Generic terms built from them are lowercase ("speed index", "agile").
 - **Not rendered copy, so normally cased:** JSON-LD structured data, image `alt` text, `aria-label`s.
-- **One deliberate exception to the brand rule:** the footer's bracket links are `[github]` `[linkedin]` `[email]`, lowercase, because they read as handles, not brand names. Brand casing applies everywhere else, prose included ("my code is on GitHub").
+- **One deliberate exception to the brand rule:** the footer's links are `github` `linkedin` `instagram` `x` `email`, lowercase, because they read as handles, not brand names. Brand casing applies everywhere else, prose included ("my code is on GitHub"; /contact's labels are GitHub, LinkedIn, Instagram, X).
 
 Page `<title>`s and meta descriptions are normally cased on purpose: they're search and social snippets, not page copy ("Projects — Murad Novruzov").
 
@@ -94,7 +94,7 @@ Not converted yet: the Penknife pages' body copy (sentence case, US English; the
 - No logo marks, monograms, or graphic brand elements in the header.
 - No decorative dots, chevrons, or shapes next to the name.
 - The handle `novruzoff`, in Geist Mono 600, is the header's name element.
-- Typographic punctuation is fine and is part of the system: the `/` before header links and the `[ ]` around footer links. Both are drawn in CSS with empty alt text (`content: "/" / ""`), so they're never announced.
+- Typographic punctuation is fine and is part of the system: the `/` before header links, drawn in CSS with empty alt text (`content: "/" / ""`) so it's never announced. Footer links are plain words separated by space: no brackets, no separators.
 - Typography is the brand.
 
 ### Typography
@@ -148,7 +148,7 @@ Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-trigge
 
 - 0.5px borders only. Background layering creates hierarchy.
 - Content column: `.wrap`, `max-width: 828px` including `clamp(20px, 4vw, 40px)` side padding (748px of content at desktop). Shared by the document pages' `<main>`, header and footer. The home page uses `.wrap-wide` instead (full width, `clamp(16px, 2vw, 24px)` side padding), and so do its header and footer (`wide` prop).
-- Header (`src/components/Header.astro`): sticky, 52px, 72% `--bg-page` + `backdrop-filter: blur(12px)` with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 280px row).
+- Header (`src/components/Header.astro`): sticky, 52px, 94% `--bg-page` + `backdrop-filter: blur(12px)` (94%, not more transparent, so its blue text holds 4.5:1 over anything scrolling beneath) with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 280px row).
 
 #### Home panel grid (`src/pages/index.astro`)
 
@@ -223,9 +223,12 @@ Optional at build time: `index.astro` finds each file with `import.meta.glob`, s
 
 ### Shared chrome
 
-- **Header** (`src/components/Header.astro`, every page; replaces the old `SiteNav` and `PageHeader`). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `aria-current="page"` goes on whichever link's `href` equals the page's served URL (the name link included, on `/`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). `wide` swaps the 828px `.wrap` column for the full-width `.wrap-wide` (home only). No script: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
-- **Footer** (`src/components/Footer.astro`, every page): "© {year} murad novruzov · montreal" on the left; `[github]` `[linkedin]` `[email]` on the right (`mailto:murad@novruzoff.dev`), wrapping below the line on phones. The brackets are CSS with empty alt text, so each link's accessible name is the visible word (WCAG 2.5.3). `wide` (home only) uses `.wrap-wide` and drops the top margin and hairline, since the panel grid's frame closes the page.
-- Keep link labels on the same line as their `<a>` tag in both components: whitespace inside the link renders as a gap after the CSS `/` or inside the brackets.
+- **Header** (`src/components/Header.astro`, every page, Penknife included). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). `wide` swaps the 828px `.wrap` column for the full-width `.wrap-wide` (home only). No script: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
+  - **Colour:** everything (name, links, their `/`) is `--accent` at rest and `--text-primary` on hover and `:focus-visible`, like jonahseguin.com's single-colour chrome.
+  - **Current page:** `aria-current="page"` on whichever link's `href` equals the page's served URL (the name link included, on `/`), and that link is **underlined**, since colour can't mark it any more. The underline is the site's thin link-underline shape (1px, offset 5px) but in `--accent` itself, not the 35% `--accent-border`: it's the only cue for the state, so it needs 3:1 (WCAG 1.4.11), and `--accent` is 5.41:1 where `--accent-border` is 1.67:1. The `/` is `inline-block` so the underline covers the word only.
+- **Footer** (`src/components/Footer.astro`, every page): "© {year} murad novruzov · montreal" on the left, then `github` `linkedin` `instagram` `x` `email` (in that order; `mailto:murad@novruzoff.dev`), plain words with 16px between them. All `--accent`, hover/focus `--text-primary`. The copyright line and links share a row when they fit and otherwise wrap onto two left-aligned lines (all phones); the five links are 273px at 12px, so they stay on one line down to 320px (280px row), with `flex-wrap` as the safety net. `wide` (home only) uses `.wrap-wide` and drops the top margin and hairline, since the panel grid's frame closes the page.
+- **Social profiles** (footer, /contact, and the homepage Person JSON-LD `sameAs`): GitHub `github.com/novruzoff`, LinkedIn `linkedin.com/in/novruzovmurad`, Instagram `instagram.com/novruzoffmurad`, X `x.com/novruzoffmurad`. /contact shows each as label + readable address; the contact social card lists the same four (`CONTACT_HANDLES` in `scripts/generate-og.mjs`).
+- Keep link labels on the same line as their `<a>` tag in the header: whitespace inside the link renders as a gap after the CSS `/`.
 
 Case study pages may come later under `/projects/[slug]`.
 
@@ -271,7 +274,7 @@ Static by design: no JS at all, no reveals, no scroll-driven motion. Each page i
 }
 ```
 
-Only include URLs that resolve publicly; omit a link rather than ship a 404 (MyMeetings' repo is private, so it has none). `ProjectRow` renders every link present ("case study", "live", "App Store", "repo"). Absolute `http(s)` links open in a new tab; site-relative ones (`/penknife`) don't.
+Only include URLs that resolve publicly; omit a link rather than ship a 404 (MyMeetings' repo is private, so it has none). **Exception: Instagram and X** block automated requests (a login wall or an error for bots), so a failed fetch there isn't a dead link; the two handles are confirmed by Murad and stay even if a link checker flags them. `ProjectRow` renders every link present ("case study", "live", "App Store", "repo"). Absolute `http(s)` links open in a new tab; site-relative ones (`/penknife`) don't.
 
 ### Experience (`src/data/experience.ts`)
 ```ts

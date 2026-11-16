@@ -1,11 +1,14 @@
 ---
-// Site footer, shared by every page: a copyright line on the left and
-// bracket-style links on the right.
+// Site footer, shared by every page: a copyright line on the left and the
+// social links on the right, plain lowercase words separated by space.
 //
-// The brackets are drawn in CSS (::before / ::after) with empty alt text,
-// so they show on screen but aren't announced: each link's accessible name
-// is just the word ("github"), which is also the visible word, so voice
-// control users can say what they see (WCAG 2.5.3).
+// Colour: everything is --accent (the muted blue; 5.41:1 on the page) at
+// rest and goes --text-primary on hover and keyboard focus, like the header.
+//
+// Instagram and X block automated requests (bots get a login wall or an
+// error), so a failed link check there doesn't mean a dead link. These
+// handles are confirmed by Murad; they're an exception to the "omit links
+// that don't resolve" rule (CLAUDE.md).
 type FooterLink = { label: string; href: string; external?: boolean };
 
 type Props = {
@@ -20,6 +23,8 @@ const { wide = false } = Astro.props;
 const links: FooterLink[] = [
   { label: "github", href: "https://github.com/novruzoff", external: true },
   { label: "linkedin", href: "https://www.linkedin.com/in/novruzovmurad/", external: true },
+  { label: "instagram", href: "https://www.instagram.com/novruzoffmurad/", external: true },
+  { label: "x", href: "https://x.com/novruzoffmurad", external: true },
   { label: "email", href: "mailto:murad@novruzoff.dev" },
 ];
 
@@ -30,8 +35,6 @@ const year = new Date().getFullYear();
   <div class:list={[wide ? "wrap-wide" : "wrap", "site-footer-inner"]}>
     <span class="site-footer-meta">© {year} murad novruzov · montreal</span>
     <ul class="site-footer-links">
-      {/* Label kept on the closing line of the <a>: surrounding whitespace
-          would render as a gap inside the CSS brackets ("[ github ]"). */}
       {
         links.map((link) => (
           <li>
@@ -59,6 +62,8 @@ const year = new Date().getFullYear();
     border-top: 0;
   }
 
+  /* The copyright line and the links share a row when there's room and
+     wrap onto two left-aligned lines when there isn't (phones). */
   .site-footer-inner {
     display: flex;
     flex-wrap: wrap;
@@ -67,43 +72,32 @@ const year = new Date().getFullYear();
     gap: 4px 16px;
     padding-block: 14px 18px;
     font-size: 12px;
+    color: var(--accent);
   }
 
   .site-footer-meta {
-    color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
   }
 
+  /* Five links, 29 characters at 12px (7.2px each) plus four 16px gaps:
+     273px. That fits the 335px row at 375px and the 280px row at 320px on
+     one line; flex-wrap is the safety net for anything narrower, wrapping
+     to a second line aligned with the first. */
   .site-footer-links {
     display: flex;
-    gap: 16px;
-    color: var(--text-secondary);
+    flex-wrap: wrap;
+    gap: 0 16px;
   }
   /* 6px of block padding makes each link ~31px tall, over the 24px
-     minimum target size (WCAG 2.5.8). */
+     minimum target size (WCAG 2.5.8). "x" is only 7px wide, but with
+     16px of space on each side its 24px target circle touches nothing. */
   .site-footer-links a {
     display: inline-block;
     padding-block: 6px;
     transition: color 180ms var(--ease-out-expo);
   }
-  .site-footer-links a::before {
-    content: "[";
-    content: "[" / "";
-  }
-  .site-footer-links a::after {
-    content: "]";
-    content: "]" / "";
-  }
-  .site-footer-links a::before,
-  .site-footer-links a::after {
-    color: var(--text-tertiary);
-    transition: color 180ms var(--ease-out-expo);
-  }
-  .site-footer-links a:hover {
+  .site-footer-links a:hover,
+  .site-footer-links a:focus-visible {
     color: var(--text-primary);
-  }
-  .site-footer-links a:hover::before,
-  .site-footer-links a:hover::after {
-    color: var(--accent);
   }
 </style>

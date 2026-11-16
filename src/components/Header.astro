@@ -11,6 +11,11 @@
 //
 // The "/" in front of each label is decorative, drawn in CSS with empty
 // alt text, so a screen reader announces "projects", not "slash projects".
+//
+// Colour: the whole header is --accent (the muted blue) at rest, going
+// --text-primary on hover and keyboard focus. With every link blue, colour
+// can't mark the current page, so the aria-current link (the name, on the
+// home page) is underlined.
 export type HeaderLink = { label: string; href: string };
 
 type Props = {
@@ -62,7 +67,11 @@ const current = (href: string) => (href === pathname ? "page" : undefined);
     z-index: 50;
     height: var(--header-h);
     border-bottom: 0.5px solid var(--border-subtle);
-    background: color-mix(in srgb, var(--bg-page) 72%, transparent);
+    /* 94% --bg-page under the blur. The header's text is --accent, and
+       content scrolls beneath it (photos, the light statement panel, the
+       App Store badge): at 72% a white region underneath brought the text
+       to 2.20:1. At 94% the worst case is 4.73:1 (5.41:1 over the page). */
+    background: color-mix(in srgb, var(--bg-page) 94%, transparent);
     -webkit-backdrop-filter: blur(12px) saturate(140%);
     backdrop-filter: blur(12px) saturate(140%);
   }
@@ -84,8 +93,9 @@ const current = (href: string) => (href === pathname ? "page" : undefined);
   .site-header-name {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--accent);
     white-space: nowrap;
+    transition: color 180ms var(--ease-out-expo);
   }
 
   .site-header-links {
@@ -93,7 +103,7 @@ const current = (href: string) => (href === pathname ? "page" : undefined);
     align-items: center;
     gap: 16px;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--accent);
     white-space: nowrap;
   }
   /* 6px of block padding makes each link ~33px tall, over the 24px
@@ -103,18 +113,29 @@ const current = (href: string) => (href === pathname ? "page" : undefined);
     padding-block: 6px;
     transition: color 180ms var(--ease-out-expo);
   }
+  /* The slash takes the link's colour. inline-block keeps the current
+     page's underline off it: decorations don't reach inline-block boxes. */
   .site-header-links a::before {
     content: "/";
     content: "/" / "";
-    color: var(--text-tertiary);
-    transition: color 180ms var(--ease-out-expo);
+    display: inline-block;
   }
+  .site-header-name:hover,
+  .site-header-name:focus-visible,
   .site-header-links a:hover,
-  .site-header-links a[aria-current="page"] {
+  .site-header-links a:focus-visible {
     color: var(--text-primary);
   }
-  .site-header-links a[aria-current="page"]::before {
-    color: var(--accent);
+  /* Current page: a thin underline, the shape of the site's link underline
+     but in --accent itself. It's the only cue (every link is blue), so it
+     must clear 3:1 as a state indicator (WCAG 1.4.11): --accent is 5.41:1
+     on the page, the 35% --accent-border only 1.67:1. */
+  .site-header-name[aria-current="page"],
+  .site-header-links a[aria-current="page"] {
+    text-decoration-line: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 5px;
   }
 
   /* Geist Mono is 0.6em per character, so widths are exact. The longest

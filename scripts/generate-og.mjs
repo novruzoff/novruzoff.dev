@@ -32,7 +32,12 @@ const HOME_STATEMENT = "i build software for the web, end to end.";
 // src/pages/contact.astro: the lead line, EMAIL, and the profiles' display values
 const CONTACT_LINE = "open to internships, contract work, and interesting problems.";
 const CONTACT_EMAIL = "murad@novruzoff.dev";
-const CONTACT_HANDLES = ["github.com/novruzoff", "linkedin.com/in/novruzovmurad"];
+const CONTACT_HANDLES = [
+  "github.com/novruzoff",
+  "linkedin.com/in/novruzovmurad",
+  "instagram.com/novruzoffmurad",
+  "x.com/novruzoffmurad",
+];
 // Card footer line (cards only)
 const BYLINE = "murad novruzov · software engineer";
 

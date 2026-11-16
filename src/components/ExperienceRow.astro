@@ -1,13 +1,14 @@
 ---
 import type { Experience } from "../data/experience";
 
-// One timeline node. The base node (role over company | dates over
-// location, dot on the left) is styled in global.css (.xp-node).
-// `detail` (used on /resume) adds the role's one or two bullets and, when
-// the role has a project entry, a link to /projects#<slug>. The legacy home
-// page leaves it off, so its timeline stays compact and keeps its reveal.
-type Props = { experience: Experience; index?: number; detail?: boolean };
-const { experience, index = 0, detail = false } = Astro.props;
+// One node of the /resume timeline: role over company | dates over
+// location, dot on the left (base node styled in global.css, .xp-node),
+// then the role's one or two bullets and, when the role has a project
+// entry, a link to /projects#<slug>.
+// (The compact form without bullets, used by the old home page, was
+// removed with it.)
+type Props = { experience: Experience };
+const { experience } = Astro.props;
 
 // The dates are the source of truth for the dot: a role still running
 // gets the filled blue one, everything else the hollow ring.
@@ -18,12 +19,7 @@ const projectHref = experience.projectSlug
   : undefined;
 ---
 
-<li
-  class:list={["xp-node", { "is-detail": detail }]}
-  data-reveal={detail ? undefined : ""}
-  style={detail ? undefined : `--reveal-i: ${index}`}
-  data-current={isCurrent ? "" : undefined}
->
+<li class="xp-node" data-current={isCurrent ? "" : undefined}>
   <div class="xp-main">
     <span class="xp-role">{experience.role}</span>
     <span class="xp-co">{experience.company}</span>
@@ -34,7 +30,7 @@ const projectHref = experience.projectSlug
   </div>
 
   {
-    detail && (experience.highlights || projectHref) && (
+    (experience.highlights || projectHref) && (
       <div class="xp-detail">
         {experience.highlights && (
           <ul class="xp-highlights">
@@ -51,16 +47,16 @@ const projectHref = experience.projectSlug
 </li>
 
 <style>
-  /* Phones, detail variant: the right-hand date/location column (~120px)
+  /* Phones: the right-hand date/location column (~120px)
      would squeeze role and company into a narrow strip ("ARB (azerbaijan
      republic broadcaster)" broke over four lines at 375px). One column
      instead, with date and location on a line under the company. The dot
      still centers on the role, which stays first. */
   @media (max-width: 480px) {
-    .xp-node.is-detail {
+    .xp-node {
       grid-template-columns: minmax(0, 1fr);
     }
-    .is-detail .xp-meta {
+    .xp-node .xp-meta {
       flex-direction: row;
       flex-wrap: wrap;
       gap: 0 12px;

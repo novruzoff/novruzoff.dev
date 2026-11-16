@@ -1,17 +1,11 @@
-@import "tailwindcss";
-
-/* Tailwind reads every source file for class-like words and generates a
-   utility for each one it recognizes. Three sources are excluded:
-   - The Penknife pages, styled by src/styles/penknife.css, not utilities.
-     Their prose would otherwise be picked up as class names (a tool
-     description once added a stray utility to every page's CSS).
-   - CLAUDE.md, whose rules necessarily name CSS keywords; scanning it used
-     to ship two unused text utilities on every page.
-   - src/data: project and resume prose, never class names.
-   Don't quote example words here either. */
-@source not "../pages/penknife";
-@source not "../../CLAUDE.md";
-@source not "../data";
+/* Tailwind is used for its preflight reset and the @theme token wiring
+   only: no markup uses a utility class (checked against every class in
+   the built pages). Automatic source scanning is therefore off. With it
+   on, Tailwind turned words in comments, prose and CSS property names
+   ("border", "text-wrap", "transition"…) into 17 utilities nothing used.
+   To start using utilities, register the sources explicitly, e.g.
+   @source "../components"; @source "../pages"; */
+@import "tailwindcss" source(none);
 
 /* ─────────────────────────────────────────────────────────
    Fonts
@@ -159,10 +153,6 @@
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
-html {
-  scroll-padding-top: 32px;
-}
-
 /* Mono runs wider than the old sans, so the base is 14px. Only two
    weights exist (400, 600): a 500 would quietly render as 400, and faux
    bold is off so a 700 can't be smeared out of the 600. */
@@ -253,132 +243,12 @@ a {
   background: var(--border);
 }
 
-/* ─────────────────────────────────────────────────────────
-   Compact project rows (ProjectRow's default variant). Unused
-   since the home page rewrite: /projects uses the detail
-   variant. Kept with the component until the variant is
-   removed (see CLAUDE.md, Layout).
-   ───────────────────────────────────────────────────────── */
-
-.rows {
-  /* Fits the longest date ("nov 2024 — present", 18 chars = 119px in
-     Geist Mono at 11px, 0.6em per character) on one line, with room.
-     Re-check if a longer date lands. */
-  --date-col: 144px;
-  display: flex;
-  flex-direction: column;
-}
-.rows > * + * {
-  border-top: 0.5px solid var(--border-subtle);
-}
-
-.project-row {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: var(--date-col) 1fr 88px;
-  grid-template-areas: "date content aff";
-  column-gap: 18px;
-  align-items: baseline;
-  padding-block: 18px;
-}
-.project-row > * {
-  transition: transform 220ms var(--ease-out-expo);
-}
-.project-row::after {
-  content: "";
-  position: absolute;
-  inset: 0 -14px;
-  z-index: -1;
-  border-radius: 6px;
-  background: var(--bg-elevated);
-  opacity: 0;
-  transition: opacity 220ms var(--ease-out-expo);
-}
-.project-row::before {
-  content: "";
-  position: absolute;
-  left: -14px;
-  top: 12px;
-  bottom: 12px;
-  width: 1px;
-  background: var(--accent);
-  transform: scaleY(0);
-  transition: transform 280ms var(--ease-out-expo);
-}
-@media (hover: hover) {
-  .project-row:hover::after {
-    opacity: 1;
-  }
-  .project-row:hover::before {
-    transform: scaleY(1);
-  }
-  .project-row:hover > * {
-    transform: translateX(4px);
-  }
-  .project-row:hover .row-link {
-    color: var(--accent-light);
-  }
-  .project-row:hover .arrow {
-    transform: translate(3px, -3px);
-  }
-}
-
-.row-date {
-  grid-area: date;
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-.row-content {
-  grid-area: content;
-  min-width: 0;
-}
-.row-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.3;
-}
-.row-blurb {
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-.row-aff {
-  grid-area: aff;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  /* Stacked links are ~17.6px tall; 8px keeps their centers ≥24px
-     apart (WCAG 2.5.8 target spacing, checked by Lighthouse). */
-  gap: 8px;
-  font-size: 11px;
-}
-.row-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  color: var(--text-tertiary);
-  transition: color 200ms var(--ease-out-expo);
-}
+/* Small arrow glyph after a link label (/projects links, /contact,
+   Penknife's page links). inline-block so its hover nudge (a transform)
+   applies: transforms don't affect inline boxes. */
 .arrow {
   display: inline-block;
   transition: transform 240ms var(--ease-out-expo);
-}
-
-@media (max-width: 640px) {
-  .project-row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "date aff"
-      "content content";
-    row-gap: 6px;
-  }
-  .row-aff {
-    flex-direction: row;
-    gap: 12px;
-  }
 }
 
 /* ─────────────────────────────────────────────────────────

@@ -1,18 +1,15 @@
 ---
 import type { Project } from "../data/projects";
 
-// Two variants of one project:
-// - "compact" (default): the legacy home page's three-column row (date |
-//   title + one-line blurb | links). Styled in global.css (.project-row).
-// - "detail": the full entry on /projects — summary, metric tiles, detail
-//   bullets, stack, links — with id={slug} so /projects#<slug> deep-links
-//   (the scroll margin for the sticky header is in global.css). Styled below.
+// One project's full entry on /projects: summary, metric tiles, detail
+// bullets, stack, links. id={slug} so /projects#<slug> deep-links (the
+// scroll margin for the sticky header is in global.css).
+// (The compact three-column row this component also rendered for the old
+// home page was removed with it.)
 type Props = {
   project: Project;
-  index?: number;
-  variant?: "compact" | "detail";
 };
-const { project, index = 0, variant = "compact" } = Astro.props;
+const { project } = Astro.props;
 
 // Every link the project has, in priority order. Lowercase labels, except
 // "App Store", which keeps Apple's casing (CLAUDE.md, Case).
@@ -21,7 +18,6 @@ if (project.caseStudyUrl) links.push({ label: "case study", href: project.caseSt
 if (project.liveUrl) links.push({ label: "live", href: project.liveUrl });
 if (project.appStoreUrl) links.push({ label: "App Store", href: project.appStoreUrl });
 if (project.repoUrl) links.push({ label: "repo", href: project.repoUrl });
-const href = links[0]?.href;
 
 // Off-site links open in a new tab; pages on this site (/penknife) don't.
 const target = (url: string) =>
@@ -30,90 +26,55 @@ const target = (url: string) =>
     : {};
 ---
 
-{
-  variant === "detail" ? (
-    <article class="project-entry" id={project.slug}>
-      <header class="pe-head">
-        <h2 class="pe-title">{project.title}</h2>
-        <span class="pe-date">{project.dates}</span>
-      </header>
+<article class="project-entry" id={project.slug}>
+  <header class="pe-head">
+    <h2 class="pe-title">{project.title}</h2>
+    <span class="pe-date">{project.dates}</span>
+  </header>
 
-      <p class="pe-blurb">{project.blurb}</p>
+  <p class="pe-blurb">{project.blurb}</p>
 
-      {project.metrics && (
-        <ul class="pe-metrics">
-          {project.metrics.map((metric) => (
-            <li>
-              <span class="pe-value">{metric.value}</span>
-              <span class="pe-label">{metric.label}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+  {project.metrics && (
+    <ul class="pe-metrics">
+      {project.metrics.map((metric) => (
+        <li>
+          <span class="pe-value">{metric.value}</span>
+          <span class="pe-label">{metric.label}</span>
+        </li>
+      ))}
+    </ul>
+  )}
 
-      {project.highlights && (
-        <ul class="pe-highlights">
-          {project.highlights.map((line) => <li>{line}</li>)}
-        </ul>
-      )}
+  {project.highlights && (
+    <ul class="pe-highlights">
+      {project.highlights.map((line) => <li>{line}</li>)}
+    </ul>
+  )}
 
-      {project.stack && (
-        <div class="pe-stack">
-          <span class="pe-stack-label">stack</span>
-          <ul>
-            {project.stack.map((tech) => <li>{tech}</li>)}
-          </ul>
-        </div>
-      )}
+  {project.stack && (
+    <div class="pe-stack">
+      <span class="pe-stack-label">stack</span>
+      <ul>
+        {project.stack.map((tech) => <li>{tech}</li>)}
+      </ul>
+    </div>
+  )}
 
-      {links.length > 0 && (
-        <ul class="pe-links">
-          {links.map((link) => (
-            <li>
-              {/* Label on the <a> line: whitespace would gap the arrow. */}
-              <a
-                href={link.href}
-                {...target(link.href)}
-                aria-label={`${project.title}: ${link.label}`}
-              >{link.label}<span class="arrow" aria-hidden="true">↗</span></a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </article>
-  ) : (
-    <article class="project-row" data-reveal style={`--reveal-i: ${index}`}>
-      <span class="row-date mono">{project.dates}</span>
-
-      <div class="row-content">
-        <h3 class="row-title">
-          {href ? (
-            <a href={href} {...target(href)}>
-              {project.title}
-            </a>
-          ) : (
-            project.title
-          )}
-        </h3>
-        <p class="row-blurb">{project.blurb}</p>
-      </div>
-
-      <span class="row-aff mono">
-        {links.map((link) => (
+  {links.length > 0 && (
+    <ul class="pe-links">
+      {links.map((link) => (
+        <li>
+          {/* Label on the <a> line: whitespace would gap the arrow. */}
           <a
-            class="row-link"
             href={link.href}
             {...target(link.href)}
             aria-label={`${project.title}: ${link.label}`}
-          >
-            {link.label}
-            <span class="arrow" aria-hidden="true">↗</span>
-          </a>
-        ))}
-      </span>
-    </article>
-  )
-}
+          >{link.label}<span class="arrow" aria-hidden="true">↗</span></a>
+        </li>
+      ))}
+    </ul>
+  )}
+</article>
 
 <style>
   /* Entries are separated by a hairline; no cards, no hover lift. The

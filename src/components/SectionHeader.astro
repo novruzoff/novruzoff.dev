@@ -1,9 +1,7 @@
 ---
 // Section heading + optional mono meta (a count, "4 roles") and a hairline.
-// Used by the legacy home page, /resume and the Penknife pages.
-// `id` goes on the <h2>, so a <section aria-labelledby={id}> is named by
-// its visible heading. data-reveal only animates on the home page, where
-// the reveal gate is set; elsewhere it's inert.
+// Used by /resume and the Penknife pages. `id` goes on the <h2>, so a
+// <section aria-labelledby={id}> is named by its visible heading.
 type Props = {
   label: string;
   meta?: string;
@@ -13,7 +11,7 @@ type Props = {
 const { label, meta, id } = Astro.props;
 ---
 
-<header class="section-head" data-reveal>
+<header class="section-head">
   <h2 id={id}>{label}</h2>
   {meta && <span class="meta mono">{meta}</span>}
 </header>

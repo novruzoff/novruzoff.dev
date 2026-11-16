@@ -55,7 +55,7 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
     <section class="section" aria-labelledby="experience">
       <SectionHeader label="experience" id="experience" meta={`${experience.length} roles`} />
       <ol class="timeline">
-        {experience.map((entry) => <ExperienceRow experience={entry} detail />)}
+        {experience.map((entry) => <ExperienceRow experience={entry} />)}
       </ol>
     </section>
 
@@ -93,8 +93,12 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
 </Layout>
 
 <style>
+  /* A link inside a line of text needs more than color to stand out (WCAG
+     1.4.1): #5d95da vs the line's grey is only 1.23:1. The underline is
+     the one the prose links use. */
   .doc-head .meta a {
     color: var(--accent);
+    border-bottom: 0.5px solid var(--accent-border);
     transition: color 180ms var(--ease-out-expo);
   }
   .doc-head .meta a:hover {

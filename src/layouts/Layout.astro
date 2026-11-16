@@ -93,7 +93,12 @@ const personSchemaJson = JSON.stringify({
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={ogImageAlt} />
+    {/* X/Twitter falls back to og:* when its own tags are missing, but some
+        clients (and validators) read only twitter:*, so each page's title
+        and description are stated for both. The image comes from og:image. */}
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
     {personSchema && (
       <script is:inline type="application/ld+json" set:html={personSchemaJson} />

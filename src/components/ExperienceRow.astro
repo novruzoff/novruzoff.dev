@@ -1,4 +1,5 @@
 ---
+import { projects } from "../data/projects";
 import type { Experience } from "../data/experience";
 
 // One node of the /resume timeline: role over company | dates over
@@ -14,9 +15,15 @@ const { experience } = Astro.props;
 // gets the filled blue one, everything else the hollow ring.
 const isCurrent = experience.dates.toLowerCase().includes("present");
 
-const projectHref = experience.projectSlug
-  ? `/projects#${experience.projectSlug}`
+// The link to the role's /projects entry reads as a phrase built from the
+// project's own title ("view the true competency project"), not the raw
+// path, which a screen reader would spell out ("slash projects number
+// sign…"). Taking the title from projects.ts keeps it in step with the
+// heading the link lands on. A slug with no matching project gets no link.
+const project = experience.projectSlug
+  ? projects.find((p) => p.slug === experience.projectSlug)
   : undefined;
+const projectHref = project ? `/projects#${project.slug}` : undefined;
 ---
 
 <li class="xp-node" data-current={isCurrent ? "" : undefined}>
@@ -37,9 +44,11 @@ const projectHref = experience.projectSlug
             {experience.highlights.map((line) => <li>{line}</li>)}
           </ul>
         )}
-        {projectHref && (
-          // Label on the <a> line: whitespace would gap the arrow.
-          <a class="xp-more" href={projectHref}><span aria-hidden="true">→ </span>{projectHref}</a>
+        {project && (
+          // The accessible name is the phrase alone: the arrow is a visual
+          // cue only (aria-hidden). Label and arrow sit on the <a> line,
+          // since whitespace there would render as a gap.
+          <a class="xp-more" href={projectHref}>view the {project.title} project<span aria-hidden="true"> →</span></a>
         )}
       </div>
     )

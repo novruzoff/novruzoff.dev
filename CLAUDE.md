@@ -309,6 +309,7 @@ Wrong voice:
 
 ## Code conventions
 
+- If you start a dev or preview server to test or screenshot, stop it before you finish and report that you did. Never leave a server running on port 4321.
 - TypeScript strict. No `any` without an explanatory comment.
 - Astro components for static structure. React only when interactivity is needed.
 - Prefer `class:list` (Astro) and `clsx` (React) for conditional classes over template literals.

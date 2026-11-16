@@ -99,9 +99,9 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
 
+  --color-panel-dark: var(--panel-dark);
+  --color-panel-muted: var(--panel-muted);
   --color-accent: var(--accent);
-  --color-accent-light: var(--accent-light);
-  --color-accent-fill: var(--accent-fill);
   --color-accent-bg: var(--accent-bg);
   --color-accent-border: var(--accent-border);
 }
@@ -130,30 +130,24 @@
   /* Floor for text: 4.98:1 on --bg-page (WCAG AA 4.5:1). Don't go lower. */
   --text-tertiary: rgba(255, 255, 255, 0.48);
 
-  /* Barça blue. Two roles, never swapped:
-     - --accent-fill is the deep brand blue, for solid fills only. As text
-       on --bg-page it measures 2.29:1 and fails; on it, white text
-       measures 8.35:1 and --text-primary 7.70:1.
-     - --accent is the same hue (OKLCH 254.8°) lifted to L 0.66, for blue
-       text on the dark background: 6.16:1 on --bg-page, 5.81:1 on
-       --bg-elevated, 5.47:1 on --bg-hover.
-     --accent-light (L 0.80) is the brighter link tint: 10.28:1 on
-     --bg-page. The alpha tokens are --accent at fixed opacities, written
-     as rgba rather than color-mix(): the minifier emits a full-opacity
-     fallback for a color-mix() it can't resolve. */
-  --accent-fill: #004d98;
-  --accent: #5d95da;
-  --accent-light: #9bc1f1;
-  --accent-bg: rgba(93, 149, 218, 0.20);
-  --accent-border: rgba(93, 149, 218, 0.35);
-
-  /* Homepage text panels: an inverted two-tone pair from one muted blue
-     (HSL hue ~211°, the same as --accent-fill's 210°). The greeting is
-     muted text on dark, the statement dark text on muted. Either way the
-     pair measures 5.23:1. --panel-dark is 1.03:1 against --bg-page, so a
-     panel filled with it needs its 0.5px frame to read as a panel. */
+  /* The site's only two blues, one muted hue (HSL ~211°):
+     - --panel-dark, a very dark navy, and --panel-muted, a muted mid blue.
+       As an inverted pair (the homepage text panels: muted on dark, dark
+       on muted) they measure 5.23:1 either way. --panel-dark is 1.03:1
+       against --bg-page, so a panel filled with it needs its 0.5px frame.
+     - --accent is --panel-muted under its job name: links, accent text,
+       focus rings, the current-page slash. 5.41:1 on --bg-page, 5.10:1 on
+       --bg-elevated, 4.80:1 on --bg-hover. Hovering an accent link goes
+       to --text-primary; there is no second, lighter link blue.
+     The alpha tokens are --panel-muted at fixed opacities, written as rgba
+     rather than color-mix(): the minifier emits a full-opacity fallback
+     for a color-mix() it can't resolve. --accent-bg is a background only;
+     text on it is --text-primary (13.55:1), since --accent on it is 4.21:1. */
   --panel-dark: #0b141e; /* H 211.6°, S 46%, L 8% */
   --panel-muted: #6a8baf; /* H 211.3°, S 30%, L 55% */
+  --accent: var(--panel-muted);
+  --accent-bg: rgba(106, 139, 175, 0.20);
+  --accent-border: rgba(106, 139, 175, 0.35);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -181,9 +175,11 @@ body {
   overflow-x: clip;
 }
 
+/* Text on the selection tint stays --text-primary: --accent on it would
+   only reach 4.21:1. */
 *::selection {
   background: var(--accent-bg);
-  color: var(--accent-light);
+  color: var(--text-primary);
 }
 
 a {
@@ -191,8 +187,8 @@ a {
   text-decoration: none;
 }
 
-/* --accent against the page is 6.16:1, well over the 3:1 a focus
-   indicator needs. */
+/* --accent against the page is 5.41:1 (5.10:1 on --bg-elevated), well
+   over the 3:1 a focus indicator needs. */
 :focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: 3px;
@@ -372,12 +368,12 @@ a {
   display: inline-block;
   margin-top: 14px;
   font-size: 16px;
-  color: var(--accent-light);
+  color: var(--accent);
   border-bottom: 0.5px solid var(--accent-border);
   transition: color 180ms var(--ease-out-expo);
 }
 .contact-email:hover {
-  color: var(--accent);
+  color: var(--text-primary);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -438,12 +434,12 @@ a {
   color: var(--text-primary);
 }
 .prose a:not(.contact-email) {
-  color: var(--accent-light);
+  color: var(--accent);
   border-bottom: 0.5px solid var(--accent-border);
   transition: color 180ms var(--ease-out-expo);
 }
 .prose a:not(.contact-email):hover {
-  color: var(--accent);
+  color: var(--text-primary);
 }
 .prose .contact-email {
   margin-top: 0;

@@ -91,8 +91,8 @@ const fontFaces = () => {
 // ── Card templates ───────────────────────────────────────────────────────────
 // The markup and CSS below are the shipped design; don't restyle here without
 // regenerating every card. Colors are the site tokens written out: #0f0f10
-// page, #161618 elevated, #004d98 fill, #5d95da accent, white at .95/.75/.55/.48,
-// and the home text panels' pair: #0b141e (--panel-dark) / #6a8baf (--panel-muted).
+// page, #161618 elevated, white at .95/.75/.55/.48, and the site's only two blues:
+// #0b141e (--panel-dark) and #6a8baf (--panel-muted, also --accent).
 
 // Home: the greeting (muted on dark), a gradient standing in for the video, and the
 // statement (dark on muted), mirroring the homepage's inverted text-panel pair.
@@ -109,7 +109,7 @@ html,body{width:1200px;height:630px;background:#0f0f10;font-family:G;color:rgba(
 .p{border:1px solid rgba(255,255,255,.06);padding:26px;display:flex;flex-direction:column}
 .greet{background:#0b141e}
 .greet p{font-weight:600;font-size:40px;line-height:1.15;letter-spacing:-.01em;color:#6a8baf}
-.loop{background:linear-gradient(180deg,#0b2b52 0%,#5d95da 38%,#004d98 64%,#0f0f10 100%)}
+.loop{background:linear-gradient(180deg,#0b141e 0%,#6a8baf 40%,#0b141e 76%,#0f0f10 100%)}
 .stmt{background:#6a8baf;justify-content:flex-end;text-align:right}
 .stmt p{font-weight:600;font-size:36px;line-height:1.15;letter-spacing:-.01em;color:#0b141e}
 .bot{bottom:0;height:76px;font-size:19px;color:rgba(255,255,255,.48)}
@@ -132,22 +132,23 @@ html,body{width:1200px;height:630px;background:#0f0f10;font-family:G;color:rgba(
 .name{font-weight:600;font-size:24px}
 .links{font-size:19px;color:rgba(255,255,255,.55);display:flex;gap:24px}
 .links span::before{content:"/";color:rgba(255,255,255,.48)}
-.links .cur{color:rgba(255,255,255,.95)}.links .cur::before{color:#5d95da}
+.links .cur{color:rgba(255,255,255,.95)}.links .cur::before{color:#6a8baf}
 .frame{position:absolute;left:40px;right:40px;top:96px;bottom:76px;border:1px solid rgba(255,255,255,.06);padding:12px;display:grid;grid-template-columns:.9fr 1.3fr;gap:12px}
 .p{border:1px solid rgba(255,255,255,.06);padding:28px;display:flex;flex-direction:column}
-.big{background:#004d98;justify-content:flex-end}
-.big h1{font-weight:600;font-size:76px;line-height:1;letter-spacing:-.01em}
+.big{background:#6a8baf;justify-content:flex-end}
+.big h1{font-weight:600;font-size:76px;line-height:1;letter-spacing:-.01em;color:#0b141e}
 .side{background:#161618;justify-content:center;gap:12px}
 .side li{list-style:none;font-size:24px;line-height:1.35;color:rgba(255,255,255,.75)}
 .side li b{font-weight:600;color:rgba(255,255,255,.95)}
 .side li span{color:rgba(255,255,255,.48)}
 .side .lead{font-size:26px;line-height:1.35;color:rgba(255,255,255,.75)}
-.side .email{font-weight:600;font-size:34px;color:#5d95da;margin-top:18px}
+.side .email{font-weight:600;font-size:34px;color:#6a8baf;margin-top:18px}
 .side .handles{font-size:21px;color:rgba(255,255,255,.55);margin-top:10px}
 .bot{bottom:0;height:76px;font-size:19px;color:rgba(255,255,255,.48)}
 .bot b{font-weight:400;color:rgba(255,255,255,.75)}`;
 
-// Sub-pages: the page name large on the blue panel, that page's content beside it,
+// Sub-pages: the page name large on the muted panel (dark on muted, like the homepage
+// statement), that page's content beside it,
 // the page's own link highlighted in the header, its URL in the footer.
 const pageCard = (faces, slug, side) => {
   const nav = NAV.map((n) => `<span class="${n === slug ? "cur" : ""}">${n}</span>`).join("");

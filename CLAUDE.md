@@ -2,7 +2,7 @@
 
 Personal portfolio for Murad Novruzov. CS student at McGill (expected May 2027), Founding Developer at True Competency, based in Montreal.
 
-> **Redesign (branch `redesign`).** Panel-layout homepage, Geist Mono only, lowercase copy, Barça blue. Everything below describes the new system and is binding. The old hero, Lenis, scroll reveals and the Cormorant font are deleted; don't bring any of them back or "fix" new code toward the old rules.
+> **Redesign (branch `redesign`).** Panel-layout homepage, Geist Mono only, lowercase copy, two muted blues. Everything below describes the new system and is binding. The old hero, Lenis, scroll reveals and the Cormorant font are deleted; don't bring any of them back or "fix" new code toward the old rules.
 
 ## Stack
 
@@ -29,7 +29,7 @@ Everything is monospace and lowercase (see Case and Typography). Dark-only.
 
 ### Color system
 
-Dark-only. Near-black, not pure black. Barça blue is the only accent.
+Dark-only. Near-black, not pure black. **Exactly two blues**, one muted hue; nothing else is colored.
 
 ```
 --bg-page:       #0f0f10
@@ -44,25 +44,22 @@ Dark-only. Near-black, not pure black. Barça blue is the only accent.
 --text-secondary: rgba(255, 255, 255, 0.55)
 --text-tertiary:  rgba(255, 255, 255, 0.48)
 
---accent-fill:    #004D98                     /* deep Barça blue: solid fills only */
---accent:         #5D95DA                     /* blue text on dark backgrounds */
---accent-light:   #9BC1F1                     /* brighter link tint */
---accent-bg:      rgba(93, 149, 218, 0.20)    /* selection background */
---accent-border:  rgba(93, 149, 218, 0.35)    /* link underlines */
-
---panel-dark:     #0B141E                     /* home text panels: very dark navy */
---panel-muted:    #6A8BAF                     /* home text panels: muted mid blue */
+--panel-dark:     #0B141E                     /* very dark navy */
+--panel-muted:    #6A8BAF                     /* muted mid blue */
+--accent:         var(--panel-muted)          /* links, accent text, focus rings */
+--accent-bg:      rgba(106, 139, 175, 0.20)   /* selection background */
+--accent-border:  rgba(106, 139, 175, 0.35)   /* link underlines */
 ```
 
-**The two blues have fixed roles. Never swap them.**
-- `--accent-fill` (`#004D98`) is for **fills**: a panel background, a solid block. As text on `--bg-page` it measures 2.29:1 and fails WCAG AA. Text on a fill is white (8.35:1) or `--text-primary` (7.70:1). Don't put `--text-secondary` on it (3.64:1); secondary text on the fill needs at least 0.70 white (4.93:1).
-- `--accent` (`#5D95DA`) is for **blue text** on the dark backgrounds: 6.16:1 on `--bg-page`, 5.81:1 on `--bg-elevated`, 5.47:1 on `--bg-hover` (AA is 4.5:1). It's `#004D98`'s own hue (OKLCH 254.8°) lifted to lightness 0.66, so the two read as one color. `--accent-light` (L 0.80) is 10.28:1 on `--bg-page`. Any new blue used as text must be measured against the background it sits on and clear 4.5:1.
+**Two blues, one hue.** `--panel-dark` (`#0B141E`, HSL 211.6° / 46% / 8%) and `--panel-muted` (`#6A8BAF`, 211.3° / 30% / 55%) are the site's only colors besides the neutrals. Both are muted: no saturated fills anywhere. (They replaced an earlier saturated Barça blue and a separate brighter link blue; don't reintroduce either, or add a third blue.)
 
-**The homepage text panels are an inverted two-tone pair** from one muted blue, the way jonahseguin.com pairs a dark green and a sage: the greeting is `--panel-muted` text on `--panel-dark`, the statement `--panel-dark` text on `--panel-muted`. **5.23:1 either way** (AA is 4.5:1). Both sit on `#004D98`'s hue (HSL 211.6° and 211.3° vs 209.6°) but desaturated (46% and 30%): no saturated fills on the homepage. `--panel-dark` is only 1.03:1 against `--bg-page`, so a `--panel-dark` panel relies on its 0.5px `--border-subtle` frame to read as a panel; keep the frame. Use the pair only as each other's text/background; neither is a general text color on the page.
+- **As a pair** (the homepage text panels, the favicon, the social cards' name panels): one is the other's text. **5.23:1 either way** (AA is 4.5:1). The greeting is `--panel-muted` on `--panel-dark`; the statement, the favicon and the cards' name panels are `--panel-dark` on `--panel-muted`. `--panel-dark` is only 1.03:1 against `--bg-page`, so a `--panel-dark` panel relies on its 0.5px `--border-subtle` frame to read as a panel; keep the frame. `--panel-dark` is never a text color on the page itself.
+- **As the accent** (`--accent` is `--panel-muted` under its job name): links, accent text, the current-page `/` in the header, the current-role dot, focus rings, the metric values on /projects, the video toggle label. Measured: **5.41:1 on `--bg-page`, 5.10:1 on `--bg-elevated`** (metric tiles), 4.80:1 on `--bg-hover` (unused today), 5.33:1 on the header's blurred backdrop over a tile, and **4.73:1 for the video toggle** over a worst-case pure-white frame (its backdrop is `--bg-page` at 94%; at 92% it was 4.47:1). Focus rings need 3:1 and get 5.41:1 / 5.10:1.
+- **There's no lighter link blue.** Hovering an accent-colored link goes to `--text-primary`; hovering a neutral link (the Penknife page links, the header) goes to `--accent` or `--text-primary`. A link inside a line of text needs its `--accent-border` underline: `--accent` is only 1.15:1 against the surrounding `--text-secondary` grey (WCAG 1.4.1).
+- **Selected text** is `--text-primary` on `--accent-bg` (13.55:1). `--accent` on `--accent-bg` would be 4.21:1, so don't use it there.
+- Any new use of either blue as text must be measured against its real background and clear 4.5:1; if it doesn't, change the background or use a neutral, not a new blue.
 
-`--accent-fill` (`#004D98`) is no longer used by any page's CSS since the text panels moved to this pair. The token stays defined. The color itself still appears outside the CSS: the favicon and Apple touch icon (white "n" on `#004D98`), and the social-card generator (the sub-page cards' name panel, and the gradient standing in for the video on the home card).
-
-The alpha tokens are `--accent` at fixed opacities, written as rgba, not `color-mix()`: the minifier emits a full-opacity fallback for a `color-mix()` it can't resolve, which would turn a 20% tint into a solid block. Focus rings use `--accent` (6.16:1, over the 3:1 a focus indicator needs).
+The alpha tokens are `--panel-muted` at fixed opacities, written as rgba, not `color-mix()`: the minifier emits a full-opacity fallback for a `color-mix()` it can't resolve, which would turn a 20% tint into a solid block. Focus rings use `--accent` (5.41:1 on the page, over the 3:1 a focus indicator needs).
 
 The background steps (page → elevated → hover) each add ~6-7 per channel and keep the same faint cool bias as `#0f0f10`. `theme-color` uses `#0f0f10` too.
 
@@ -135,7 +132,7 @@ Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-trigge
    - The `<video>` ships with no `<source>` and `preload="none"`; the script attaches the sources on `window` `load`, so the loop never competes with the LCP image.
    - It plays only while on screen (IntersectionObserver) and while the tab is visible (`visibilitychange`).
    - Under `prefers-reduced-motion: reduce` or Save-Data (`navigator.connection.saveData`) the sources are never attached: only the poster shows, and the toggle stays hidden.
-   - **Pause/play toggle** (WCAG 2.2.2: moving content longer than 5s needs a way to pause it): a small mono button bottom-left over the video, `--accent` text on a 92% `--bg-page` backdrop (5.12:1 even over a pure-white frame; 0.88 measured 4.52:1, too close). Its label follows the video's real state through `play`/`pause` events, so it reads "play" when the browser refuses autoplay (iOS Low Power Mode). Accessible name "pause background video" / "play background video" (starts with the visible word). A user pause sticks until they press play.
+   - **Pause/play toggle** (WCAG 2.2.2: moving content longer than 5s needs a way to pause it): a small mono button bottom-left over the video, `--accent` text on a 94% `--bg-page` backdrop (4.73:1 even over a pure-white frame; 92% measured 4.47:1 once `--accent` became the muted blue). Hover turns the label `--text-primary`. Its label follows the video's real state through `play`/`pause` events, so it reads "play" when the browser refuses autoplay (iOS Low Power Mode). Accessible name "pause background video" / "play background video" (starts with the visible word). A user pause sticks until they press play.
    - The video itself is decorative: `aria-hidden="true"`, `tabindex="-1"`, `muted loop playsinline autoplay disablepictureinpicture disableRemotePlayback` (camelCase in source: Astro's types want it that way; HTML attributes are case-insensitive).
 3. **Hover states:** color transitions at 180ms ease-out-expo; link arrows nudge 2–3px. Nothing moves on scroll.
 
@@ -173,7 +170,7 @@ Header, panel grid, footer in one flex column. Five panels: **photo a · greetin
 #### Document pages
 
 - `/projects`, `/resume`, `/contact`, Penknife: `Header` + `<main class="wrap doc">` + `Footer`. `.doc`, `.doc-head` (h1, `.lead`, `.meta`) and `.prose` live in `global.css`. `.doc [id]` has a 76px `scroll-margin-top`, so `/projects#mindvista` lands 76px down, clear of the 52px sticky header (verified). Don't add `scroll-padding-top` to `html`: it stacks with the margin (the old home page's 32px did, landing anchors at 108px). No JS, no reveals; section rules are static.
-- **Project entries** (`ProjectRow`, /projects): title | dates on one line, a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.81:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
+- **Project entries** (`ProjectRow`, /projects): title | dates on one line, a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.10:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
 - Experience list: a vertical timeline (`<ol class="timeline">` of `.xp-node` items, most recent first): a 28px gutter (20px under 480px) holding a 9px dot, then role over company | date over location (right-aligned, tertiary). The dot is filled `--accent` when the role's `dates` contain "present" (`data-current`), otherwise a hollow 1px `--text-tertiary` ring. The 0.5px connector is trimmed to the dot on the first and last node. `ExperienceRow` (/resume) adds the bullets and a link to the role's `/projects#<slug>` entry under both columns. The link reads "view the <project title> project →", with the title taken from `projects.ts` and the arrow `aria-hidden`, so a screen reader hears the phrase, never the path; ARB has no project and no link, and under 480px moves date and location onto a line below the company (otherwise long company names break over four lines).
 - Inline lists with "·" separators (stack, skills) draw the dot **after** each item but the last, so a wrapped line never starts with a separator.
 
@@ -309,7 +306,7 @@ Wrong voice:
 - Web fonts: Geist Mono 400 (9.7 KB) and 600 (9.8 KB); only the 600 is preloaded.
 - CSS: one shared stylesheet, 12.2 KB raw / 3.3 KB gzipped (was 18.3 / 4.5 KB before utilities scanning was turned off and the compact rows were removed).
 - Homepage transfer without media: ~26 KB gzipped (HTML 3.0 KB, CSS 3.3 KB, fonts 19.5 KB, favicon). Media adds roughly: photo a 40–150 KB at the served size, photo b similar (desktop only, lazy), poster ≤ 50 KB, loop ≤ 1 MB WebM after `load`.
-- Social/meta, all in the new system and regenerated together: `public/og.png` (1200×630, ~52 KB) is a miniature of the home panels (the greeting and statement in the `--panel-dark` / `--panel-muted` pair, a blue gradient standing in for the video); `public/favicon.svg` is Geist Mono 600's "n" as a vector path (no font needed), white on a `#004D98` rounded square; `public/apple-touch-icon.png` (180×180) is the same, full-bleed (iOS applies its own mask). **Per-page cards** in `public/og/` (`projects.png`, `resume.png`, `contact.png`, ~50–60 KB each) use the same frame: the header with the page's link highlighted, the page name large on the `--accent-fill` panel, and that page's real content on an elevated panel (project titles and years; each role over its company; the contact line, email and handles), with `novruzoff.dev/<page>` at the bottom.
+- Social/meta, all in the new system and regenerated together: `public/og.png` (1200×630, ~52 KB) is a miniature of the home panels (the greeting and statement in the `--panel-dark` / `--panel-muted` pair, a `--panel-dark` → `--panel-muted` → `--panel-dark` gradient standing in for the video); `public/favicon.svg` is Geist Mono 600's "n" as a vector path (no font needed), `--panel-dark` on a `--panel-muted` rounded square (the muted square stays visible on light and dark browser tab bars, 2.7–4.5:1, where a dark square vanishes at 1.15:1 on a dark one; dark-on-light also reads crisper at 16px); `public/apple-touch-icon.png` (180×180) is the same, full-bleed (iOS applies its own mask). **Per-page cards** in `public/og/` (`projects.png`, `resume.png`, `contact.png`, ~50–60 KB each) use the same frame: the header with the page's link highlighted, the page name large in `--panel-dark` on a `--panel-muted` panel (the statement's treatment), and that page's real content on an elevated panel (project titles and years; each role over its company; the contact line, email and handles), with `novruzoff.dev/<page>` at the bottom.
 - **Social cards are generated, not drawn: `pnpm run og`** (`scripts/generate-og.mjs`) renders `public/og.png` and `public/og/{projects,resume,contact}.png`. **Re-run it after changing `projects.ts`, `experience.ts`, the homepage greeting/statement, the header links or the /contact copy, and commit the PNGs** (they're served from `public/`, not built). `pnpm run og -- --check` compares without writing and exits 1 if a card is out of date. Each run prints `unchanged` / `written` per card and never rewrites a byte-identical file.
   - **Automatic:** project titles and dates (`projects.ts`, shown as years: "sep 2025 — present" → "2025 — present", a range inside one year → that year) and roles and companies (`experience.ts`, the company cut at its parenthetical: "ARB (azerbaijan republic broadcaster)" → "ARB"). Node 24 imports the `.ts` files directly (type stripping); a small `registerHooks` resolve hook adds the `.ts` that the data files' extensionless imports leave out.
   - **Mirrored constants at the top of the script** (they live in `.astro` files Node can't import): the header links (`Header.astro`), the greeting and statement (`index.astro`), the contact line, email and handles (`contact.astro`), and the card byline. Change them alongside their source.

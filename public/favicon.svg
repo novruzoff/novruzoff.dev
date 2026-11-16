@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Geist Mono SemiBold "n" as an outline (no font needed), white on Barça blue. -->
-  <rect width="64" height="64" rx="14" fill="#004D98"/>
-  <path fill="#fff" transform="translate(13.32 49) scale(0.06227 -0.06227)" d="M76 0V534H184L187 438Q208 493 251.5 519.5Q295 546 351 546Q410 546 448 520Q486 494 505 448.5Q524 403 524 345V0H406V317Q406 445 311 445Q263 445 228.5 411.5Q194 378 194 313V0Z"/>
+  <!-- Geist Mono SemiBold "n" as an outline (no font needed): --panel-dark on --panel-muted.
+       The muted square keeps 2.7-4.5:1 against light and dark browser tab bars; a dark square vanishes on dark ones. -->
+  <rect width="64" height="64" rx="14" fill="#6A8BAF"/>
+  <path fill="#0B141E" transform="translate(13.32 49) scale(0.06227 -0.06227)" d="M76 0V534H184L187 438Q208 493 251.5 519.5Q295 546 351 546Q410 546 448 520Q486 494 505 448.5Q524 403 524 345V0H406V317Q406 445 311 445Q263 445 228.5 411.5Q194 378 194 313V0Z"/>
 </svg>

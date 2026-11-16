@@ -217,8 +217,9 @@ const target = (url: string) =>
     transition: transform 240ms var(--ease-out-expo);
   }
   @media (hover: hover) {
+    /* Hover leaves the accent blue for --text-primary (there is no lighter link blue). */
     .pe-links a:hover {
-      color: var(--accent-light);
+      color: var(--text-primary);
     }
     .pe-links a:hover .arrow {
       transform: translate(2px, -2px);

@@ -114,7 +114,8 @@ const projectHref = project ? `/projects#${project.slug}` : undefined;
     color: var(--accent);
     transition: color 180ms var(--ease-out-expo);
   }
+  /* Hover leaves the accent blue for --text-primary (there is no lighter link blue). */
   .xp-more:hover {
-    color: var(--accent-light);
+    color: var(--text-primary);
   }
 </style>

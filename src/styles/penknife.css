@@ -110,10 +110,10 @@
 }
 @media (hover: hover) {
   .doc-links a:hover {
-    color: var(--accent-light);
+    color: var(--accent);
   }
   .doc-links a:hover .arrow {
-    color: var(--accent-light);
+    color: var(--accent);
     transform: translateX(3px);
   }
 }

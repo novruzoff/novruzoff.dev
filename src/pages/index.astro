@@ -365,7 +365,8 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
   /* ── Video toggle ─────────────────────────────────────────
      Small mono label, bottom-left over the video. Its own near-opaque
      backdrop keeps it legible over any frame: --accent on it measures
-     5.12:1 even over a pure white frame (at 0.88 it was 4.52:1, too close).
+     4.73:1 even over a pure white frame (at 0.92 it was 4.47:1, a fail,
+     once --accent became the muted blue). Hover goes to --text-primary.
      6px of block padding: ~30px tall (WCAG 2.5.8). */
   .loop-toggle {
     position: absolute;
@@ -375,7 +376,7 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
     padding: 6px 10px;
     border: 0.5px solid var(--border);
     border-radius: 2px;
-    background: rgba(15, 15, 16, 0.92);
+    background: rgba(15, 15, 16, 0.94);
     font: inherit;
     font-size: 11px;
     line-height: 1.6;
@@ -384,7 +385,7 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
     transition: color 180ms var(--ease-out-expo);
   }
   .loop-toggle:hover {
-    color: var(--accent-light);
+    color: var(--text-primary);
   }
   .loop-toggle[hidden] {
     display: none;

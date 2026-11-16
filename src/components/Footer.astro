@@ -1,9 +1,9 @@
 ---
-// Site footer, shared by every page: a copyright line on the left and the
-// social links on the right, plain lowercase words separated by space.
+// Site footer, shared by every page: the contact and social links only,
+// centred, as plain lowercase words separated by space. No copyright line.
 //
-// Colour: everything is --accent (the muted blue; 5.41:1 on the page) at
-// rest and goes --text-primary on hover and keyboard focus, like the header.
+// Colour: --accent (the muted blue; 5.41:1 on the page) at rest, going
+// --text-primary on hover and keyboard focus, like the header.
 //
 // Instagram and X block automated requests (bots get a login wall or an
 // error), so a failed link check there doesn't mean a dead link. These
@@ -21,19 +21,16 @@ type Props = {
 const { wide = false } = Astro.props;
 
 const links: FooterLink[] = [
+  { label: "email", href: "mailto:murad@novruzoff.dev" },
   { label: "github", href: "https://github.com/novruzoff", external: true },
   { label: "linkedin", href: "https://www.linkedin.com/in/novruzovmurad/", external: true },
   { label: "instagram", href: "https://www.instagram.com/novruzoffmurad/", external: true },
   { label: "x", href: "https://x.com/novruzoffmurad", external: true },
-  { label: "email", href: "mailto:murad@novruzoff.dev" },
 ];
-
-const year = new Date().getFullYear();
 ---
 
 <footer class:list={["site-footer", { "is-wide": wide }]}>
   <div class:list={[wide ? "wrap-wide" : "wrap", "site-footer-inner"]}>
-    <span class="site-footer-meta">© {year} murad novruzov · montreal</span>
     <ul class="site-footer-links">
       {
         links.map((link) => (
@@ -62,30 +59,21 @@ const year = new Date().getFullYear();
     border-top: 0;
   }
 
-  /* The copyright line and the links share a row when there's room and
-     wrap onto two left-aligned lines when there isn't (phones). */
   .site-footer-inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px 16px;
     padding-block: 14px 18px;
     font-size: 12px;
     color: var(--accent);
   }
 
-  .site-footer-meta {
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Five links, 29 characters at 12px (7.2px each) plus four 16px gaps:
-     273px. That fits the 335px row at 375px and the 280px row at 320px on
-     one line; flex-wrap is the safety net for anything narrower, wrapping
-     to a second line aligned with the first. */
+  /* Centred at every width. Five links, 29 characters at 12px (7.2px
+     each) plus four 16px gaps: 273px, so one line down to 320px (a 280px
+     row on the document pages, 288px on home). justify-content centres
+     each flex line on its own, so if the links ever wrap, the second
+     line is centred too. */
   .site-footer-links {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0 16px;
   }
   /* 6px of block padding makes each link ~31px tall, over the 24px

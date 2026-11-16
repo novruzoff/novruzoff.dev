@@ -61,8 +61,8 @@ const PHOTO_B_ALT = "";
 // (media conditions mirror its breakpoints and the 640px height lock).
 //
 // Panel geometry, measured: the page chrome around the locked grid (header,
-// paddings, frame, footer) is ~164px tall; columns are 20vw − 24px (five),
-// 25vw − 25px (four), 50vw − 36px (2×2) and 50vw − 22px (phones). In the
+// paddings, footer; there's no outer frame) is ~139px tall; columns are
+// 20vw − 19px (five), 25vw − 19px (four) and 50vw − 22px (2×2 and phones). In the
 // locked layouts the panel's shape follows the viewport, so the crop is the
 // typical shape and object-fit: cover trims the rest. The image then renders
 // at max(panel width, panel height × crop aspect): that's the `sizes` value.
@@ -71,9 +71,9 @@ const LOCKED_5 = "(min-width: 1024px) and (min-height: 640px)";
 const LOCKED_4 =
   "(min-width: 768px) and (max-width: 1023px) and (orientation: landscape) and (min-height: 640px)";
 const LOCKED_2X2 = "(min-width: 640px) and (min-height: 640px)";
-const COLS_5 = "calc(20vw - 24px)";
-const COLS_4 = "calc(25vw - 25px)";
-const COLS_2X2 = "calc(50vw - 36px)";
+const COLS_5 = "calc(20vw - 19px)";
+const COLS_4 = "calc(25vw - 19px)";
+const COLS_2X2 = "calc(50vw - 22px)";
 const COLS_PHONE = "calc(50vw - 22px)";
 
 // Photo a is in every layout.
@@ -82,19 +82,19 @@ const PHOTO_A_CROPS: PanelCrop[] = [
   {
     media: LOCKED_5,
     aspect: 9 / 25,
-    sizes: `max(${COLS_5}, calc((100vh - 164px) * 0.36)), ${COLS_5}`,
+    sizes: `max(${COLS_5}, calc((100vh - 139px) * 0.36)), ${COLS_5}`,
   },
   // Four columns, landscape tablet, locked: ~0.42 at 1000×700.
   {
     media: LOCKED_4,
     aspect: 5 / 12,
-    sizes: `max(${COLS_4}, calc((100vh - 164px) * 0.4167)), ${COLS_4}`,
+    sizes: `max(${COLS_4}, calc((100vh - 139px) * 0.4167)), ${COLS_4}`,
   },
   // 2×2, locked (portrait tablets, 640–1023px): ~0.82–0.88.
   {
     media: LOCKED_2X2,
     aspect: 6 / 7,
-    sizes: `max(${COLS_2X2}, calc((50vh - 88px) * 0.857)), ${COLS_2X2}`,
+    sizes: `max(${COLS_2X2}, calc((50vh - 76px) * 0.857)), ${COLS_2X2}`,
   },
   // Four or five columns on a short screen: the panels keep a fixed 2:3.
   {
@@ -111,7 +111,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
   {
     media: LOCKED_5,
     aspect: 9 / 25,
-    sizes: `max(${COLS_5}, calc((100vh - 164px) * 0.36)), ${COLS_5}`,
+    sizes: `max(${COLS_5}, calc((100vh - 139px) * 0.36)), ${COLS_5}`,
   },
   { aspect: 2 / 3, sizes: COLS_5 },
 ];
@@ -136,7 +136,9 @@ const PHOTO_B_CROPS: PanelCrop[] = [
         <div class="panel panel-text panel-greet" style="--i: 1">
           <h1 class="display">
             <span>hi.</span>
-            <span>i'm murad, a software engineer in montréal.</span>
+            <span>i'm murad,</span>
+            <span>a.k.a novruzoff,</span>
+            <span>a software engineer in canada.</span>
           </h1>
         </div>
 
@@ -186,7 +188,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
         </div>
 
         <div class="panel panel-text panel-statement" style="--i: 3">
-          <p class="display">i build software for the web, end to end.</p>
+          <p class="display">i build apps, websites, and other software.</p>
         </div>
 
         <div class="panel panel-media panel-b" style="--i: 4">
@@ -379,11 +381,12 @@ const PHOTO_B_CROPS: PanelCrop[] = [
     flex-direction: column;
     padding: 16px;
   }
-  /* Panel text fills the panel's width, like jonahseguin.com: 16.5cqi puts
-     the longest word on its own line ("montréal.", 9 characters) at ~87.5% of
-     the inner width (Geist Mono at -0.01em is 0.59em per character, so 9
-     characters are 5.31em; 0.875 / 5.31 = 16.5%). cqi is the panel's content
-     box, i.e. inside the padding. 18.8cqi would be 100%, so there's room.
+  /* Panel text fills the panel's width, like jonahseguin.com. 16.5cqi was set
+     for a 9-character longest word at ~87.5% of the inner width (Geist Mono at
+     -0.01em is 0.59em per character: 9 × 0.59 × 16.5 = 87.6%). The current
+     longest word is "novruzoff," (10 characters), which spans 97.4%: still
+     inside the padding (16.9cqi would be 100%). cqi is the panel's content
+     box, i.e. inside the padding.
      Same value in every layout; the clamp keeps it from getting tiny on
      narrow columns or huge on very wide ones (it caps at 64px from ~2400px-
      wide screens). The locked 2×2 also caps it by height (below). */
@@ -456,12 +459,13 @@ const PHOTO_B_CROPS: PanelCrop[] = [
     .home-main {
       padding-bottom: 12px;
     }
+    /* No outer frame: the grid's outer edges are the .wrap-wide content
+       edges, the same as the header's ("novruzoff" on the left, the last
+       link on the right). Each panel keeps its own 0.5px frame. */
     .panels {
       grid-template-areas:
         "a     greet"
         "video state";
-      padding: 12px;
-      border: 0.5px solid var(--border-subtle);
     }
     .panel-text {
       padding: 18px;
@@ -526,17 +530,18 @@ const PHOTO_B_CROPS: PanelCrop[] = [
 
   /* ── Locked 2×2: cap the text by height too ───────────────
      Here the panels are width-sized but their height is half the
-     viewport, so a wide, short 2×2 (e.g. 640×640, 767×640) would push
-     width-sized text past the panel's bottom. The greeting wraps to at
-     most 6 lines at 16.5cqi (fewer when smaller), at line-height 1.12, in
-     an inner height of (100vh − 164px − 12px) / 2 − 37px = 50vh − 125px:
-     6 × 1.12 × size ≤ 50vh − 125px → size ≤ 7.44vh − 18.6px (7.4vh − 19px
-     with a pixel of slack). The 2×2 is 640–767px wide, or 768–1023px in
-     portrait; 768–1023px landscape is the four-column layout. */
+     viewport, so width-sized text can run past the panel's bottom. The
+     greeting wraps to at most 7 lines at 16.5cqi (its four spans force at
+     least 4), at line-height 1.12, in an inner height of
+     (100vh − 139px − 12px) / 2 − 37px = 50vh − 112.6px:
+     7 × 1.12 × size ≤ 50vh − 112.6px → size ≤ 6.38vh − 14.4px (6.35vh −
+     15px with slack). Without it 768×1024 overflowed by 21px. The 2×2 is
+     640–767px wide, or 768–1023px in portrait; 768–1023px landscape is the
+     four-column layout. */
   @media (min-width: 640px) and (max-width: 767px) and (min-height: 640px),
     (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) and (min-height: 640px) {
     .display {
-      font-size: clamp(20px, min(16.5cqi, 7.4vh - 19px), 64px);
+      font-size: clamp(20px, min(16.5cqi, 6.35vh - 15px), 64px);
     }
   }
 

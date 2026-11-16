@@ -121,7 +121,7 @@ Hierarchy:
 - **Footer:** 12px.
 - **Section headers:** 14px/600, `--text-secondary`.
 - **Page titles** (Penknife `h1`): `clamp(28px, 5vw, 36px)`/600, −0.01em.
-- **Panel display text** (homepage greeting and statement): 600, **line-height 1.12**, −0.01em, sized to the panel's width with container-query units (each panel is `container-type: inline-size`; `cqi` is its content box, inside the padding): **`clamp(20px, 16.5cqi, 64px)` in every layout**. The target, like jonahseguin.com, is the longest word on its own line ("montréal.", 9 characters × 0.59em = 5.31em) spanning ~87.5% of the inner width: 0.875 / 5.31 = 16.5cqi (18.8cqi would be 100%). Lines with two short words ("a software", 10 characters) can reach ~97%, still inside the padding. **The locked 2×2 also caps it by height**: `clamp(20px, min(16.5cqi, 7.4vh − 19px), 64px)` (≤ 6 lines × 1.12 must fit an inner height of 50vh − 125px); without it a wide, short 2×2 (640×640, 767×640) would push the greeting past the panel's bottom. Measured, nothing overflowing or breaking mid-word: 1440×900 37.2px, 1920×1080 53.1px, 1024×768 23.7px, 1000×700 30.8px, 768×1024 51.3px, 375×812 51.0px, 320×640 41.9px (all 87.6%); sized down: 640×640 and 767×640 28.4px (height cap), 2560×1440 64px (the clamp's maximum, 75.6%). Big type makes the phone page taller than one screen (the greeting alone is ~375px at 375 wide). If the copy changes, re-check the longest word: the 16.5cqi assumes 9 characters.
+- **Panel display text** (homepage greeting and statement): 600, **line-height 1.12**, −0.01em, sized to the panel's width with container-query units (each panel is `container-type: inline-size`; `cqi` is its content box, inside the padding): **`clamp(20px, 16.5cqi, 64px)` in every layout**. 16.5cqi was set, like jonahseguin.com, so a 9-character longest word on its own line spans ~87.5% of the inner width (9 × 0.59em × 16.5 = 87.6%). **The current copy's longest word is "novruzoff," (10 characters), which spans ~97.4%**: still inside the padding (16.9cqi would be 100%), but over that target; 14.8cqi would bring it back to ~87.5%. **The locked 2×2 also caps it by height**: `clamp(20px, min(16.5cqi, 6.35vh − 15px), 64px)`. The greeting wraps to at most 7 lines (its four `<span>`s force at least 4) and 7 × 1.12 × size must fit the inner height, 50vh − 112.6px; without the cap 768×1024 overflowed by 21px. Measured, nothing overflowing or breaking mid-word: 1440×900 38.1px, 1920×1080 53.9px, 1024×768 24.6px, 1000×700 31.8px, 375×812 51.0px, 320×640 41.9px ("novruzoff," 97.3–97.4%); sized down by the height cap: 768×1024 50.0px (91.1%, 6px to spare), 700×900 42.1px, 640×640 and 767×640 25.6px. Big type makes the phone page taller than one screen. **If the copy changes, re-measure the longest word and the 2×2 line count**: both formulas depend on them.
 
 ### Motion system
 
@@ -152,7 +152,7 @@ Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-trigge
 
 #### Home panel grid (`src/pages/index.astro`)
 
-Header, panel grid, footer in one flex column. Five panels: **photo a · greeting · video · statement · photo b**. Every panel has a 0.5px `--border-subtle` frame and a 12px gap; from 640px up the whole grid sits in a 0.5px outer frame with 12px of padding.
+Header, panel grid, footer in one flex column. Five panels: **photo a · greeting · video · statement · photo b**. Every panel has its own 0.5px `--border-subtle` frame, with a 12px gap between panels. **There's no outer frame** around the grid: its outer edges are the `.wrap-wide` content edges, so they line up exactly with the header's ("novruzoff" on the left, the last nav link on the right; measured 0.00–0.02px at every layout). The page chrome around the locked grid (header, the 12px above and below, footer) is ~139px.
 
 | Viewport | Layout |
 |---|---|
@@ -162,8 +162,8 @@ Header, panel grid, footer in one flex column. Five panels: **photo a · greetin
 | < 640px | Two columns that scroll: greeting across the top, photo a + video side by side (3:4 each), statement across the bottom, photo b hidden, no outer frame. About one phone screen (verified at 375×812 and 320×640) |
 
 - **Height guard.** From 640px wide *and* 640px tall, the page is locked to exactly one viewport (`100dvh`) and the grid rows share what's left; media panels drop their aspect ratio and fill the cell. Below 640px tall, nothing is locked: media panels keep their aspect ratio (3:4 in 2×2 and on phones, 2:3 in the four- and five-column layouts), text panels match their row, and the page scrolls. Text panels never clip, so text can't be squeezed out.
-- **Greeting:** `--panel-dark` panel, `--panel-muted` text (5.23:1), top-left, as the page's `<h1>`: "hi." / "i'm murad, a software engineer in montréal."
-- **Statement:** the inverse, `--panel-muted` panel, `--panel-dark` text (5.23:1), bottom-right: "i build software for the web, end to end." Pure vibe: no company names, no metrics.
+- **Greeting:** `--panel-dark` panel, `--panel-muted` text (5.23:1), top-left, as the page's `<h1>`, one `<span>` per line: "hi." / "i'm murad," / "a.k.a novruzoff," / "a software engineer in canada."
+- **Statement:** the inverse, `--panel-muted` panel, `--panel-dark` text (5.23:1), bottom-right: "i build apps, websites, and other software." Pure vibe: no company names, no metrics. (The copy lives in `index.astro`; `HOME_GREETING` / `HOME_STATEMENT` in `scripts/generate-og.mjs` and the default `ogImageAlt` in `Layout.astro` mirror it, so change all three together and run `pnpm run og`.)
 - **Media panels** fill their cell with `object-fit: cover`. Photos are additionally **pre-cropped per layout** (`src/components/PanelPhoto.astro`, see Homepage media) so the file's shape matches the panel's and its width-based srcset is honest; the video is only center-cropped by cover, so a native 9:16 source crops least.
 - **Missing media** renders a quiet `--bg-elevated` block labelled "photo a" / "video" / "photo b" (11px, tertiary, `aria-hidden`). See Homepage media.
 
@@ -207,16 +207,16 @@ Optional at build time: `index.astro` finds each file with `import.meta.glob`, s
 
 | Layout (media condition, first match wins) | Crop (w:h) | `sizes` |
 |---|---|---|
-| ≥ 1024px and ≥ 640px tall (five columns, locked) | 9:25 (0.36; a 1440×900 panel is ~0.358) | `max(20vw − 24px, (100vh − 164px) × 0.36)`, fallback `20vw − 24px` |
-| 768–1023px landscape, ≥ 640px tall (four columns) | 5:12 (0.417) | `max(25vw − 25px, (100vh − 164px) × 0.4167)` |
-| ≥ 640px wide and tall (2×2, portrait tablets) | 6:7 (0.857) | `max(50vw − 36px, (50vh − 88px) × 0.857)` |
-| ≥ 1024px, or ≥ 768px landscape, on a short screen | 2:3 (the panel's fixed ratio) | `20vw − 24px` / `25vw − 25px` |
-| default: phones and short 2×2 | 3:4 (the panel's fixed ratio) | `50vw − 36px` (≥ 640px) / `50vw − 22px` |
+| ≥ 1024px and ≥ 640px tall (five columns, locked) | 9:25 (0.36; a 1440×900 panel is ~0.353) | `max(20vw − 19px, (100vh − 139px) × 0.36)`, fallback `20vw − 19px` |
+| 768–1023px landscape, ≥ 640px tall (four columns) | 5:12 (0.417) | `max(25vw − 19px, (100vh − 139px) × 0.4167)` |
+| ≥ 640px wide and tall (2×2, portrait tablets) | 6:7 (0.857) | `max(50vw − 22px, (50vh − 76px) × 0.857)` |
+| ≥ 1024px, or ≥ 768px landscape, on a short screen | 2:3 (the panel's fixed ratio) | `20vw − 19px` / `25vw − 19px` |
+| default: phones and short 2×2 | 3:4 (the panel's fixed ratio) | `50vw − 22px` (2×2 and phones) |
 
-- In the locked layouts the panel's shape follows the viewport, so the image renders at `max(panel width, panel height × crop ratio)`; that's what `sizes` says. Browsers that can't parse `max()` in `sizes` skip that entry and use the panel width. The 164px is the page chrome around the locked grid (header, paddings, frame, footer), measured; the column formulas match measured widths within 1–2px. If the page chrome or breakpoints change, update these together with the panel CSS.
+- In the locked layouts the panel's shape follows the viewport, so the image renders at `max(panel width, panel height × crop ratio)`; that's what `sizes` says. Browsers that can't parse `max()` in `sizes` skip that entry and use the panel width. The 139px is the page chrome around the locked grid (header, paddings, footer; no outer frame), measured; the column formulas match measured widths within 1–2px. If the page chrome or breakpoints change, update these together with the panel CSS.
 - Variants: widths 240/360/480/640/800/960/1200/1440 under each crop's maximum, plus the maximum itself (the largest box of that shape inside the source). Never upscaled: sharp runs with `withoutEnlargement`, which would otherwise clamp and break the crop's ratio.
 - Formats and quality: AVIF 60 → WebP 80 → JPEG 85 (the `<img>` fallback, default crop). The largest desktop AVIF is ~15 KB.
-- **Measured with the current 1254×1254 source** (rendered device px vs file px; ≤ 1.00× is sharp): 1440×900 @2x 451×1253 for 526×1470 (**1.17×, source-limited**); 1920×1080 @2x 1.59× (source-limited); 1024×768 @2x 0.96×; 1000×700 @2x 0.93×; 1280×600 @2x 0.96×; 768×1024 @2x 0.91×; 375×812 @3x 0.77×; 1440×900 @1x 0.73×. Before the pipeline: 2.04× at 1440×900 @2x, 2.23× at 1024×768 @2x.
+- **Measured with the original 1254×1254 photo-a, before the outer frame was removed** (the photos have since been replaced and the panels are ~5px wider and ~25px taller; re-measure before relying on these) (rendered device px vs file px; ≤ 1.00× is sharp): 1440×900 @2x 451×1253 for 526×1470 (**1.17×, source-limited**); 1920×1080 @2x 1.59× (source-limited); 1024×768 @2x 0.96×; 1000×700 @2x 0.93×; 1280×600 @2x 0.96×; 768×1024 @2x 0.91×; 375×812 @3x 0.77×; 1440×900 @1x 0.73×. Before the pipeline: 2.04× at 1440×900 @2x, 2.23× at 1024×768 @2x.
 - Measuring it: `img.naturalWidth` with a `w`-descriptor srcset is divided by the chosen candidate's density, so it only echoes `sizes`. Read a file's real pixels by loading `currentSrc` into a plain `new Image()`.
 
 **Strip GPS/EXIF from photos before committing**: the repo is public, and git history keeps the original files even though the served images are re-encoded. Set `PHOTO_A_ALT` / `PHOTO_B_ALT` in `index.astro` to describe the photos (they're empty, i.e. decorative, until real photos land).

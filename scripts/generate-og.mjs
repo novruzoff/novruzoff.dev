@@ -27,8 +27,9 @@ const CHECK_ONLY = process.argv.includes("--check");
 // src/components/Header.astro, DEFAULT_LINKS
 const NAV = ["projects", "resume", "contact"];
 // src/pages/index.astro, the greeting and statement panels
-const HOME_GREETING = ["hi.", "i'm murad, a software engineer in montréal."];
-const HOME_STATEMENT = "i build software for the web, end to end.";
+// One entry per <span> in the greeting's <h1>; each starts a new line on the card too.
+const HOME_GREETING = ["hi.", "i'm murad,", "a.k.a novruzoff,", "a software engineer in canada."];
+const HOME_STATEMENT = "i build apps, websites, and other software.";
 // src/pages/contact.astro: the lead line, EMAIL, and the profiles' display values
 const CONTACT_LINE = "open to internships, contract work, and interesting problems.";
 const CONTACT_EMAIL = "murad@novruzoff.dev";
@@ -100,7 +101,8 @@ const fontFaces = () => {
 // #0b141e (--panel-dark) and #6a8baf (--panel-muted, also --accent).
 
 // Home: the greeting (muted on dark), a gradient standing in for the video, and the
-// statement (dark on muted), mirroring the homepage's inverted text-panel pair.
+// statement (dark on muted), mirroring the homepage's inverted text-panel pair. Like
+// the homepage, no outer frame: the panels' edges line up with the header's.
 const homeCard = (faces) => `<!doctype html><html><head><meta charset="utf-8"><style>
 ${faces}
 *{box-sizing:border-box;margin:0}
@@ -110,7 +112,7 @@ html,body{width:1200px;height:630px;background:#0f0f10;font-family:G;color:rgba(
 .name{font-weight:600;font-size:24px}
 .links{font-size:19px;color:rgba(255,255,255,.55);display:flex;gap:24px}
 .links span::before{content:"/";color:rgba(255,255,255,.48)}
-.frame{position:absolute;left:40px;right:40px;top:96px;bottom:76px;border:1px solid rgba(255,255,255,.06);padding:12px;display:grid;grid-template-columns:1.25fr .8fr 1fr;gap:12px}
+.frame{position:absolute;left:40px;right:40px;top:96px;bottom:76px;display:grid;grid-template-columns:1.25fr .8fr 1fr;gap:12px}
 .p{border:1px solid rgba(255,255,255,.06);padding:26px;display:flex;flex-direction:column}
 .greet{background:#0b141e}
 .greet p{font-weight:600;font-size:40px;line-height:1.15;letter-spacing:-.01em;color:#6a8baf}

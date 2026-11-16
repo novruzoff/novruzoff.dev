@@ -146,7 +146,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
               <>
                 {/* No <source> in the HTML on purpose: the script adds them
                     after window load. Decorative, so hidden from assistive
-                    tech and out of the tab order; the toggle below is the
+                    tech and out of the tab order; the button over it is the
                     accessible control. */}
                 <video
                   class="media"
@@ -163,9 +163,21 @@ const PHOTO_B_CROPS: PanelCrop[] = [
                   aria-hidden="true"
                   tabindex="-1"
                 />
-                <button type="button" class="loop-toggle" data-loop-toggle hidden>
-                  pause
-                </button>
+                {/* The whole panel is the pause/play control (WCAG 2.2.2): an
+                    invisible button laid over the video, so a click or tap
+                    anywhere on it, or Enter/Space when focused, toggles the
+                    loop. Hidden (so not focusable) until the script attaches
+                    the video, which it never does without JS, under reduced
+                    motion or with Save-Data: then only the poster shows and
+                    there's nothing to pause. The label states the action
+                    and is kept in step with the video by the script. */}
+                <button
+                  type="button"
+                  class="loop-control"
+                  data-loop-control
+                  aria-label="pause background video"
+                  hidden
+                />
               </>
             ) : (
               <div class="placeholder" aria-hidden="true">video</div>
@@ -199,17 +211,20 @@ const PHOTO_B_CROPS: PanelCrop[] = [
     //   with the LCP image for bandwidth (preload="none" until then).
     // - Plays only while on screen and the tab is visible.
     // - Reduced motion or Save-Data: never attached, so only the poster shows
-    //   and the toggle stays hidden.
-    // - The toggle (WCAG 2.2.2: moving content over 5s needs a pause) reflects
-    //   the video's real state via play/pause events, so it also reads "play"
-    //   when the browser blocks autoplay (e.g. iOS Low Power Mode).
+    //   and the control stays hidden.
+    // - The control is the whole panel: an invisible button over the video
+    //   (WCAG 2.2.2: moving content over 5s needs a way to pause it). Its
+    //   label follows the video's real state via play/pause events, so it
+    //   also says "play" when the browser blocks autoplay (iOS Low Power
+    //   Mode). A user's pause sticks: scrolling back into view or returning
+    //   to the tab doesn't resume it.
     type LoopSource = { src: string; type: string };
     type NetworkInformationLike = { saveData?: boolean };
 
     const video = document.querySelector<HTMLVideoElement>("[data-loop]");
-    const toggle = document.querySelector<HTMLButtonElement>("[data-loop-toggle]");
+    const control = document.querySelector<HTMLButtonElement>("[data-loop-control]");
 
-    if (video && toggle) {
+    if (video && control) {
       let sources: LoopSource[] = [];
       try {
         sources = JSON.parse(video.dataset.sources ?? "[]");
@@ -232,11 +247,10 @@ const PHOTO_B_CROPS: PanelCrop[] = [
           }
         };
 
+        // The accessible name is the action a press would take.
         const render = () => {
           const action = video.paused ? "play" : "pause";
-          toggle.textContent = action;
-          // Starts with the visible word, so voice control can say what it sees.
-          toggle.setAttribute("aria-label", `${action} background video`);
+          control.setAttribute("aria-label", `${action} background video`);
         };
 
         const attach = () => {
@@ -247,7 +261,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
             video.append(source);
           }
           video.load();
-          toggle.hidden = false;
+          control.hidden = false;
           render();
           new IntersectionObserver((entries) => {
             for (const entry of entries) inView = entry.isIntersecting;
@@ -258,7 +272,8 @@ const PHOTO_B_CROPS: PanelCrop[] = [
 
         video.addEventListener("play", render);
         video.addEventListener("pause", render);
-        toggle.addEventListener("click", () => {
+        // A native button: click, tap, Enter and Space all arrive as "click".
+        control.addEventListener("click", () => {
           userPaused = !video.paused;
           if (userPaused) video.pause();
           else video.play().catch(() => {});
@@ -394,33 +409,35 @@ const PHOTO_B_CROPS: PanelCrop[] = [
     text-align: right;
   }
 
-  /* ── Video toggle ─────────────────────────────────────────
-     Small mono label, bottom-left over the video. Its own near-opaque
-     backdrop keeps it legible over any frame: --accent on it measures
-     4.73:1 even over a pure white frame (at 0.92 it was 4.47:1, a fail,
-     once --accent became the muted blue). Hover goes to --text-primary.
-     6px of block padding: ~30px tall (WCAG 2.5.8). */
-  .loop-toggle {
+  /* ── Video control ───────────────────────────────────────
+     The invisible button over the video (the panel is the control). Nothing
+     shows at rest or on hover, and the cursor stays default; only keyboard
+     focus draws a ring. The panel clips its contents (overflow: hidden), so
+     the global ring (3px outside) would be cut off: here it's drawn inset,
+     1px of --accent with a 3px --bg-page band outside it, so the ring has a
+     dark neighbour (5.41:1) whatever frame the video is on (a two-colour
+     focus indicator, WCAG technique C40). */
+  .loop-control {
     position: absolute;
-    left: 8px;
-    bottom: 8px;
+    inset: 0;
     z-index: 1;
-    padding: 6px 10px;
-    border: 0.5px solid var(--border);
-    border-radius: 2px;
-    background: rgba(15, 15, 16, 0.94);
-    font: inherit;
-    font-size: 11px;
-    line-height: 1.6;
-    color: var(--accent);
-    cursor: pointer;
-    transition: color 180ms var(--ease-out-expo);
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
   }
-  .loop-toggle:hover {
-    color: var(--text-primary);
-  }
-  .loop-toggle[hidden] {
+  .loop-control[hidden] {
     display: none;
+  }
+  .loop-control:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: -4px;
+    box-shadow: inset 0 0 0 3px var(--bg-page);
+    border-radius: 0;
   }
 
   /* ── 640px and up: 2×2 ────────────────────────────────────

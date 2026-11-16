@@ -11,7 +11,7 @@ const EMAIL = "murad@novruzoff.dev";
 // screen is exactly where the link goes. Brand names keep their casing.
 const profiles = [
   { label: "GitHub", value: "github.com/novruzoff", href: "https://github.com/novruzoff" },
-  { label: "LinkedIn", value: "linkedin.com/in/novruzoff", href: "https://linkedin.com/in/novruzoff" },
+  { label: "LinkedIn", value: "linkedin.com/in/novruzovmurad", href: "https://www.linkedin.com/in/novruzovmurad/" },
 ];
 ---
 
@@ -62,8 +62,9 @@ const profiles = [
     border-top: 0.5px solid var(--border-subtle);
   }
   /* 80px fits "LinkedIn" (53px at 11px). The longest value with its arrow,
-     "linkedin.com/in/novruzoff ↗", is 224px at 14px, so the row needs
-     320px; under 400px the label goes above the value instead. */
+     "linkedin.com/in/novruzovmurad ↗", is 258px at 14px, so the row needs
+     354px (it fits from 401px, whose row is 361px); under 400px the label
+     goes above the value instead. */
   .profiles > div {
     display: grid;
     grid-template-columns: 80px minmax(0, 1fr);

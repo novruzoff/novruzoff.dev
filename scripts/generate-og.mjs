@@ -32,7 +32,7 @@ const HOME_STATEMENT = "i build software for the web, end to end.";
 // src/pages/contact.astro: the lead line, EMAIL, and the profiles' display values
 const CONTACT_LINE = "open to internships, contract work, and interesting problems.";
 const CONTACT_EMAIL = "murad@novruzoff.dev";
-const CONTACT_HANDLES = ["github.com/novruzoff", "linkedin.com/in/novruzoff"];
+const CONTACT_HANDLES = ["github.com/novruzoff", "linkedin.com/in/novruzovmurad"];
 // Card footer line (cards only)
 const BYLINE = "murad novruzov · software engineer";
 
@@ -91,9 +91,11 @@ const fontFaces = () => {
 // ── Card templates ───────────────────────────────────────────────────────────
 // The markup and CSS below are the shipped design; don't restyle here without
 // regenerating every card. Colors are the site tokens written out: #0f0f10
-// page, #161618 elevated, #004d98 fill, #5d95da accent, white at .95/.75/.55/.48.
+// page, #161618 elevated, #004d98 fill, #5d95da accent, white at .95/.75/.55/.48,
+// and the home text panels' pair: #0b141e (--panel-dark) / #6a8baf (--panel-muted).
 
-// Home: blue greeting panel, a gradient standing in for the video, the statement.
+// Home: the greeting (muted on dark), a gradient standing in for the video, and the
+// statement (dark on muted), mirroring the homepage's inverted text-panel pair.
 const homeCard = (faces) => `<!doctype html><html><head><meta charset="utf-8"><style>
 ${faces}
 *{box-sizing:border-box;margin:0}
@@ -105,11 +107,11 @@ html,body{width:1200px;height:630px;background:#0f0f10;font-family:G;color:rgba(
 .links span::before{content:"/";color:rgba(255,255,255,.48)}
 .frame{position:absolute;left:40px;right:40px;top:96px;bottom:76px;border:1px solid rgba(255,255,255,.06);padding:12px;display:grid;grid-template-columns:1.25fr .8fr 1fr;gap:12px}
 .p{border:1px solid rgba(255,255,255,.06);padding:26px;display:flex;flex-direction:column}
-.greet{background:#004d98}
-.greet p{font-weight:600;font-size:40px;line-height:1.15;letter-spacing:-.01em}
+.greet{background:#0b141e}
+.greet p{font-weight:600;font-size:40px;line-height:1.15;letter-spacing:-.01em;color:#6a8baf}
 .loop{background:linear-gradient(180deg,#0b2b52 0%,#5d95da 38%,#004d98 64%,#0f0f10 100%)}
-.stmt{background:#161618;justify-content:flex-end;text-align:right}
-.stmt p{font-weight:600;font-size:36px;line-height:1.15;letter-spacing:-.01em;color:#5d95da}
+.stmt{background:#6a8baf;justify-content:flex-end;text-align:right}
+.stmt p{font-weight:600;font-size:36px;line-height:1.15;letter-spacing:-.01em;color:#0b141e}
 .bot{bottom:0;height:76px;font-size:19px;color:rgba(255,255,255,.48)}
 .bot b{font-weight:400;color:rgba(255,255,255,.75)}
 </style></head><body>

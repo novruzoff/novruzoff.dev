@@ -343,21 +343,22 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
     display: block;
   }
 
-  /* Greeting: the blue fill, text top-left. --text-primary on
-     --accent-fill measures 7.70:1. */
+  /* The two text panels are an inverted pair (--panel-dark / --panel-muted,
+     5.23:1 either way). Greeting: muted text on dark, top-left. --panel-dark
+     sits at 1.03:1 against the page, so the 0.5px --border-subtle frame every
+     panel gets (.panel, above) is what separates it. */
   .panel-greet {
     justify-content: flex-start;
-    background: var(--accent-fill);
-    color: var(--text-primary);
+    background: var(--panel-dark);
+    color: var(--panel-muted);
   }
 
-  /* Statement: elevated panel, blue text bottom-right. --accent on
-     --bg-elevated measures 5.81:1. */
+  /* Statement: the inverse, dark text on muted, bottom-right. */
   .panel-statement {
     justify-content: flex-end;
     min-height: 112px;
-    background: var(--bg-elevated);
-    color: var(--accent);
+    background: var(--panel-muted);
+    color: var(--panel-dark);
     text-align: right;
   }
 

@@ -147,6 +147,14 @@
   --accent-bg: rgba(93, 149, 218, 0.20);
   --accent-border: rgba(93, 149, 218, 0.35);
 
+  /* Homepage text panels: an inverted two-tone pair from one muted blue
+     (HSL hue ~211°, the same as --accent-fill's 210°). The greeting is
+     muted text on dark, the statement dark text on muted. Either way the
+     pair measures 5.23:1. --panel-dark is 1.03:1 against --bg-page, so a
+     panel filled with it needs its 0.5px frame to read as a panel. */
+  --panel-dark: #0b141e; /* H 211.6°, S 46%, L 8% */
+  --panel-muted: #6a8baf; /* H 211.3°, S 30%, L 55% */
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
   color-scheme: dark;

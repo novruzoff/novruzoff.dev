@@ -127,7 +127,7 @@ Hierarchy:
 
 Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-triggered animation anywhere on the site.
 
-1. **Panel entrance (home, CSS only, no gate).** Each panel fades in and rises 12px over 500ms ease-out-expo, 70ms apart left to right (`--i` on each panel, 0–4; the delay is `--i × 70ms`). The keyframes run only under `prefers-reduced-motion: no-preference`, so reduced motion and no-JS both get the static page with nothing ever hidden. No JS gate is needed because nothing depends on a script.
+1. **Panel entrance (home, CSS only, no gate).** Each panel fades in and rises 12px over 500ms ease-out-expo, 70ms apart left to right (`--i` on each panel, 0–4; the delay is `--i × 70ms`). **Except photo a, which doesn't animate** (`.panel-a { animation: none }`): it's the page's LCP image, and an element that starts at opacity 0 isn't an LCP candidate (with the fade, Lighthouse picked the footer text). A transform-only rise would show a large photo sliding at first paint, which reads as a shift, so it sits still and the other panels arrive beside it. Measured after: LCP element is photo a's `<img>` on mobile (1.1s) and desktop (0.2s), Lighthouse 100/100/100/100. Don't put an opacity entrance back on it. The keyframes run only under `prefers-reduced-motion: no-preference`, so reduced motion and no-JS both get the static page with nothing ever hidden. No JS gate is needed because nothing depends on a script.
 2. **The video loop** (home, the page's only script, ~0.5 KB gzipped, inline):
    - The `<video>` ships with no `<source>` and `preload="none"`; the script attaches the sources on `window` `load`, so the loop never competes with the LCP image.
    - It plays only while on screen (IntersectionObserver) and while the tab is visible (`visibilitychange`).
@@ -164,7 +164,7 @@ Header, panel grid, footer in one flex column. Five panels: **photo a · greetin
 - **Height guard.** From 640px wide *and* 640px tall, the page is locked to exactly one viewport (`100dvh`) and the grid rows share what's left; media panels drop their aspect ratio and fill the cell. Below 640px tall, nothing is locked: media panels keep their aspect ratio (3:4 in 2×2 and on phones, 2:3 in the four- and five-column layouts), text panels match their row, and the page scrolls. Text panels never clip, so text can't be squeezed out.
 - **Greeting:** `--panel-dark` panel, `--panel-muted` text (5.23:1), top-left, as the page's `<h1>`: "hi." / "i'm murad, a software engineer in montréal."
 - **Statement:** the inverse, `--panel-muted` panel, `--panel-dark` text (5.23:1), bottom-right: "i build software for the web, end to end." Pure vibe: no company names, no metrics.
-- **Media panels** crop from the center with `object-fit: cover`, so any source proportion works; native proportions (photo a 2:3, photo b 4:5, video 9:16) crop least.
+- **Media panels** fill their cell with `object-fit: cover`. Photos are additionally **pre-cropped per layout** (`src/components/PanelPhoto.astro`, see Homepage media) so the file's shape matches the panel's and its width-based srcset is honest; the video is only center-cropped by cover, so a native 9:16 source crops least.
 - **Missing media** renders a quiet `--bg-elevated` block labelled "photo a" / "video" / "photo b" (11px, tertiary, `aria-hidden`). See Homepage media.
 
 #### Document pages
@@ -198,10 +198,26 @@ Optional at build time: `index.astro` finds each file with `import.meta.glob`, s
 
 | File | Shape | Notes |
 |---|---|---|
-| `photo-a.{jpg,jpeg,png,webp,avif,tif,tiff}` | portrait, ~2:3, ≥ 1440px wide | Panel 1, the LCP image: `loading="eager"`, `fetchpriority="high"`. Astro `<Picture>` → AVIF + WebP + JPEG at 360/540/720/960w, `sizes` matched to the grid. Subject in the middle half of the width (desktop crops the sides hard) |
-| `photo-b.{…}` | portrait, ~4:5, ≥ 1440px wide | Panel 5, desktop only, `loading="lazy"` |
+| `photo-a.{jpg,jpeg,png,webp,avif,tif,tiff}` | any shape; **≥ 1470px tall** for a sharp 1440×900 @2x desktop, ≥ 1830px for 1920×1080 @2x | Panel 1, the LCP image (`priority`: eager, `fetchpriority="high"`). Rendered by `PanelPhoto` with five art-directed crops (below). Subject should sit in the centre third: the narrowest crop keeps only the middle 36% of a square's width |
+| `photo-b.{…}` | same as photo a | Panel 5, desktop only, lazy. Two crops: the five-column locked 9:25 and the short-screen 2:3 |
 | `loop.webm` and/or `loop.mp4` | portrait 9:16, ideally 720×1280 | Copied as-is (`?url` import), not transcoded. WebM (VP9/AV1) is listed first, MP4 (H.264, faststart) second. No audio track; 8–12s; seamless loop; no flashing (WCAG 2.3.1); keep detail in the center 60%; target ≤ 1 MB WebM, ≤ 2 MB MP4. A wider source still works (center-cropped), but 9:16 crops least |
 | `loop-poster.{…}` | same frame as the loop's first frame | Converted to a 720w WebP poster. Shown before load, under reduced motion and Save-Data, and when autoplay is refused, so it must look intentional on its own |
+
+**Photo pipeline (`PanelPhoto.astro`).** The panels are tall and narrow and use `object-fit: cover`, so a width-chosen variant of an uncropped source gets upscaled to the panel's *height* (a square source loaded 720×720 into a 526×1470-device-px panel at 1440×900 @2x: 2.04× upscale). `PanelPhoto` renders one art-directed `<picture>` whose sources are pre-cropped (sharp `fit: cover`, `position: center`) to each layout's panel shape:
+
+| Layout (media condition, first match wins) | Crop (w:h) | `sizes` |
+|---|---|---|
+| ≥ 1024px and ≥ 640px tall (five columns, locked) | 9:25 (0.36; a 1440×900 panel is ~0.358) | `max(20vw − 24px, (100vh − 164px) × 0.36)`, fallback `20vw − 24px` |
+| 768–1023px landscape, ≥ 640px tall (four columns) | 5:12 (0.417) | `max(25vw − 25px, (100vh − 164px) × 0.4167)` |
+| ≥ 640px wide and tall (2×2, portrait tablets) | 6:7 (0.857) | `max(50vw − 36px, (50vh − 88px) × 0.857)` |
+| ≥ 1024px, or ≥ 768px landscape, on a short screen | 2:3 (the panel's fixed ratio) | `20vw − 24px` / `25vw − 25px` |
+| default: phones and short 2×2 | 3:4 (the panel's fixed ratio) | `50vw − 36px` (≥ 640px) / `50vw − 22px` |
+
+- In the locked layouts the panel's shape follows the viewport, so the image renders at `max(panel width, panel height × crop ratio)`; that's what `sizes` says. Browsers that can't parse `max()` in `sizes` skip that entry and use the panel width. The 164px is the page chrome around the locked grid (header, paddings, frame, footer), measured; the column formulas match measured widths within 1–2px. If the page chrome or breakpoints change, update these together with the panel CSS.
+- Variants: widths 240/360/480/640/800/960/1200/1440 under each crop's maximum, plus the maximum itself (the largest box of that shape inside the source). Never upscaled: sharp runs with `withoutEnlargement`, which would otherwise clamp and break the crop's ratio.
+- Formats and quality: AVIF 60 → WebP 80 → JPEG 85 (the `<img>` fallback, default crop). The largest desktop AVIF is ~15 KB.
+- **Measured with the current 1254×1254 source** (rendered device px vs file px; ≤ 1.00× is sharp): 1440×900 @2x 451×1253 for 526×1470 (**1.17×, source-limited**); 1920×1080 @2x 1.59× (source-limited); 1024×768 @2x 0.96×; 1000×700 @2x 0.93×; 1280×600 @2x 0.96×; 768×1024 @2x 0.91×; 375×812 @3x 0.77×; 1440×900 @1x 0.73×. Before the pipeline: 2.04× at 1440×900 @2x, 2.23× at 1024×768 @2x.
+- Measuring it: `img.naturalWidth` with a `w`-descriptor srcset is divided by the chosen candidate's density, so it only echoes `sizes`. Read a file's real pixels by loading `currentSrc` into a plain `new Image()`.
 
 **Strip GPS/EXIF from photos before committing**: the repo is public, and git history keeps the original files even though the served images are re-encoded. Set `PHOTO_A_ALT` / `PHOTO_B_ALT` in `index.astro` to describe the photos (they're empty, i.e. decorative, until real photos land).
 

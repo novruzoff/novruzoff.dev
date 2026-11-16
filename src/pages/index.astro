@@ -12,10 +12,11 @@
 //   loop.webm and/or loop.mp4                    portrait 9:16, no audio
 //   loop-poster.{…same as photos}                the loop's first frame
 import type { ImageMetadata } from "astro";
-import { Picture, getImage } from "astro:assets";
+import { getImage } from "astro:assets";
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import PanelPhoto, { type PanelCrop } from "../components/PanelPhoto.astro";
 
 const images = import.meta.glob<{ default: ImageMetadata }>(
   "../assets/home/*.{jpg,jpeg,png,webp,avif,tif,tiff}",
@@ -56,12 +57,64 @@ const poster = posterImage
 const PHOTO_A_ALT = "";
 const PHOTO_B_ALT = "";
 
-// Rendered widths: phones ~165px (two columns), 2×2 tablets ~350px,
-// 4 columns ~240px, 5 columns 180–500px. srcset covers 1x and 2x of those.
-const PHOTO_WIDTHS = [360, 540, 720, 960];
-const PHOTO_A_SIZES =
-  "(min-width: 1024px) 20vw, (min-width: 768px) and (orientation: landscape) 25vw, 50vw";
-const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
+// Photo crops, one per layout, matching the panel shapes in the <style> below
+// (media conditions mirror its breakpoints and the 640px height lock).
+//
+// Panel geometry, measured: the page chrome around the locked grid (header,
+// paddings, frame, footer) is ~164px tall; columns are 20vw − 24px (five),
+// 25vw − 25px (four), 50vw − 36px (2×2) and 50vw − 22px (phones). In the
+// locked layouts the panel's shape follows the viewport, so the crop is the
+// typical shape and object-fit: cover trims the rest. The image then renders
+// at max(panel width, panel height × crop aspect): that's the `sizes` value.
+// Browsers that can't parse max() in sizes skip it and use the panel width.
+const LOCKED_5 = "(min-width: 1024px) and (min-height: 640px)";
+const LOCKED_4 =
+  "(min-width: 768px) and (max-width: 1023px) and (orientation: landscape) and (min-height: 640px)";
+const LOCKED_2X2 = "(min-width: 640px) and (min-height: 640px)";
+const COLS_5 = "calc(20vw - 24px)";
+const COLS_4 = "calc(25vw - 25px)";
+const COLS_2X2 = "calc(50vw - 36px)";
+const COLS_PHONE = "calc(50vw - 22px)";
+
+// Photo a is in every layout.
+const PHOTO_A_CROPS: PanelCrop[] = [
+  // Five columns, locked: ~1:2.8 at 1440×900 (0.36).
+  {
+    media: LOCKED_5,
+    aspect: 9 / 25,
+    sizes: `max(${COLS_5}, calc((100vh - 164px) * 0.36)), ${COLS_5}`,
+  },
+  // Four columns, landscape tablet, locked: ~0.42 at 1000×700.
+  {
+    media: LOCKED_4,
+    aspect: 5 / 12,
+    sizes: `max(${COLS_4}, calc((100vh - 164px) * 0.4167)), ${COLS_4}`,
+  },
+  // 2×2, locked (portrait tablets, 640–1023px): ~0.82–0.88.
+  {
+    media: LOCKED_2X2,
+    aspect: 6 / 7,
+    sizes: `max(${COLS_2X2}, calc((50vh - 88px) * 0.857)), ${COLS_2X2}`,
+  },
+  // Four or five columns on a short screen: the panels keep a fixed 2:3.
+  {
+    media: "(min-width: 1024px), (min-width: 768px) and (orientation: landscape)",
+    aspect: 2 / 3,
+    sizes: `(min-width: 1024px) ${COLS_5}, ${COLS_4}`,
+  },
+  // Default: phones and short 2×2 layouts, a fixed 3:4.
+  { aspect: 3 / 4, sizes: `(min-width: 640px) ${COLS_2X2}, ${COLS_PHONE}` },
+];
+
+// Photo b only shows from 1024px up (five columns): locked, or a fixed 2:3.
+const PHOTO_B_CROPS: PanelCrop[] = [
+  {
+    media: LOCKED_5,
+    aspect: 9 / 25,
+    sizes: `max(${COLS_5}, calc((100vh - 164px) * 0.36)), ${COLS_5}`,
+  },
+  { aspect: 2 / 3, sizes: COLS_5 },
+];
 ---
 
 <Layout>
@@ -73,18 +126,7 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
         <div class="panel panel-media panel-a" style="--i: 0">
           {
             photoA ? (
-              <Picture
-                src={photoA}
-                alt={PHOTO_A_ALT}
-                widths={PHOTO_WIDTHS}
-                sizes={PHOTO_A_SIZES}
-                formats={["avif", "webp"]}
-                fallbackFormat="jpg"
-                loading="eager"
-                fetchpriority="high"
-                decoding="async"
-                class="media"
-              />
+              <PanelPhoto src={photoA} alt={PHOTO_A_ALT} crops={PHOTO_A_CROPS} priority />
             ) : (
               <div class="placeholder" aria-hidden="true">photo a</div>
             )
@@ -138,17 +180,7 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
         <div class="panel panel-media panel-b" style="--i: 4">
           {
             photoB ? (
-              <Picture
-                src={photoB}
-                alt={PHOTO_B_ALT}
-                widths={PHOTO_WIDTHS}
-                sizes={PHOTO_B_SIZES}
-                formats={["avif", "webp"]}
-                fallbackFormat="jpg"
-                loading="lazy"
-                decoding="async"
-                class="media"
-              />
+              <PanelPhoto src={photoB} alt={PHOTO_B_ALT} crops={PHOTO_B_CROPS} />
             ) : (
               <div class="placeholder" aria-hidden="true">photo b</div>
             )
@@ -479,11 +511,23 @@ const PHOTO_B_SIZES = "20vw"; // only shown from 1024px up
   /* ── Entrance ─────────────────────────────────────────────
      CSS only, no gate: each panel fades and rises 12px over 500ms
      (ease-out-expo), 70ms apart left to right (--i). Nothing is hidden
-     unless motion is allowed, so reduced motion gets the static page. */
+     unless motion is allowed, so reduced motion gets the static page.
+
+     Except photo a, which doesn't animate at all. It's the page's main
+     image (fetchpriority high), and an element that starts at opacity 0
+     isn't a Largest Contentful Paint candidate: with the fade, Lighthouse
+     reported the footer text as LCP. A rise without the fade would leave
+     a large photo visibly sliding 12px at first paint, which reads as a
+     shift rather than an entrance, so it simply sits still and anchors
+     the row while the other panels arrive beside it (their delays still
+     count from it: 70ms, 140ms…). */
   @media (prefers-reduced-motion: no-preference) {
     .panel {
       animation: panel-in 500ms var(--ease-out-expo) both;
       animation-delay: calc(var(--i, 0) * 70ms);
+    }
+    .panel-a {
+      animation: none;
     }
   }
   @keyframes panel-in {

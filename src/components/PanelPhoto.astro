@@ -1,0 +1,133 @@
+---
+// A homepage photo panel's image: one art-directed <picture> whose sources are
+// pre-cropped to each layout's panel shape.
+//
+// Why: the panels are tall and narrow (about 1:2.8 on a 1440×900 desktop) and use
+// object-fit: cover. A width-based srcset of an uncropped (e.g. square) source picks
+// a file by panel *width*, but cover scales by panel *height*, so the browser was
+// upscaling a 720px-square file ~2× to fill a 1470-device-px-tall panel. Cropping
+// to the panel's shape first makes width and height agree again, so the srcset's
+// width descriptors are honest.
+//
+// Each crop: { media, aspect (width / height), sizes }. The first crop whose media
+// matches wins (normal <source> order); the last crop has no media and is the
+// default, also used for the <img> (JPEG) fallback.
+// - Crop sizes are capped at what the source can give at that aspect ratio
+//   (never upscaled; sharp's withoutEnlargement would otherwise clamp and break
+//   the aspect ratio).
+// - fit: cover, centred. The current photo's subject sits within the centre
+//   third, so a centred crop keeps it at every aspect ratio used here.
+// - Quality: AVIF 60, WebP 80, JPEG 85. Faces stay clean at these settings.
+import type { ImageMetadata } from "astro";
+import { getImage } from "astro:assets";
+
+export type PanelCrop = {
+  /** Media condition for this crop's <source>; omit on the last (default) crop. */
+  media?: string;
+  /** Crop shape as width / height (e.g. 9 / 25). */
+  aspect: number;
+  /** The rendered image width at this layout, for the srcset choice. */
+  sizes: string;
+};
+
+type Props = {
+  src: ImageMetadata;
+  alt: string;
+  crops: PanelCrop[];
+  /** LCP image: eager + fetchpriority high. Otherwise lazy. */
+  priority?: boolean;
+};
+
+const { src, alt, crops, priority = false } = Astro.props;
+
+const QUALITY = { avif: 60, webp: 80, jpeg: 85 } as const;
+// Candidate widths. Each crop keeps those under its own maximum, then adds
+// the maximum itself, so the largest variant is always the full crop.
+const STEPS = [240, 360, 480, 640, 800, 960, 1200, 1440];
+
+type Format = keyof typeof QUALITY;
+
+const cropWidths = (aspect: number) => {
+  // The biggest box of this shape that fits inside the source.
+  const max = Math.floor(Math.min(src.width, src.height * aspect));
+  // Skip steps within ~8% of the max: they'd be near-duplicates of it.
+  return [...STEPS.filter((w) => w < max * 0.92), max];
+};
+
+const srcsetFor = async (aspect: number, format: Format) => {
+  const entries = await Promise.all(
+    cropWidths(aspect).map(async (width) => {
+      const image = await getImage({
+        src,
+        width,
+        // Never taller than the source (the width cap above guarantees it).
+        height: Math.min(src.height, Math.round(width / aspect)),
+        fit: "cover",
+        position: "center",
+        format,
+        quality: QUALITY[format],
+      });
+      return `${image.src} ${width}w`;
+    })
+  );
+  return entries.join(", ");
+};
+
+const MIME: Record<Format, string> = {
+  avif: "image/avif",
+  webp: "image/webp",
+  jpeg: "image/jpeg",
+};
+
+// Every crop gets AVIF then WebP sources; the browser takes the first type it
+// supports within the first crop whose media matches.
+const sources = (
+  await Promise.all(
+    crops.map(async (crop) =>
+      Promise.all(
+        (["avif", "webp"] as const).map(async (format) => ({
+          media: crop.media,
+          type: MIME[format],
+          srcset: await srcsetFor(crop.aspect, format),
+          sizes: crop.sizes,
+        }))
+      )
+    )
+  )
+).flat();
+
+// <img>: JPEG of the default (last) crop, for browsers without AVIF/WebP.
+const fallback = crops[crops.length - 1];
+const fallbackWidths = cropWidths(fallback.aspect);
+const fallbackMax = fallbackWidths[fallbackWidths.length - 1];
+const fallbackSrcset = await srcsetFor(fallback.aspect, "jpeg");
+const fallbackImg = await getImage({
+  src,
+  width: fallbackMax,
+  height: Math.min(src.height, Math.round(fallbackMax / fallback.aspect)),
+  fit: "cover",
+  position: "center",
+  format: "jpeg",
+  quality: QUALITY.jpeg,
+});
+---
+
+<picture>
+  {
+    sources.map((source) => (
+      <source media={source.media} type={source.type} srcset={source.srcset} sizes={source.sizes} />
+    ))
+  }
+  <img
+    class="media"
+    src={fallbackImg.src}
+    srcset={fallbackSrcset}
+    sizes={fallback.sizes}
+    width={fallbackMax}
+    height={Math.min(src.height, Math.round(fallbackMax / fallback.aspect))}
+    alt={alt}
+    loading={priority ? "eager" : "lazy"}
+    fetchpriority={priority ? "high" : undefined}
+    decoding="async"
+  />
+</picture>

@@ -1,8 +1,8 @@
 ---
 import type { Project } from "../data/projects";
 
-// One project's full entry on /projects: summary, metric tiles, detail
-// bullets, stack, links. id={slug} so /projects#<slug> deep-links (the
+// One project's full entry on /projects: an optional award line under the
+// title, summary, metric tiles, detail bullets, stack, links. id={slug} so /projects#<slug> deep-links (the
 // scroll margin for the sticky header is in global.css).
 // (The compact three-column row this component also rendered for the old
 // home page was removed with it.)
@@ -31,6 +31,7 @@ const target = (url: string) =>
     <h2 class="pe-title">{project.title}</h2>
     <span class="pe-date">{project.dates}</span>
   </header>
+  {project.award && <p class="pe-award">{project.award}</p>}
 
   <p class="pe-blurb">{project.blurb}</p>
 
@@ -103,6 +104,15 @@ const target = (url: string) =>
     font-size: 12px;
     color: var(--text-tertiary);
     white-space: nowrap;
+  }
+  /* An award or placing: metadata, so it's the date's style exactly (12px,
+     --text-tertiary, 4.98:1), on its own line under the title rather than
+     crowding the date. Wraps normally on phones. */
+  .pe-award {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-tertiary);
   }
 
   .pe-blurb {

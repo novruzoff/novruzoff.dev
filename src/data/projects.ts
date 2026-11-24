@@ -11,7 +11,9 @@ export type Project = {
   slug: string;
   title: string;
   dates: string;
-  /** One sentence: what it is. The legacy home page shows only this. */
+  /** A recognition (e.g. a hackathon placing), shown as metadata under the title. */
+  award?: string;
+  /** One sentence: what it is. */
   blurb: string;
   metrics?: Metric[];
   /** The detail, one fact per bullet. Shown on /projects. */
@@ -50,7 +52,7 @@ export const projects: Project[] = [
     ],
     highlights: [
       "role-based dashboards for trainees, instructors and committees, with authorization at the database layer via PostgreSQL RLS.",
-      "staged content workflow: Delphi voting and an approval lifecycle drive the MCQ pipeline.",
+      "staged content workflow: expert-consensus (Delphi) voting and an approval lifecycle drive the MCQ pipeline.",
       "multi-modality architecture: IVUS module shipped, OCT in development, native iOS/Android in scoping.",
       "full production delivery: Vercel, Sentry, Resend and a Tailwind design system.",
       "five-figure institutional contract with APSC (hong kong), with additional medical societies in negotiation. backed by vitruvius venture studio.",
@@ -108,11 +110,35 @@ export const projects: Project[] = [
       "structured as a local Swift package: a UI-free core and one module per tool behind a shared registry.",
       "every tool exposed through App Intents (12 actions, 10 shortcuts) and a share extension kept under its 120 MB memory limit.",
       "all processing on-device with no third-party dependencies. network tools block local-network targets (incl. NAT64/6to4). adaptive iPhone layouts.",
+      "keeps a “Data Not Collected” App Store privacy label.",
       "180+ unit/UI tests (Swift Testing, XCTest) under Swift 6 strict concurrency.",
     ],
     stack: ["Swift 6", "SwiftUI", "App Intents", "Swift Testing", "XCTest"],
     liveUrl: "/penknife",
     appStoreUrl: PENKNIFE_APP_STORE_URL,
+  },
+  {
+    slug: "brim-ap-automation",
+    title: "brim AP automation",
+    dates: "2026",
+    award: "codejam 16 honourable mention (brim fintech challenge, McGill ECSESS)",
+    blurb:
+      "accounts-payable platform that takes invoices from email or PDF through LLM extraction, fraud/tax controls, approvals, and simulated payment.",
+    metrics: [
+      { value: "426", label: "invoices replayed" },
+      { value: "$16.8k", label: "duplicate payments found" },
+      { value: "1,800+", label: "tests" },
+      { value: "4", label: "person team" },
+    ],
+    highlights: [
+      "led a 4-person team.",
+      "replaying 426 past invoices found $16.8k paid twice.",
+      "owned the data layer: an Alembic-versioned SQLAlchemy schema and a hash-chained audit log that detects any edit, insertion, or deletion.",
+      "built most of the React/TypeScript UI.",
+      "team test suite of 1,800+ tests.",
+    ],
+    stack: ["Python", "FastAPI", "SQLAlchemy", "Alembic", "React", "TypeScript", "Claude API"],
+    // No link yet: the brief's link was still a placeholder.
   },
   {
     slug: "ssmu-websites",
@@ -133,18 +159,19 @@ export const projects: Project[] = [
     slug: "openrobotics",
     title: "openrobotics",
     dates: "jan 2026 — may 2026",
-    blurb: "multi-robot warehouse simulator, built in a 7-person agile team.",
+    blurb: "JavaFX multi-robot warehouse simulator (RTA*, bug, greedy), built in an 8-person team.",
     metrics: [
-      { value: "4", label: "screens" },
-      { value: "5", label: "dialogs" },
-      { value: "7", label: "person team" },
+      { value: "8", label: "person team" },
+      { value: "1,800", label: "line CSS split" },
+      { value: "10", label: "stylesheets" },
+      { value: "10x", label: "playback" },
     ],
     highlights: [
-      "built the entire frontend: 4 screens and 5 dialogs.",
-      "scalable CSS architecture: a single theme.css importing base and per-screen partials, with a strict design-token system that eliminated inline styles from FXML.",
-      "brought intersections to full parity with the other entity types: hit detection, drag/move, copy/paste and canvas logging.",
+      "built the entire frontend of the simulator.",
+      "split a 1,800-line theme.css into 10 base and per-screen stylesheets, moving inline FXML styles into reusable classes.",
+      "built editor features: drag, copy/paste and undo/redo for intersections, JSON results export, 10x playback.",
     ],
-    stack: ["Java 21", "JavaFX", "FXML", "CSS", "Maven", "PostgreSQL", "Supabase"],
+    stack: ["Java 21", "JavaFX", "FXML", "CSS", "Maven", "Jackson", "PostgreSQL", "Supabase"],
     repoUrl: "https://github.com/novruzoff/OpenRobotics",
   },
   {

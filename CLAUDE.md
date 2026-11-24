@@ -74,7 +74,7 @@ Wire as CSS custom properties in `global.css`, exposed to Tailwind v4 via `@them
 **All rendered text is lowercase, written lowercase in the source.**
 
 - Write the lowercase letters in the markup and data. Don't produce it with `text-transform` — the source is the truth (what's read aloud, copied, indexed and grepped is what's shown).
-- Proper nouns and names are lowercase too: people, places, organizations and my own projects — "murad novruzov", "novruzoff", "true competency", "mindvista", "openrobotics", "vitruvius venture studio", "montreal", "hong kong", "azerbaijan republic broadcaster". Months too: "sep 2025 — present".
+- Proper nouns and names are lowercase too: people, places, organizations and my own projects — "murad novruzov", "novruzoff", "true competency", "mindvista", "openrobotics", "vitruvius venture studio", "montreal", "hong kong", "azerbaijan republic broadcaster", "brim", events like "codejam 16". Months too: "sep 2025 — present".
 - Section headers, nav labels and link labels are lowercase: "projects", "resume", "contact", "experience", "live", "repo".
 
 **Exceptions — these keep their own casing, written exactly as here:**
@@ -170,7 +170,7 @@ Header, panel grid, footer in one flex column. Five panels: **photo a · greetin
 #### Document pages
 
 - `/projects`, `/resume`, `/contact`, Penknife: `Header` + `<main class="wrap doc">` + `Footer`. `.doc`, `.doc-head` (h1, `.lead`, `.meta`) and `.prose` live in `global.css`. `.doc [id]` has a 76px `scroll-margin-top`, so `/projects#mindvista` lands 76px down, clear of the 52px sticky header (verified). Don't add `scroll-padding-top` to `html`: it stacks with the margin (the old home page's 32px did, landing anchors at 108px). No JS, no reveals; section rules are static.
-- **Project entries** (`ProjectRow`, /projects): title | dates on one line, a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.10:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
+- **Project entries** (`ProjectRow`, /projects): title | dates on one line, an optional award line under it (`.pe-award`: the date's own style, 12px `--text-tertiary`, no badge or colour), a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.10:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
 - Experience list: a vertical timeline (`<ol class="timeline">` of `.xp-node` items, most recent first): a 28px gutter (20px under 480px) holding a 9px dot, then role over company | date over location (right-aligned, tertiary). The dot is filled `--accent` when the role's `dates` contain "present" (`data-current`), otherwise a hollow 1px `--text-tertiary` ring. The 0.5px connector is trimmed to the dot on the first and last node. `ExperienceRow` (/resume) adds the bullets and a link to the role's `/projects#<slug>` entry under both columns. The link reads "view the <project title> project →", with the title taken from `projects.ts` and the arrow `aria-hidden`, so a screen reader hears the phrase, never the path; ARB has no project and no link, and under 480px moves date and location onto a line below the company (otherwise long company names break over four lines).
 - Inline lists with "·" separators (stack, skills) draw the dot **after** each item but the last, so a wrapped line never starts with a separator.
 
@@ -181,7 +181,7 @@ Routes:
 | URL | File | Notes |
 |---|---|---|
 | `/` | `src/pages/index.astro` | The panel homepage (see Layout → Home panel grid). Vibe only |
-| `/projects` | `src/pages/projects.astro` | Full depth on every project, in `projects.ts` order; each entry is `/projects#<slug>` |
+| `/projects` | `src/pages/projects.astro` | Full depth on every project, in `projects.ts` order (most significant first, not by date): true competency, mindvista, penknife, brim AP automation, SSMU websites, openrobotics, mymeetings. Each entry is `/projects#<slug>` (`#brim-ap-automation` for brim) |
 | `/resume` | `src/pages/resume.astro` | Lean: about, timeline with 1–2 bullets per role (linking to `/projects#<slug>`), skills, education |
 | `/contact` | `src/pages/contact.astro` | One line, the `mailto:` link, GitHub and LinkedIn |
 | `/penknife` | `src/pages/penknife/index.astro` | Penknife (iOS app) landing: one line, ten tools, links |
@@ -271,6 +271,7 @@ Static by design: no JS at all, no reveals, no scroll-driven motion. Each page i
   repoUrl?: string
   appStoreUrl?: string  // rendered as "App Store"
   caseStudyUrl?: string // for future case studies (/projects/[slug])
+  award?: string        // a recognition, shown as metadata under the title: "codejam 16 honourable mention (brim fintech challenge, McGill ECSESS)"
 }
 ```
 
@@ -330,7 +331,7 @@ Wrong voice:
 - **Social cards are generated, not drawn: `pnpm run og`** (`scripts/generate-og.mjs`) renders `public/og.png` and `public/og/{projects,resume,contact}.png`. **Re-run it after changing `projects.ts`, `experience.ts`, the homepage greeting/statement, the header links or the /contact copy, and commit the PNGs** (they're served from `public/`, not built). `pnpm run og -- --check` compares without writing and exits 1 if a card is out of date. Each run prints `unchanged` / `written` per card and never rewrites a byte-identical file.
   - **Automatic:** project titles and dates (`projects.ts`, shown as years: "sep 2025 — present" → "2025 — present", a range inside one year → that year) and roles and companies (`experience.ts`, the company cut at its parenthetical: "ARB (azerbaijan republic broadcaster)" → "ARB"). Node 24 imports the `.ts` files directly (type stripping); a small `registerHooks` resolve hook adds the `.ts` that the data files' extensionless imports leave out.
   - **Mirrored constants at the top of the script** (they live in `.astro` files Node can't import): the header links (`Header.astro`), the greeting and statement (`index.astro`), the contact line, email and handles (`contact.astro`), and the card byline. Change them alongside their source.
-  - **No npm dependency.** It writes each card as HTML with the Geist Mono woff2 files inlined as data URIs and screenshots it by running Chromium directly (`--headless --screenshot`, 1200×630, scale 1). Browser lookup: `CHROME_PATH`, then the newest `chrome-headless-shell` in Playwright's cache, then a system Chrome/Chromium. Byte-identical output needs the same Chromium build the committed cards came from (chrome-headless-shell 1248); a different build renders the same design with slightly different antialiasing, so `--check` would report every card as changed.
+  - **No npm dependency.** It writes each card as HTML with the Geist Mono woff2 files inlined as data URIs and screenshots it by running Chromium directly (`--headless --screenshot`, 1200×630, scale 1). Browser lookup: `CHROME_PATH`, then the newest `chrome-headless-shell` in Playwright's cache, then a system Chrome/Chromium. Byte-identical output needs a Chromium build that renders these cards the same way as the one the committed cards came from: chrome-headless-shell 1248 made them, and 1255 (picked up automatically after a Playwright cache update) reproduced all of them byte for byte. A build that antialiases differently would make `--check` report every card as changed; the design would be the same.
   - The card design (markup and CSS) lives in the script; change it there and regenerate every card. `robots.txt` points at `/sitemap-index.xml` (generated by `@astrojs/sitemap`).
 - Lighthouse performance: ≥ 92 mobile, ≥ 96 desktop. Measured (Lighthouse 12.6.1, headless Chromium, local preview): 100 / 100 / 100 / 100 on every page, mobile and desktop, homepage with placeholder media. Re-run once real photos and the loop land.
 - LCP: ≤ 2.0s on 4G.

@@ -148,7 +148,11 @@ Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-trigge
 
 - 0.5px borders only. Background layering creates hierarchy.
 - **Every page is full width.** `.wrap` (full width, `clamp(16px, 2vw, 24px)` side padding) is the one content-edge class, shared by the header, the footer and every `<main>`, home and document pages alike, so content starts under "novruzoff" and ends under the last nav link (measured 0px off at 320–1920px). There's no centred column any more (the old 828px `.wrap` and the separate `.wrap-wide` are gone).
-- **Readability caps inside the full width** (document pages): every direct child of `main.doc` stops at `--measure` (720px, close to the old column's 748px of content), left-aligned to the page edge, so the /resume timeline keeps role and date within reach and skills, education and /contact stay compact; paragraphs are capped tighter, at 70ch. The /projects card grid is the one block that opts out (`.doc > .project-grid { max-width: none }`) and uses the full width.
+- **Readability caps inside the full width** (document pages): every direct child of `main.doc` stops at `--measure` (720px), left-aligned to the page edge; paragraphs stop at 70ch. Three blocks opt out (`max-width: none`) and lay out across the full page edges instead:
+  - **/projects:** the card grid (1/2/3/4 columns).
+  - **/resume, from 1024px: two columns** (`.resume-grid`), about, skills and education on the left, the experience timeline on the right spanning all three rows (`grid-template-rows: auto auto 1fr`, so the left column stays packed at the top). **40/60** (`2fr 3fr`), then **50/50 from 1600px**, because at 60% the timeline would pass ~900px and pull each date away from its role (measured column widths: 377/565 at 1024, 534/801 at 1440, 900/900 at 1920). Gap `clamp(40px, 4vw, 72px)`. The DOM stays in reading order (about, experience, skills, education), which is also the single-column order below 1024px, each section capped at `--measure`. The skills label | items split follows the skills section's own width (container query: label beside items from 500px, above them below), so it stacks in the narrow left column at 1024 and on phones.
+  - **/contact, from 1024px: two equal columns** (`.contact-grid`): heading, line and email on the left, the links list on the right with its top hairline level with the heading. Single column below 1024px, capped at `--measure`.
+  - The 70ch paragraph cap still applies inside every column. The Penknife pages stay single-column with the 720px / 70ch caps: they're documents.
 - Header (`src/components/Header.astro`): sticky, 52px, 94% `--bg-page` + `backdrop-filter: blur(12px)` (94%, not more transparent, so its blue text holds 4.5:1 over anything scrolling beneath) with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 288px row).
 
 #### Home panel grid (`src/pages/index.astro`)
@@ -185,8 +189,8 @@ Routes:
 |---|---|---|
 | `/` | `src/pages/index.astro` | The panel homepage (see Layout → Home panel grid). Vibe only |
 | `/projects` | `src/pages/projects.astro` | A full-width grid of compact cards (see Document pages), in `projects.ts` order (most significant first, not by date): true competency, mindvista, penknife, brim AP automation, SSMU websites, openrobotics, mymeetings. Each card is `/projects#<slug>` (`#brim-ap-automation` for brim) and opens when linked to |
-| `/resume` | `src/pages/resume.astro` | Lean: about, timeline with 1–2 bullets per role (linking to `/projects#<slug>`), skills, education |
-| `/contact` | `src/pages/contact.astro` | One line, the `mailto:` link, GitHub and LinkedIn |
+| `/resume` | `src/pages/resume.astro` | Lean: about, timeline with 1–2 bullets per role (linking to `/projects#<slug>`), skills, education. Two columns from 1024px (see Layout) |
+| `/contact` | `src/pages/contact.astro` | One line, the `mailto:` link, GitHub, LinkedIn, Instagram and X. Two columns from 1024px (see Layout) |
 | `/penknife` | `src/pages/penknife/index.astro` | Penknife (iOS app) landing: one line, ten tools, links |
 | `/penknife/privacy` | `src/pages/penknife/privacy.astro` | App Store Privacy Policy URL. `EFFECTIVE_DATE` constant at the top |
 | `/penknife/support` | `src/pages/penknife/support.astro` | App Store Support URL. Contact + FAQ |
@@ -315,6 +319,7 @@ Wrong voice:
 ## Code conventions
 
 - If you start a dev or preview server to test or screenshot, stop it before you finish and report that you did. Never leave a server running on port 4321.
+- A long-running `astro dev` can serve a **stale component style module**: after a page's `<style>` block was rewritten, Vite's client swapped the old CSS back in and /projects collapsed to one column on the old dev server while a fresh one and the build were fine. If a layout looks wrong in dev, compare against a fresh `pnpm dev` or `pnpm build && pnpm preview` before changing code; restart the dev server to fix it.
 - TypeScript strict. No `any` without an explanatory comment.
 - Astro components for static structure. React only when interactivity is needed.
 - Prefer `class:list` (Astro) and `clsx` (React) for conditional classes over template literals.

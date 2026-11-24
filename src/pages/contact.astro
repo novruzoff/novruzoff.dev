@@ -29,12 +29,17 @@ const profiles = [
   <Header />
 
   <main class="wrap doc">
-    <header class="doc-head">
-      <h1>contact</h1>
-      <p class="lead">open to internships, contract work, and interesting problems.</p>
-    </header>
+    {/* One column below 1024px (heading, line, email, then the links), two
+        from 1024px: heading, line and email on the left, links on the right. */}
+    <div class="contact-grid">
+      <div class="contact-intro">
+        <header class="doc-head">
+          <h1>contact</h1>
+          <p class="lead">open to internships, contract work, and interesting problems.</p>
+        </header>
 
-    <a class="contact-email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+        <a class="contact-email" href={`mailto:${EMAIL}`}>{EMAIL}</a>
+      </div>
 
     <dl class="profiles">
       {
@@ -49,12 +54,39 @@ const profiles = [
         ))
       }
     </dl>
+    </div>
   </main>
 
   <Footer />
 </Layout>
 
 <style>
+  /* ── Layout ───────────────────────────────────────────────
+     Below 1024px: one column, each block capped at --measure like the
+     other document pages. From 1024px: two equal columns across the full
+     page edges, the intro (heading, line, email) on the left and the links
+     list on the right, its top hairline level with the heading. */
+  .doc > .contact-grid {
+    max-width: none;
+  }
+  .contact-grid > * {
+    max-width: var(--measure);
+  }
+  @media (min-width: 1024px) {
+    .contact-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+      column-gap: clamp(40px, 4vw, 72px);
+    }
+    .contact-grid > * {
+      max-width: none;
+    }
+    .contact-grid .profiles {
+      margin-top: 0;
+    }
+  }
+
   /* The email is the page's one action: bigger, blue, underlined. */
   .contact-email {
     margin-top: 28px;

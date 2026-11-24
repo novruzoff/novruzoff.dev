@@ -37,7 +37,12 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
       </p>
     </header>
 
-    <section class="section" aria-labelledby="about">
+    {/* Four sections in reading order (about, experience, skills,
+        education): that's the single-column order below 1024px and what
+        assistive tech gets. From 1024px the grid moves experience into a
+        right-hand column beside the other three (see the style below). */}
+    <div class="resume-grid">
+    <section class="section resume-about" aria-labelledby="about">
       <SectionHeader label="about" id="about" />
       <div class="prose">
         <p>
@@ -54,14 +59,14 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
       </div>
     </section>
 
-    <section class="section" aria-labelledby="experience">
+    <section class="section resume-xp" aria-labelledby="experience">
       <SectionHeader label="experience" id="experience" meta={`${experience.length} roles`} />
       <ol class="timeline">
         {experience.map((entry) => <ExperienceRow experience={entry} />)}
       </ol>
     </section>
 
-    <section class="section" aria-labelledby="skills">
+    <section class="section resume-skills" aria-labelledby="skills">
       <SectionHeader label="skills" id="skills" />
       <dl class="skills">
         {
@@ -79,7 +84,7 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
       </dl>
     </section>
 
-    <section class="section" aria-labelledby="education">
+    <section class="section resume-edu" aria-labelledby="education">
       <SectionHeader label="education" id="education" />
       <div class="education">
         <div class="edu-main">
@@ -89,12 +94,64 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
         <span class="edu-dates">{education.dates}</span>
       </div>
     </section>
+    </div>
   </main>
 
   <Footer />
 </Layout>
 
 <style>
+  /* ── Layout ───────────────────────────────────────────────
+     Below 1024px: one column in reading order, each section capped at
+     --measure like the rest of the document pages. From 1024px: two
+     columns across the full page edges (the same edges as the header and
+     the /projects grid): about, skills and education on the left,
+     experience on the right spanning all three rows. 40/60, then 50/50
+     from 1600px, where 60% would stretch the timeline past ~900px and
+     pull each date away from its role again. Paragraphs keep their 70ch
+     cap inside a column. */
+  .doc > .resume-grid {
+    max-width: none;
+  }
+  .resume-grid > .section {
+    max-width: var(--measure);
+  }
+  @media (min-width: 1024px) {
+    .resume-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      grid-template-areas:
+        "about  xp"
+        "skills xp"
+        "edu    xp";
+      /* The last row takes any spare height, so the left column stays
+         packed at the top when the timeline is the taller side. */
+      grid-template-rows: auto auto 1fr;
+      align-items: start;
+      column-gap: clamp(40px, 4vw, 72px);
+    }
+    .resume-grid > .section {
+      max-width: none;
+    }
+    .resume-about {
+      grid-area: about;
+    }
+    .resume-xp {
+      grid-area: xp;
+    }
+    .resume-skills {
+      grid-area: skills;
+    }
+    .resume-edu {
+      grid-area: edu;
+    }
+  }
+  @media (min-width: 1600px) {
+    .resume-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
   /* A link inside a line of text needs more than color to stand out (WCAG
      1.4.1): --accent vs the line's grey is only 1.15:1. The underline is
      the one the prose links use. */
@@ -118,9 +175,12 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
   .skills {
     margin-top: 16px;
   }
+  .resume-skills {
+    container-type: inline-size;
+  }
   .skills > div {
     display: grid;
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px 16px;
     align-items: baseline;
   }
@@ -146,9 +206,12 @@ import { skills, education, RESUME_PDF_URL } from "../data/resume";
     margin-inline: 8px;
     color: var(--text-tertiary);
   }
-  @media (max-width: 560px) {
+  /* Label beside items only when the section is wide enough: the skills
+     section can be the narrow left column (≈380px at 1024px) or a phone,
+     where the label sits above its items instead. */
+  @container (min-width: 500px) {
     .skills > div {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns: 200px minmax(0, 1fr);
     }
   }
 

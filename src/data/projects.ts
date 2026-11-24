@@ -138,6 +138,7 @@ export const projects: Project[] = [
       { value: "4", label: "person team" },
     ],
     highlights: [
+      "invoices come in by email or PDF and go through LLM extraction, fraud and tax controls, approvals, and simulated payment.",
       "led a 4-person team.",
       "replaying 426 past invoices found $16.8k paid twice.",
       "owned the data layer: an Alembic-versioned SQLAlchemy schema and a hash-chained audit log that detects any edit, insertion, or deletion.",
@@ -174,6 +175,7 @@ export const projects: Project[] = [
       { value: "10", label: "stylesheets" },
     ],
     highlights: [
+      "a multi-robot warehouse simulator supporting RTA*, bug and greedy algorithms.",
       "built the entire frontend of the simulator.",
       "split a 1,800-line theme.css into 10 base and per-screen stylesheets, moving inline FXML styles into reusable classes.",
       "built editor features: drag, copy/paste and undo/redo for intersections, JSON results export, 10x playback.",

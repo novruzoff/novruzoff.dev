@@ -13,12 +13,16 @@ export type Project = {
   dates: string;
   /** A recognition (e.g. a hackathon placing), shown as metadata under the title. */
   award?: string;
-  /** One sentence: what it is. */
+  /** The card's one-liner: what it is, in a few words. */
   blurb: string;
+  /** Strongest first: the card shows the first three, the rest sit in its details fold. */
   metrics?: Metric[];
-  /** The detail, one fact per bullet. Shown on /projects. */
+  /** The detail, one fact per bullet. Shown inside the card's details fold. */
   highlights?: string[];
+  /** Main technologies first: the card shows the first `stackOnCard`, the rest sit in the fold. */
   stack?: string[];
+  /** How many stack items the card face shows (default 4). */
+  stackOnCard?: number;
   liveUrl?: string;
   appStoreUrl?: string;
   repoUrl?: string;
@@ -36,19 +40,21 @@ export type Project = {
 // private (github.com/novruzoff/MyMeetings returns 404), so it ships
 // without one rather than with a 404.
 //
-// Order is deliberate (most significant first), not by date.
+// Order is deliberate (most significant first), not by date. Within each
+// project, metrics and stack are ordered strongest / most central first,
+// because the /projects card shows only the first few (see ProjectCard.astro).
 export const projects: Project[] = [
   {
     slug: "true-competency",
     title: "true competency",
     dates: "sep 2025 — present",
     blurb:
-      "production competency-tracking platform for interventional cardiology training, built solo.",
+      "cardiology training platform, built solo",
     metrics: [
-      { value: "50", label: "clinician profiles" },
-      { value: "300", label: "assessment questions" },
       { value: "99.9%", label: "uptime" },
       { value: "five-figure", label: "APSC contract" },
+      { value: "50", label: "clinician profiles" },
+      { value: "300", label: "assessment questions" },
     ],
     highlights: [
       "role-based dashboards for trainees, instructors and committees, with authorization at the database layer via PostgreSQL RLS.",
@@ -61,8 +67,8 @@ export const projects: Project[] = [
       "Next.js",
       "TypeScript",
       "Supabase (PostgreSQL + RLS)",
-      "Tailwind",
       "Vercel",
+      "Tailwind",
       "Sentry",
       "Resend",
     ],
@@ -72,12 +78,12 @@ export const projects: Project[] = [
     slug: "mindvista",
     title: "mindvista",
     dates: "nov 2024 — present",
-    blurb: "student wellness platform for McGill, migrated off legacy WordPress.",
+    blurb: "McGill wellness platform, rebuilt off WordPress",
     metrics: [
+      { value: "−97%", label: "infrastructure cost" },
       { value: "54→92", label: "Lighthouse SEO" },
       { value: "7.9s→3.2s", label: "LCP" },
       { value: "4.9s→1.6s", label: "speed index" },
-      { value: "−97%", label: "infrastructure cost" },
     ],
     highlights: [
       "lead a 3-person team.",
@@ -86,9 +92,9 @@ export const projects: Project[] = [
     stack: [
       "Next.js",
       "Payload CMS",
-      "Tailwind",
       "Neon (PostgreSQL)",
       "AWS S3",
+      "Tailwind",
       "Docker",
       "Vercel",
     ],
@@ -100,7 +106,7 @@ export const projects: Project[] = [
     title: "penknife",
     dates: "2026",
     blurb:
-      "free, privacy-first native iOS utility toolkit: 10 on-device tools in Swift 6 / SwiftUI for iOS 26+.",
+      "native iOS toolkit, 10 on-device tools",
     metrics: [
       { value: "10", label: "on-device tools" },
       { value: "12", label: "App Intents actions" },
@@ -114,6 +120,7 @@ export const projects: Project[] = [
       "180+ unit/UI tests (Swift Testing, XCTest) under Swift 6 strict concurrency.",
     ],
     stack: ["Swift 6", "SwiftUI", "App Intents", "Swift Testing", "XCTest"],
+    stackOnCard: 3,
     liveUrl: "/penknife",
     appStoreUrl: PENKNIFE_APP_STORE_URL,
   },
@@ -123,10 +130,10 @@ export const projects: Project[] = [
     dates: "2026",
     award: "codejam 16 honourable mention (brim fintech challenge, McGill ECSESS)",
     blurb:
-      "accounts-payable platform that takes invoices from email or PDF through LLM extraction, fraud/tax controls, approvals, and simulated payment.",
+      "accounts-payable platform, led a 4-person team",
     metrics: [
-      { value: "426", label: "invoices replayed" },
       { value: "$16.8k", label: "duplicate payments found" },
+      { value: "426", label: "invoices replayed" },
       { value: "1,800+", label: "tests" },
       { value: "4", label: "person team" },
     ],
@@ -137,14 +144,14 @@ export const projects: Project[] = [
       "built most of the React/TypeScript UI.",
       "team test suite of 1,800+ tests.",
     ],
-    stack: ["Python", "FastAPI", "SQLAlchemy", "Alembic", "React", "TypeScript", "Claude API"],
+    stack: ["Python", "FastAPI", "React", "Claude API", "SQLAlchemy", "Alembic", "TypeScript"],
     // No link yet: the brief's link was still a placeholder.
   },
   {
     slug: "ssmu-websites",
     title: "SSMU websites",
     dates: "jul 2025 — may 2026",
-    blurb: "production websites for McGill student clubs, on SSMU's servers.",
+    blurb: "club websites for McGill's student society",
     metrics: [
       { value: "20", label: "sites built" },
       { value: "250+", label: "sites maintained" },
@@ -159,12 +166,12 @@ export const projects: Project[] = [
     slug: "openrobotics",
     title: "openrobotics",
     dates: "jan 2026 — may 2026",
-    blurb: "JavaFX multi-robot warehouse simulator (RTA*, bug, greedy), built in an 8-person team.",
+    blurb: "JavaFX warehouse robot simulator",
     metrics: [
-      { value: "8", label: "person team" },
       { value: "1,800", label: "line CSS split" },
-      { value: "10", label: "stylesheets" },
       { value: "10x", label: "playback" },
+      { value: "8", label: "person team" },
+      { value: "10", label: "stylesheets" },
     ],
     highlights: [
       "built the entire frontend of the simulator.",
@@ -178,11 +185,11 @@ export const projects: Project[] = [
     slug: "mymeetings",
     title: "mymeetings",
     dates: "mar 2026 — may 2026",
-    blurb: "office-hours and meeting booking platform for the McGill SCS competition.",
+    blurb: "office-hours booking platform, McGill SCS competition",
     highlights: [
       "JWT auth in httpOnly cookies, McGill-domain validation and RBAC.",
       "recurring slots, group polls, and iCal export reconciling legacy and interval schemas.",
     ],
-    stack: ["React", "Vite", "Tailwind", "Express 5", "Node.js", "MongoDB"],
+    stack: ["React", "Express 5", "Node.js", "MongoDB", "Vite", "Tailwind"],
   },
 ];

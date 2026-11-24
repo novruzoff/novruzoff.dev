@@ -23,11 +23,6 @@ type Props = {
   links?: HeaderLink[];
   /** Accessible name of the <nav> landmark. */
   label?: string;
-  /**
-   * Span the full viewport width (.wrap-wide) instead of the 828px document
-   * column. Only the home page, whose panel grid is full-bleed.
-   */
-  wide?: boolean;
 };
 
 const DEFAULT_LINKS: HeaderLink[] = [
@@ -36,14 +31,14 @@ const DEFAULT_LINKS: HeaderLink[] = [
   { label: "contact", href: "/contact" },
 ];
 
-const { links = DEFAULT_LINKS, label = "Primary", wide = false } = Astro.props;
+const { links = DEFAULT_LINKS, label = "Primary" } = Astro.props;
 
 const pathname = Astro.url.pathname.replace(/(\/index)?\.html$/, "") || "/";
 const current = (href: string) => (href === pathname ? "page" : undefined);
 ---
 
 <header class="site-header">
-  <nav class:list={[wide ? "wrap-wide" : "wrap", "site-header-inner"]} aria-label={label}>
+  <nav class="wrap site-header-inner" aria-label={label}>
     <a class="site-header-name" href="/" aria-current={current("/")}>novruzoff</a>
     <ul class="site-header-links">
       {/* Label kept on the <a> line: surrounding whitespace would render

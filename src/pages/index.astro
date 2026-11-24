@@ -119,9 +119,9 @@ const PHOTO_B_CROPS: PanelCrop[] = [
 
 <Layout>
   <div class="home">
-    <Header wide />
+    <Header />
 
-    <main class="wrap-wide home-main">
+    <main class="wrap home-main">
       <div class="panels">
         <div class="panel panel-media panel-a" style="--i: 0">
           {
@@ -203,7 +203,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
       </div>
     </main>
 
-    <Footer wide />
+    <Footer flush />
   </div>
 
   {/* Inside <Layout> so it renders in <body>; after it would land past </html>. */}
@@ -459,7 +459,7 @@ const PHOTO_B_CROPS: PanelCrop[] = [
     .home-main {
       padding-bottom: 12px;
     }
-    /* No outer frame: the grid's outer edges are the .wrap-wide content
+    /* No outer frame: the grid's outer edges are the .wrap content
        edges, the same as the header's ("novruzoff" on the left, the last
        link on the right). Each panel keeps its own 0.5px frame. */
     .panels {

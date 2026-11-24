@@ -13,12 +13,12 @@ type FooterLink = { label: string; href: string; external?: boolean };
 
 type Props = {
   /**
-   * Span the full viewport width (.wrap-wide) and drop the top margin and
-   * hairline. Only the home page, where the footer closes the panel grid.
+   * Drop the top margin and hairline. Only the home page, where the footer
+   * sits straight under the panel grid. (Every page's footer is full width.)
    */
-  wide?: boolean;
+  flush?: boolean;
 };
-const { wide = false } = Astro.props;
+const { flush = false } = Astro.props;
 
 const links: FooterLink[] = [
   { label: "email", href: "mailto:murad@novruzoff.dev" },
@@ -29,8 +29,8 @@ const links: FooterLink[] = [
 ];
 ---
 
-<footer class:list={["site-footer", { "is-wide": wide }]}>
-  <div class:list={[wide ? "wrap-wide" : "wrap", "site-footer-inner"]}>
+<footer class:list={["site-footer", { "is-flush": flush }]}>
+  <div class="wrap site-footer-inner">
     <ul class="site-footer-links">
       {
         links.map((link) => (
@@ -54,7 +54,7 @@ const links: FooterLink[] = [
     border-top: 0.5px solid var(--border-subtle);
   }
   /* Home: the panel grid's frame already closes the page above. */
-  .site-footer.is-wide {
+  .site-footer.is-flush {
     margin-top: 0;
     border-top: 0;
   }

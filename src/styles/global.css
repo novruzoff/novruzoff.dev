@@ -151,6 +151,9 @@
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Max width of a document page's blocks (see .doc > *). */
+  --measure: 720px;
+
   color-scheme: dark;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
@@ -202,17 +205,11 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-/* Shared content column: document pages' <main>, header and footer. */
+/* Every page's content edges: full width with this side padding, shared
+   by the header, footer and every <main> (home panels and document
+   pages alike), so content lines up with "novruzoff" on the left and the
+   last nav link on the right. Readability caps live inside it (.doc). */
 .wrap {
-  width: 100%;
-  max-width: 828px;
-  margin-inline: auto;
-  padding-inline: clamp(20px, 4vw, 40px);
-}
-
-/* Full-bleed variant for the home page, whose panel grid spans the
-   viewport: header, panels and footer share this side padding. */
-.wrap-wide {
   width: 100%;
   padding-inline: clamp(16px, 2vw, 24px);
 }
@@ -386,6 +383,15 @@ a {
   padding-top: clamp(40px, 7vw, 72px);
 }
 
+/* Document pages run full width, but their blocks stop at --measure
+   (720px, close to the old 828px column's 748px of content), left-aligned
+   to the page edge: the /resume timeline keeps role and date within reach,
+   skills and education follow it, /contact stays compact. Paragraphs are
+   capped tighter still (.prose p). The /projects card grid opts out. */
+.doc > * {
+  max-width: var(--measure);
+}
+
 .doc .section {
   padding-block: clamp(36px, 5vw, 48px) 0;
 }
@@ -419,8 +425,9 @@ a {
 .prose {
   margin-top: 16px;
 }
+/* ~70 characters per line (mono: 1ch is exactly one character). */
 .prose p {
-  max-width: 62ch;
+  max-width: 70ch;
   font-size: 15px;
   line-height: 1.7;
   color: var(--text-secondary);

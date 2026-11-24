@@ -115,7 +115,7 @@ Not converted yet: the Penknife pages' body copy (sentence case, US English; the
 
 Hierarchy:
 - **Base / body:** 14px, 400, line-height 1.6.
-- **Long-form prose** (Penknife pages): 15px, line-height 1.7, max ~62–64ch.
+- **Long-form prose** (/resume about, Penknife pages): 15px, line-height 1.7, **max 70ch** (`.prose p`, Penknife's `.terms` and `.faq`; in mono 1ch is exactly one character, so ~70 characters per line).
 - **Metadata (dates, tertiary labels):** 11–12px, 400, `--text-tertiary`.
 - **Header:** name `novruzoff` 14px/600 `--text-primary`; links 13px/400 `--text-secondary` (12px under 400px).
 - **Footer:** 12px.
@@ -147,12 +147,13 @@ Small and specific. No GSAP, no smooth scroll, no scroll-driven or scroll-trigge
 ### Layout
 
 - 0.5px borders only. Background layering creates hierarchy.
-- Content column: `.wrap`, `max-width: 828px` including `clamp(20px, 4vw, 40px)` side padding (748px of content at desktop). Shared by the document pages' `<main>`, header and footer. The home page uses `.wrap-wide` instead (full width, `clamp(16px, 2vw, 24px)` side padding), and so do its header and footer (`wide` prop).
-- Header (`src/components/Header.astro`): sticky, 52px, 94% `--bg-page` + `backdrop-filter: blur(12px)` (94%, not more transparent, so its blue text holds 4.5:1 over anything scrolling beneath) with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 280px row).
+- **Every page is full width.** `.wrap` (full width, `clamp(16px, 2vw, 24px)` side padding) is the one content-edge class, shared by the header, the footer and every `<main>`, home and document pages alike, so content starts under "novruzoff" and ends under the last nav link (measured 0px off at 320–1920px). There's no centred column any more (the old 828px `.wrap` and the separate `.wrap-wide` are gone).
+- **Readability caps inside the full width** (document pages): every direct child of `main.doc` stops at `--measure` (720px, close to the old column's 748px of content), left-aligned to the page edge, so the /resume timeline keeps role and date within reach and skills, education and /contact stay compact; paragraphs are capped tighter, at 70ch. The /projects card grid is the one block that opts out (`.doc > .project-grid { max-width: none }`) and uses the full width.
+- Header (`src/components/Header.astro`): sticky, 52px, 94% `--bg-page` + `backdrop-filter: blur(12px)` (94%, not more transparent, so its blue text holds 4.5:1 over anything scrolling beneath) with a 0.5px `--border-subtle` hairline. Stays on one line down to 320px: 13px links with 16px gaps; 12px with 12px gaps under 400px; the `/` prefixes drop under 360px (the widest set, the three Penknife links, measures 270px there against a 288px row).
 
 #### Home panel grid (`src/pages/index.astro`)
 
-Header, panel grid, footer in one flex column. Five panels: **photo a · greeting · video · statement · photo b**. Every panel has its own 0.5px `--border-subtle` frame, with a 12px gap between panels. **There's no outer frame** around the grid: its outer edges are the `.wrap-wide` content edges, so they line up exactly with the header's ("novruzoff" on the left, the last nav link on the right; measured 0.00–0.02px at every layout). The page chrome around the locked grid (header, the 12px above and below, footer) is ~139px.
+Header, panel grid, footer in one flex column. Five panels: **photo a · greeting · video · statement · photo b**. Every panel has its own 0.5px `--border-subtle` frame, with a 12px gap between panels. **There's no outer frame** around the grid: its outer edges are the `.wrap` content edges, so they line up exactly with the header's ("novruzoff" on the left, the last nav link on the right; measured 0.00–0.02px at every layout). The page chrome around the locked grid (header, the 12px above and below, footer) is ~139px.
 
 | Viewport | Layout |
 |---|---|
@@ -170,7 +171,9 @@ Header, panel grid, footer in one flex column. Five panels: **photo a · greetin
 #### Document pages
 
 - `/projects`, `/resume`, `/contact`, Penknife: `Header` + `<main class="wrap doc">` + `Footer`. `.doc`, `.doc-head` (h1, `.lead`, `.meta`) and `.prose` live in `global.css`. `.doc [id]` has a 76px `scroll-margin-top`, so `/projects#mindvista` lands 76px down, clear of the 52px sticky header (verified). Don't add `scroll-padding-top` to `html`: it stacks with the margin (the old home page's 32px did, landing anchors at 108px). No JS, no reveals; section rules are static.
-- **Project entries** (`ProjectRow`, /projects): title | dates on one line, an optional award line under it (`.pe-award`: the date's own style, 12px `--text-tertiary`, no badge or colour), a one-line summary, metric tiles (`repeat(auto-fill, minmax(150px, 1fr))`: two per row at 375px, four at desktop; value 17px/600 in `--accent` on `--bg-elevated`, 5.10:1; label 11px tertiary), detail bullets with a hanging decorative "-", the stack, then links in `--accent`. Entries are separated by a hairline; no cards, no hover lift.
+- **/projects is a grid of compact cards** (`src/components/ProjectCard.astro`), full width: 1 column under 640px, 2 from 640px, 3 from 1024px, 4 from 1600px, 12px gaps, `align-items: start` so opening one card never stretches the others in its row. Each card, top to bottom: title (16px/600); the date line and, for brim, the award line (12px `--text-tertiary`); the **one-liner** (`blurb`); up to **three metrics** (the first three of `metrics`, as value | label rows in an elevated 0.5px box, values `--accent` 600 on `--bg-elevated`, 5.10:1); the **main stack** (the first `stackOnCard` items, default 4); the links (live / App Store / repo, always visible, `--accent`); then a native **`<details>` fold** ("+ details" / "− details", a decorative marker; no JS for the toggle) holding the bullets, plus "more numbers" for any metrics past the third and "also" for the rest of the stack, so nothing on a project is lost. There are no summary paragraphs. Cards use the panels' 0.5px `--border-subtle` frame with no fill.
+  - **One-liners** (casing per Case): true competency "cardiology training platform, built solo" · mindvista "McGill wellness platform, rebuilt off WordPress" · penknife "native iOS toolkit, 10 on-device tools" · brim AP automation "accounts-payable platform, led a 4-person team" · SSMU websites "club websites for McGill's student society" · openrobotics "JavaFX warehouse robot simulator" · mymeetings "office-hours booking platform, McGill SCS competition".
+  - **Deep links:** each card is `id={slug}`. An inline script at the end of projects.astro (396 B raw, 238 B gzipped; the only JS on any document page) opens the fold of the card `location.hash` names and scrolls it into view (on load and on `hashchange`), so the /resume links land on an open card 76px down, below the sticky header. Verified for all three /resume links at 1440 and 375.
 - Experience list: a vertical timeline (`<ol class="timeline">` of `.xp-node` items, most recent first): a 28px gutter (20px under 480px) holding a 9px dot, then role over company | date over location (right-aligned, tertiary). The dot is filled `--accent` when the role's `dates` contain "present" (`data-current`), otherwise a hollow 1px `--text-tertiary` ring. The 0.5px connector is trimmed to the dot on the first and last node. `ExperienceRow` (/resume) adds the bullets and a link to the role's `/projects#<slug>` entry under both columns. The link reads "view the <project title> project →", with the title taken from `projects.ts` and the arrow `aria-hidden`, so a screen reader hears the phrase, never the path; ARB has no project and no link, and under 480px moves date and location onto a line below the company (otherwise long company names break over four lines).
 - Inline lists with "·" separators (stack, skills) draw the dot **after** each item but the last, so a wrapped line never starts with a separator.
 
@@ -181,14 +184,14 @@ Routes:
 | URL | File | Notes |
 |---|---|---|
 | `/` | `src/pages/index.astro` | The panel homepage (see Layout → Home panel grid). Vibe only |
-| `/projects` | `src/pages/projects.astro` | Full depth on every project, in `projects.ts` order (most significant first, not by date): true competency, mindvista, penknife, brim AP automation, SSMU websites, openrobotics, mymeetings. Each entry is `/projects#<slug>` (`#brim-ap-automation` for brim) |
+| `/projects` | `src/pages/projects.astro` | A full-width grid of compact cards (see Document pages), in `projects.ts` order (most significant first, not by date): true competency, mindvista, penknife, brim AP automation, SSMU websites, openrobotics, mymeetings. Each card is `/projects#<slug>` (`#brim-ap-automation` for brim) and opens when linked to |
 | `/resume` | `src/pages/resume.astro` | Lean: about, timeline with 1–2 bullets per role (linking to `/projects#<slug>`), skills, education |
 | `/contact` | `src/pages/contact.astro` | One line, the `mailto:` link, GitHub and LinkedIn |
 | `/penknife` | `src/pages/penknife/index.astro` | Penknife (iOS app) landing: one line, ten tools, links |
 | `/penknife/privacy` | `src/pages/penknife/privacy.astro` | App Store Privacy Policy URL. `EFFECTIVE_DATE` constant at the top |
 | `/penknife/support` | `src/pages/penknife/support.astro` | App Store Support URL. Contact + FAQ |
 
-**The homepage carries no substance; /projects carries the depth; /resume does not repeat it.** A resume bullet is one line with at most a couple of numbers, then the link to the project entry. Put new detail on the project, not the role. The sub-pages ship no JS and pass `personSchema={false}` (the Person JSON-LD stays on `/`; the sub-pages have no JSON-LD).
+**The homepage carries no substance; /projects carries the depth (on the cards and in their folds); /resume does not repeat it.** A resume bullet is one line with at most a couple of numbers, then the link to the project entry. Put new detail on the project, not the role. The sub-pages ship no JS except /projects' 238-byte card-opening script, and pass `personSchema={false}` (the Person JSON-LD stays on `/`; the sub-pages have no JSON-LD).
 
 Old home anchors (`/#work`, `/#experience`, `/#about`, `/#contact`) no longer exist; fragments never reach the server, so they can't be redirected. They land on the homepage.
 
@@ -223,10 +226,10 @@ Optional at build time: `index.astro` finds each file with `import.meta.glob`, s
 
 ### Shared chrome
 
-- **Header** (`src/components/Header.astro`, every page, Penknife included). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). `wide` swaps the 828px `.wrap` column for the full-width `.wrap-wide` (home only). No script: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
+- **Header** (`src/components/Header.astro`, every page, Penknife included). `novruzoff` on the left, linking to `/`; a link list on the right from the `links` prop (default: projects, resume, contact; the Penknife pages pass `PENKNIFE_NAV` from `src/data/penknife.ts`). `label` names the `<nav>` landmark (default "Primary"; Penknife passes "Penknife"). Always full width (`.wrap`); there's no width prop. No script: plain links, native keyboard behavior. Links have 6px block padding so each target is ~33px tall (WCAG 2.5.8).
   - **Colour:** everything (name, links, their `/`) is `--accent` at rest and `--text-primary` on hover and `:focus-visible`, like jonahseguin.com's single-colour chrome.
   - **Current page:** `aria-current="page"` on whichever link's `href` equals the page's served URL (the name link included, on `/`), and that link is **underlined**, since colour can't mark it any more. The underline is the site's thin link-underline shape (1px, offset 5px) but in `--accent` itself, not the 35% `--accent-border`: it's the only cue for the state, so it needs 3:1 (WCAG 1.4.11), and `--accent` is 5.41:1 where `--accent-border` is 1.67:1. The `/` is `inline-block` so the underline covers the word only.
-- **Footer** (`src/components/Footer.astro`, every page): **links only, centred**, in this order: `email` (`mailto:murad@novruzoff.dev`), `github`, `linkedin`, `instagram`, `x`. No copyright line. Plain words with 16px between them, no separators; all `--accent`, hover/focus `--text-primary`. Centred at every width with `justify-content: center` on the wrapping flex list, which centres each line on its own: the five links are 273px at 12px, so they stay on one line down to 320px (4px to spare each side on the document pages' 280px row), and anything narrower wraps onto a second, also centred, line (verified at 300 and 260px: 0px off-centre per line). `wide` (home only) uses `.wrap-wide` and drops the top margin and hairline, since the panel grid's frame closes the page.
+- **Footer** (`src/components/Footer.astro`, every page): **links only, centred**, in this order: `email` (`mailto:murad@novruzoff.dev`), `github`, `linkedin`, `instagram`, `x`. No copyright line. Plain words with 16px between them, no separators; all `--accent`, hover/focus `--text-primary`. Centred at every width with `justify-content: center` on the wrapping flex list, which centres each line on its own: the five links are 273px at 12px, so they stay on one line down to 320px (8px to spare each side at 320px), and anything narrower wraps onto a second, also centred, line (verified at 300 and 260px: 0px off-centre per line). Always full width (`.wrap`). `flush` (home only) drops the top margin and hairline, since the footer sits straight under the panel grid.
 - **Social profiles** (footer, /contact, and the homepage Person JSON-LD `sameAs`): GitHub `github.com/novruzoff`, LinkedIn `linkedin.com/in/novruzovmurad`, Instagram `instagram.com/novruzoffmurad`, X `x.com/novruzoffmurad`. /contact shows each as label + readable address; the contact social card lists the same four (`CONTACT_HANDLES` in `scripts/generate-og.mjs`).
 - Keep link labels on the same line as their `<a>` tag in the header: whitespace inside the link renders as a gap after the CSS `/`.
 
@@ -263,10 +266,11 @@ Static by design: no JS at all, no reveals, no scroll-driven motion. Each page i
   slug: string          // also the id on /projects: /projects#<slug>
   title: string         // "true competency", "SSMU websites"
   dates: string
-  blurb: string         // one sentence: what it is
-  metrics?: { value: string; label: string }[]  // scannable tiles: { value: "99.9%", label: "uptime" }
+  blurb: string         // the card's one-liner (a few words; no summary paragraph anywhere)
+  metrics?: { value: string; label: string }[]  // strongest first: the card shows 3, the rest go in its fold
   highlights?: string[] // the detail, one fact per bullet
-  stack?: string[]      // vendor casing: "Next.js", "Supabase (PostgreSQL + RLS)"
+  stack?: string[]      // vendor casing, main technologies first: the card shows `stackOnCard`, the rest go in its fold
+  stackOnCard?: number  // how many stack items the card face shows (default 4; penknife 3)
   liveUrl?: string
   repoUrl?: string
   appStoreUrl?: string  // rendered as "App Store"
@@ -275,7 +279,7 @@ Static by design: no JS at all, no reveals, no scroll-driven motion. Each page i
 }
 ```
 
-Only include URLs that resolve publicly; omit a link rather than ship a 404 (MyMeetings' repo is private, so it has none). **Exception: Instagram and X** block automated requests (a login wall or an error for bots), so a failed fetch there isn't a dead link; the two handles are confirmed by Murad and stay even if a link checker flags them. `ProjectRow` renders every link present ("case study", "live", "App Store", "repo"). Absolute `http(s)` links open in a new tab; site-relative ones (`/penknife`) don't.
+Only include URLs that resolve publicly; omit a link rather than ship a 404 (MyMeetings' repo is private, so it has none). **Exception: Instagram and X** block automated requests (a login wall or an error for bots), so a failed fetch there isn't a dead link; the two handles are confirmed by Murad and stay even if a link checker flags them. `ProjectCard` renders every link present on the card face ("case study", "live", "App Store", "repo"). Absolute `http(s)` links open in a new tab; site-relative ones (`/penknife`) don't.
 
 ### Experience (`src/data/experience.ts`)
 ```ts
@@ -316,14 +320,14 @@ Wrong voice:
 - Prefer `class:list` (Astro) and `clsx` (React) for conditional classes over template literals.
 - File naming: kebab-case for files, PascalCase for component exports.
 - Import order: external libs → Astro/React → local components → utils → types → styles.
-- Co-locate component CSS in scoped `<style>` blocks (Header, Footer, ProjectRow, ExperienceRow and the pages do); shared document styles live in `global.css`. No Tailwind utilities (scanning is off; see Color system).
+- Co-locate component CSS in scoped `<style>` blocks (Header, Footer, ProjectCard, ExperienceRow and the pages do); shared document styles live in `global.css`. No Tailwind utilities (scanning is off; see Color system).
 - Prefer `sticky` over `fixed` when possible.
 - No `localStorage`/`sessionStorage` in islands without a clear reason.
 - Motion code is vanilla JS in Astro `<script>` blocks, or CSS. If GSAP is ever adopted, it lives in React islands, not Astro components.
 
 ## Performance budgets
 
-- Total JS shipped: ≤ 60 KB gzipped. Currently **553 B gzipped** (969 B raw), all of it the homepage video script, inlined by Astro. Every other page ships no JS. No GSAP, React or Lenis is installed.
+- Total JS shipped: ≤ 60 KB gzipped. Currently **553 B gzipped** (969 B raw), the homepage video script, inlined by Astro, plus /projects' 238 B card-opening script. Every other page ships no JS. No GSAP, React or Lenis is installed.
 - Web fonts: Geist Mono 400 (9.7 KB) and 600 (9.8 KB); only the 600 is preloaded.
 - CSS: one shared stylesheet, 12.2 KB raw / 3.3 KB gzipped (was 18.3 / 4.5 KB before utilities scanning was turned off and the compact rows were removed).
 - Homepage transfer without media: ~26 KB gzipped (HTML 3.0 KB, CSS 3.3 KB, fonts 19.5 KB, favicon). Media adds roughly: photo a 40–150 KB at the served size, photo b similar (desktop only, lazy), poster ≤ 50 KB, loop ≤ 1 MB WebM after `load`.

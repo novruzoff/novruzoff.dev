@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: 128px minmax(0, 1fr);
   gap: 12px 24px;
-  max-width: 62ch;
+  max-width: 70ch; /* same line length as .prose p */
 }
 .terms dt {
   font-size: 15px;
@@ -130,7 +130,7 @@
 
 .faq {
   margin-top: 20px;
-  max-width: 62ch;
+  max-width: 70ch; /* same line length as .prose p */
 }
 .faq > div + div {
   margin-top: 24px;

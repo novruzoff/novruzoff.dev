@@ -17,6 +17,7 @@ Personal portfolio for Murad Novruzov. CS student at McGill (expected May 2027),
 - GSAP: **removed** (never used). All motion is vanilla (WAAPI, IntersectionObserver, CSS).
 - No smooth-scroll library (Lenis was removed with the old home page): native scrolling everywhere.
 - Deployed on Vercel
+- **Version** (`package.json`): the major number is the design generation. 1.x was the first site (May–Nov 2026: animated amber hero, sentence case); **2.0.0** is the panel redesign (Geist Mono, lowercase, two muted blues). Bump the minor for new pages, sections or features, the patch for fixes and copy changes, and the major only for the next redesign.
 - Domain: novruzoff.dev
 
 ## Design direction

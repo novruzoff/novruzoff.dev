@@ -53,7 +53,7 @@ export const projects: Project[] = [
     metrics: [
       { value: "99.9%", label: "uptime" },
       { value: "five-figure", label: "APSC contract" },
-      { value: "50", label: "clinician profiles" },
+      { value: "100", label: "clinician profiles" },
       { value: "300", label: "assessment questions" },
     ],
     highlights: [

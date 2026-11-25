@@ -20,7 +20,7 @@ export const experience: Experience[] = [
     dates: "sep 2025 — present",
     location: "montreal, canada",
     highlights: [
-      "sole developer of a production cardiology-training platform (50 clinician profiles, 99.9% uptime).",
+      "sole developer of a production cardiology-training platform (100 clinician profiles, 99.9% uptime).",
       "five-figure APSC contract; backed by vitruvius venture studio.",
     ],
     projectSlug: "true-competency",

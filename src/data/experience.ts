@@ -31,7 +31,7 @@ export const experience: Experience[] = [
     dates: "nov 2024 — present",
     location: "montreal, canada",
     highlights: [
-      "lead a 3-person team.",
+      "leading a 3-person team.",
       "migrated off WordPress (Lighthouse SEO 54→92, infrastructure cost −97%).",
     ],
     projectSlug: "mindvista",

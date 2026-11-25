@@ -86,7 +86,7 @@ export const projects: Project[] = [
       { value: "4.9s→1.6s", label: "speed index" },
     ],
     highlights: [
-      "lead a 3-person team.",
+      "leading a 3-person team.",
       "migrated the platform off legacy WordPress.",
     ],
     stack: [
